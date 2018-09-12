@@ -9,7 +9,7 @@
 #
 ##
 echo "pacstrap.sh -"
-if [ -z "$HOST" || "$HOST" == "archiso" ]; then
+if [[ -z "$HOST" || "$HOST" == "archiso" ]]; then
     echo "Error: Hostname is required for pacstrap."
     echo "Usage: HOST=<hostname> pacstrap.sh"
     exit 1

@@ -2,7 +2,7 @@
 
 There are two parts to this project wrapped in a single command line:
 
-`curl https://.../pacstrap.sh | bash -- hostname` to go from a brand new
+`HOST=hostname curl https://.../pacstrap.sh | bash` to go from a brand new
 machine with no OS on it to a fully partitioned, configured, and running
 machine.
 

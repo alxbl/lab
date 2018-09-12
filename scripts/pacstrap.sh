@@ -9,13 +9,13 @@
 #
 ##
 echo "pacstrap.sh -"
-if [ -z "$1" ]; then
+if [ -z "$HOST" || "$HOST" == "archiso" ]; then
     echo "Error: Hostname is required for pacstrap."
-    echo "Usage: pacstrap.sh <hostname>"
+    echo "Usage: HOST=<hostname> pacstrap.sh"
     exit 1
 fi
 
-echo "Hostname: $1"
+echo "Hostname: $HOST"
 
 # Check if host specific file exists.
 # Check if curl exists

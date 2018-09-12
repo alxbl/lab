@@ -1,0 +1,8 @@
+[NetDev]
+Name=qemu0
+Description=QEMU NAT bridge interface.
+Kind=bridge
+MACAddress=52:54:00:7e:31:42
+
+[Bridge]
+STP=1

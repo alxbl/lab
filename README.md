@@ -1,8 +1,6 @@
 # Configuration and Bootstrapping Framework
 
-There are two parts to this project wrapped in a single command line:
-
-`HOST=hostname curl https://.../pacstrap.sh | bash` to go from a brand new
+`curl -sSf https://.../pacstrap.sh | HOST=hostname sh` to go from a brand new
 machine with no OS on it to a fully partitioned, configured, and running
 machine.
 
@@ -10,6 +8,7 @@ Keep in mind that these scripts have been tailored specifically to my needs and
 that the pacstrap portion of it assumes that it is fine to wipe the harddrives
 clean. **Do not run this without reading through the scripts first.**
 
+There are two parts to this project wrapped in a single command line:
 
 ## 1. Bootstrap a machine from Arch Linux Live USB
 

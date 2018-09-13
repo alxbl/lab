@@ -6,8 +6,8 @@ Documentation=man:dnsmasq(8)
 [Service]
 Type=dbus
 BusName=uk.org.thekelleys.dnsmasq
-ExecStartPre=/usr/bin/dnsmasq --conf-file /var/lib/dnsmasq/%i.conf --test
-ExecStart=/usr/bin/dnsmasq -k --conf-file /var/lib/dnsmasq/%i.conf --enable-dbus --user=dnsmasq --pid-file
+ExecStartPre=/usr/bin/dnsmasq --test --conf-file=/var/lib/dnsmasq/%i.conf
+ExecStart=/usr/bin/dnsmasq -k --conf-file=/var/lib/dnsmasq/%i.conf --enable-dbus --user=dnsmasq --pid-file
 ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]

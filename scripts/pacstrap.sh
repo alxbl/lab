@@ -76,7 +76,7 @@ pac_prepare_disk
 
 echo "[+] Installing base packages"
 pacstrap /mnt base base-devel zsh git ansible vim sudo
-echo '%wheel ALL=(ALL) ALL' >> /etc/sudoers
+echo '%wheel ALL=(ALL) ALL' >> /mnt/etc/sudoers
 
 echo  "[+] Generating fstab"
 genfstab -U /mnt >> /mnt/etc/fstab
@@ -89,6 +89,7 @@ cp /hooks.sh "$PAC"
 # FIXME: Secure random?
 ROOTPW="$(cat /proc/sys/kernel/random/uuid)"
 
+# TODO: Make a temporary ramfs to avoid dumping credentials to disk during install
 echo "[+] chroot to /mnt"
 cat >/mnt/provision.sh <<EOF
 source /hooks.sh
@@ -109,8 +110,8 @@ $ROOTPW
 END
 
 echo "[+] Creating user"
-useradd alex -m -G wheel
-passwd alex <<END
+useradd $USER -m -G wheel
+passwd $USER <<END
 $PASSWD
 $PASSWD
 END

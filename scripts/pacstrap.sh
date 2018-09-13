@@ -23,13 +23,13 @@ echo "Specific: $SPEC"
 echo "---------------"
 
 echo -n "Main user: "
-read USER
+read USER </dev/tty
 echo
 echo -n "Choose a password: "
-read -s _P1
+read -s _P1 </dev/tty
 echo
 echo -n "Confirm: "
-read -s _P2
+read -s _P2 </dev/tty
 echo
 
 if [[ -z "$USER" ]]; then
@@ -90,7 +90,7 @@ cp /hooks.sh "$PAC"
 ROOTPW="$(cat /proc/sys/kernel/random/uuid)"
 
 echo "[+] chroot to /mnt"
-cat > /mnt/provision.sh <<EOF
+cat >/mnt/provision.sh <<EOF
 source /hooks.sh
 pac_in_chroot
 echo "[+] Configuring locale to en_CA.UTF-8"
@@ -116,9 +116,8 @@ $PASSWD
 END
 
 pac_do_bootloader
-
-exit
 EOF
+
 arch-chroot /mnt /mnt/provision.sh
 
 unset ROOTPW
@@ -133,6 +132,5 @@ echo "If you are paranoid, arch-chroot /mnt passwd root"
 echo "and change the root password to something you control"
 echo "It is now possible to login with $USER and sudo as usual."
 echo "Safe to reboot..."
-
 
 

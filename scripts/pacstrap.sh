@@ -120,6 +120,15 @@ pac_do_bootloader
 
 cat >"/home/$USER/.ansible-init"  <<END
 echo "[+] pacstrap.sh: fresh install detected."
+
+echo "[+] Waiting for network..."
+while ; do
+    ping -c1 -W1 8.8.8.8
+    if [ $? -eq 0 ]; then
+        break
+    fi
+done
+
 echo "[+] Pulling ansible repository."
 ansible-pull -U https://github.com/alxbl/config -d /tmp/ansible -i hosts playbook.yml
 echo "[+] ==> Success. Cleaning up."

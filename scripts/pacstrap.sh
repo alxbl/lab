@@ -122,7 +122,7 @@ cat >"/home/$USER/.ansible-init"  <<END
 echo "[+] pacstrap.sh: fresh install detected."
 
 echo "[+] Waiting for network..."
-while ; do
+while : ; do
     ping -c1 -W1 8.8.8.8
     if [ $? -eq 0 ]; then
         break

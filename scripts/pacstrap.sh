@@ -126,7 +126,7 @@ echo "[+] ==> Success. Cleaning up."
 sed -i -e '/^.*# PACSTRAP$/d' .bashrc
 rm ~/.ansible-init
 END
-chown $USER:$USER .ansible-init
+chown $USER:$USER "/HOME/$USER/.ansible-init"
 
 # TODO: Can't run systemctl from chroot => ansible-pull is broken.
 echo 'source .ansible-init # PACSTRAP' >> "/home/$USER/.bashrc"

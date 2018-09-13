@@ -37,6 +37,9 @@ EOF
 # Called when entering the arch-chroot
 function pac_in_chroot {
     echo "[+] HOOK: pac_in_chroot"
+    echo "[+] Enable dhcpcd"
+    ln -s /usr/lib/systemd/system/dhcpcd.service \
+        /etc/systemd/system/multi-user.target.wants/dhcpcd.service
 }
 
 function pac_do_bootloader {

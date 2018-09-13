@@ -5,6 +5,8 @@ function pac_prepare_disk {
     # This is destructive. Format the disk to GPT
 
     echo "[+] Partitioning /dev/sda"
+
+    # TODO: There must be a better way to do this...
     sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/'  <<EOF | gdisk /dev/sda >/dev/null
 o     # New GPT
 Y     # In case there is already a GPT partition
@@ -39,6 +41,17 @@ function pac_in_chroot {
 
 function pac_do_bootloader {
     echo "[+] HOOK: pac_do_bootloader"
+    pacman --noconfirm -S efibootmgr
+    PARTID="$(blkid /dev/sda2 -o value | tail -1)"
+    echo "[+] Root partition UUID: /dev/sda2: $PARTID"
+    efibootmgr \
+        --disk /dev/sda \
+        --part 1 \
+        --create \
+        --label 'Arch Linux' \
+        --loader /vmlinuz-linux \
+        --unicode "root=PARTUUID=$PARTID rw initrd=\\initramfs-linux.img" --verbose
+
 }
 
 

@@ -46,22 +46,21 @@ unset _P1
 unset _P2
 
 if [ -z "$1" ]; then
-    echo -n "[+] Sourcing host-specific settings... "
-    C=$(curl -s $SPEC)
+    echo -n "[+] Resolving host-specific hooks... "
+    curl -sSf $SPEC > /hooks.sh
     if [ $? -ne 0 ]; then
-        echo "\nError: Could not retrieve host-specific settings. Is this a known host?"
+        echo "\nError: Could not retrieve hooks settings. Is this a known host?"
         exit 127
     fi
     echo "ok"
 
 else
-    echo "[+] Sourcing locally"
-    C=$(<"$1")
+    echo "[+] Getting hooks locally from $1"
+    cp "$1" /hooks.sh
 fi
 
-# Shield your eyes now: This puts the functions in the script's scope.
-# TODO: Could drop to disk instead since it needs to be moved to /mnt anyway
-eval "$C"
+# Read in the host specific hooks.
+source /hooks.sh
 
 echo -n "[+] Checking for UEFI... "
 if [ ! -d /sys/firmware/efi/efivars ]; then
@@ -84,15 +83,15 @@ genfstab -U /mnt >> /mnt/etc/fstab
 
 
 # Hacky way to get the handlers inside the chroot
-PAC="/mnt/pac_handler.sh"
-echo "$C" >> "$PAC"
+PAC="/mnt/hooks.sh"
+cp /hooks.sh "$PAC"
 
 # FIXME: Secure random?
 ROOTPW="$(cat /proc/sys/kernel/random/uuid)"
 
 echo "[+] chroot to /mnt"
-cat <<EOF | arch-chroot /mnt
-source /pac_handler.sh
+cat > /mnt/provision.sh <<EOF
+source /hooks.sh
 pac_in_chroot
 echo "[+] Configuring locale to en_CA.UTF-8"
 sed -i -e 's/#en_CA.UTF-8/en_CA.UTF-8/' /etc/locale.gen
@@ -103,7 +102,7 @@ echo "[+] Setting hostname to $HOST"
 echo "$HOST" > /etc/hostname
 echo "127.0.0.1        $HOST.localdomain $HOST" >> /etc/hosts
 
-echo "[+] Restrict Root
+echo "[+] Set root password."
 passwd root <<END
 $ROOTPW
 $ROOTPW
@@ -120,10 +119,11 @@ pac_do_bootloader
 
 exit
 EOF
+arch-chroot /mnt /mnt/provision.sh
 
 unset ROOTPW
 unset PASSWD
-rm /mnt/pac_handler.sh # Clean up the bootstrap script
+rm /mnt/{provision,hooks}.sh
 
 # TODO: Can't run systemctl from chroot => ansible-pull is broken.
 #       Maybe a transient service that runs once at boot?

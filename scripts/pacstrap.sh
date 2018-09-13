@@ -127,12 +127,24 @@ unset PASSWD
 rm /mnt/{provision,hooks}.sh
 
 # TODO: Can't run systemctl from chroot => ansible-pull is broken.
+cat >"/mnt/home/$USER/.ansible-init"  <<EOF
+echo "[+] pacstrap.sh: fresh install detected."
+echo "[+] Pulling ansible repository."
+ansible-pull -U https://github.com/alxbl/config -d /tmp/.ansible -i hosts playbook.yml
+echo "[+] ==> Success. Cleaning up."
+sed -i -e '/^.*# PACSTRAP$/d' .bashrc
+rm ~/.ansible-init
+EOF
+echo 'source .ansible-init # PACSTRAP' >> "/mnt/home/$USER/.bashrc"
+
 #       Maybe a transient service that runs once at boot?
 #
-echo "Done."
-echo "If you are paranoid, arch-chroot /mnt passwd root"
+echo "==> Done."
+echo "NOTE: If you are paranoid, arch-chroot /mnt passwd root"
 echo "and change the root password to something you control"
 echo "It is now possible to login with $USER and sudo as usual."
+echo "[!] ansible-pull will run automatically on your first logon."
+echo
 echo "Safe to reboot..."
 
 

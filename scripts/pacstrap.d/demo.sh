@@ -44,6 +44,9 @@ function pac_do_bootloader {
     pacman --noconfirm -S efibootmgr
     PARTID="$(blkid /dev/sda2 -o value | tail -1)"
     echo "[+] Root partition UUID: /dev/sda2: $PARTID"
+    # TODO: Clean up existing 'Arch Linux' entries
+    # TODO: Set boot order? Goes to first by default.
+    # efibootmgr | grep 'Arch Linux' | awk ... + for to destroy existing labels.
     efibootmgr \
         --disk /dev/sda \
         --part 1 \

@@ -118,6 +118,7 @@ END
 pac_do_bootloader
 EOF
 
+chmod +x /mnt/provision.sh
 arch-chroot /mnt /provision.sh
 
 unset ROOTPW

@@ -1,0 +1,21 @@
+---
+- name: Install development environment
+  pacman:
+    name:
+      - tmux
+      - python
+      - python2
+      - ipython
+      - ipython2
+      - ruby
+      - nodejs
+      - npm
+      - vim
+      - ranger
+      - neovim
+      - python-neovim
+      - python2-neovim
+      - tcpdump
+      - docker
+      - lxc
+

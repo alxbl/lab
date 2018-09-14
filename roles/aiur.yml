@@ -6,3 +6,11 @@
 - name: Install firefox
   pacman:
     name: firefox,flashplugin
+
+################################################################################
+# Software
+################################################################################
+- name: Baseline software
+  pacman:
+    name:
+      - gnome

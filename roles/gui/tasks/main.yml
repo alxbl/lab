@@ -1,0 +1,13 @@
+---
+- name: Install graphical user interface
+  pacman:
+    name:
+      - gdm
+      - gnome
+      - gnome-tweaks
+
+- name: Enable graphical boot
+  service:
+    name: gdm
+    enabled: true
+    state: started

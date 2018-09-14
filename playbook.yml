@@ -13,6 +13,7 @@
 
 - name: 'Role - Hypervisor'
   hosts: hypervisor
+  become: true
   roles:
     - hypervisor
 

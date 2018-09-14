@@ -1,0 +1,43 @@
+---
+    - name: Install virtualization packages
+      pacman:
+        name: qemu,ovmf,dnsmasq,libvirt
+
+    # dnsmasq
+    - name: Configure dnsmasq
+      copy:
+        src:  files/dnsmasq
+        dest: /var/lib/dnsmasq
+
+    - name: Install dnsmasq service
+      copy:
+        src: files/dnsmasq@.service
+        dest: /usr/lib/systemd/system/dnsmasq@.service
+      notify:
+        - restart dnsmasq
+
+    - name: Configure network bridge
+      copy:
+        src: files/qemu0/
+        dest: /usr/lib/systemd/network
+      notify:
+          - restart networkd
+
+    - name: Enable dnsmasq
+      service:
+        name: dnsmasq@qemu0
+        enabled: true
+        state: started
+
+    - name: Enable libvirtd
+      service:
+        name: libvirtd
+        enabled: true
+        state: started
+
+    - name: Enable virtlogd
+      service:
+        name: virtlogd
+        enabled: true
+        state: started
+

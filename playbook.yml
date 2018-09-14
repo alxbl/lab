@@ -1,86 +1,29 @@
 ---
-# ---
-# - name: upgrade host
+# Before anything else, make sure the system is up to date.
+# TODO: On secure boot systems this will break kernel updates.
+# - name: Upgrade System
 #   hosts: all
 #   become: yes
 #   tasks:
-#     - name: full system upgrade
+#     - name: Pacman -Syu
 #       pacman:
 #         update_cache: yes
 #         upgrade: yes
-# ---
-- name: configure qemu NAT interface
-  hosts: aiur
-  become: yes
-  vars:
-    iface: 'qemu0'
 
+
+- name: 'Role - Hypervisor'
+  hosts: hypervisor
+  roles:
+    - hypervisor
+
+# Run tasks specific to this host if they exist.
+- name: Host-specific tasks
+  hosts: all
   tasks:
-    - name: install virtualization packages
-      pacman:
-        name: qemu,ovmf,dnsmasq,libvirt
+    - name: Load task list
+      include_tasks: '{{ item }}'
+      with_first_found:
+        - files:
+          - 'roles/{{ inventory_hostname }}.yml'
+          skip: true
 
-    # dnsmasq
-    - name: configure dnsmasq
-      copy:
-        src:  files/common/dnsmasq
-        dest: /var/lib/dnsmasq
-
-    - name: install dnsmasq service
-      copy:
-        src: files/common/dnsmasq@.service
-        dest: /usr/lib/systemd/system/dnsmasq@.service
-      notify:
-        - restart dnsmasq
-
-    - name: configure network bridge
-      copy:
-        src: files/common/qemu0/
-        dest: /usr/lib/systemd/network
-      notify:
-          - restart networkd
-
-    - name: enable dnsmasq
-      service:
-        name: dnsmasq@qemu0
-        enabled: true
-        state: started
-
-    - name: enable libvirtd
-      service:
-        name: libvirtd
-        enabled: true
-        state: started
-
-    - name: enable virtlogd
-      service:
-        name: virtlogd
-        enabled: true
-        state: started
-
-
-  handlers:
-    - name: restart networkd
-      service:
-        name: systemd-networkd
-        state: restarted
-    - name: restart dnsmasq
-      service:
-        name: dnsmasq@qemu0
-        state: restarted
-
-
-# TODO: Per host
-# - name: configure firewall
-
-- name: provision user software
-  hosts: aiur
-  become: yes
-  tasks:
-    - name: install firefox
-      pacman:
-        name: firefox,flashplugin
-    - name: blacklist nouveau drivers
-      copy:
-          content: 'blacklist nouveau'
-          dest: /etc/modprobe.d/10-nouveau.conf

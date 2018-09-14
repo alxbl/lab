@@ -1,0 +1,9 @@
+---
+- name: restart networkd
+  service:
+    name: systemd-networkd
+    state: restarted
+- name: restart dnsmasq
+  service:
+    name: dnsmasq@qemu0
+    state: restarted

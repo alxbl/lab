@@ -1,0 +1,8 @@
+---
+- name: Blacklist nouveau drivers
+  copy:
+      content: 'blacklist nouveau'
+      dest: /etc/modprobe.d/10-nouveau.conf
+- name: Install firefox
+  pacman:
+    name: firefox,flashplugin

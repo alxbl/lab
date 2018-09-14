@@ -1,5 +1,23 @@
-[workstations]
-aiur ansible_connection=local
+aiur
 tarsonis
 segfault
 moria
+
+[workstation]
+aiur
+tarsonis
+segfault
+moria
+
+[gui]
+aiur
+
+[server]
+segfault
+tarsonis
+moria
+
+
+[hypervisor]
+aiur
+

@@ -4,24 +4,32 @@
 #
 # From live USB to fully running system in "one" command.  This script evals
 # shell scripts from the internet (my git repository) Do not run it as is
-# unless you know what you are doing and trust me.
+# unless you know what you are doing and/or trust me.
 #
+# This script will load an extra file called $HOST.sh and source it. This extra
+# file contains function hooks that will be called at different points during
+# the system installation to customize the installation per system.
+# For details, see pacstrap.d/_template.sh
+################################################################################
+
+# Ansible Repository for ansible-pull
+REPO="https://github.com/alxbl/config"
+# Base path for scripts
 BASE="https://raw.githubusercontent.com/alxbl/config/master/scripts"
 
-echo "[+] pacstrap.sh"
-if [[ -z "$HOST" || "$HOST" == "archiso" ]]; then
-    echo "Error: Hostname is required for pacstrap."
-    echo "Usage: HOST=<hostname> pacstrap.sh"
-    exit 1
-fi
+# Retrieve configuration
+################################################################################
+# Get hostname
+while : ; do
+    if [[ -z "$HOST" || "$HOST" == "archiso" ]]; then
+        echo -n "Hostname: "
+        read HOST
+    fi
+    break
+done
+SPEC="$BASE/pacstrap.d/$HOST.sh?$(date +%s)"
 
-# TODO: Cache busting?
-SPEC="$BASE/pacstrap.d/$HOST.sh"
-echo "Base URL: $BASE"
-echo "Hostname: $HOST"
-echo "Specific: $SPEC"
-echo "---------------"
-
+# Get main user and password
 echo -n "Main user: "
 read USER </dev/tty
 echo
@@ -45,6 +53,17 @@ PASSWD="$_P1"
 unset _P1
 unset _P2
 
+# Print summary of configuration
+################################################################################
+echo "-- Summary ----"
+echo "Scripts:    $BASE"
+echo "Hostname:   $HOST"
+echo "Settings:   $BASE/pacstrap.d/$HOST.sh"
+echo "Ansible:    $REPO"
+echo "---------------"
+
+# Retrieve host configuration
+################################################################################
 if [ -z "$1" ]; then
     echo -n "[+] Resolving host-specific hooks... "
     curl -sSf $SPEC > /hooks.sh
@@ -53,46 +72,48 @@ if [ -z "$1" ]; then
         exit 127
     fi
     echo "ok"
-
 else
     echo "[+] Getting hooks locally from $1"
     cp "$1" /hooks.sh
 fi
 
-# Read in the host specific hooks.
-source /hooks.sh
+source /hooks.sh # Load hooks
 
+################################################################################
+# INSTALL SCRIPT
+################################################################################
 echo -n "[+] Checking for UEFI... "
 if [ ! -d /sys/firmware/efi/efivars ]; then
     echo "error"
-    echo "This script only supports UEFI installs right now."
+    echo "[E] This script only supports UEFI installs right now."
     exit 42
 else
     echo "ok"
 fi
 
 echo "[+] Preparing disk(s)"
-pac_prepare_disk
+pac_prepare_disk # HOOK
 
-echo "[+] Installing base packages"
+echo "[+] Installing base system"
 pacstrap /mnt base base-devel zsh git ansible vim sudo
+echo "[+] Add wheel group to sudoers"
 echo '%wheel ALL=(ALL) ALL' >> /mnt/etc/sudoers
 
 echo  "[+] Generating fstab"
 genfstab -U /mnt >> /mnt/etc/fstab
 
+echo "[+] Mounting tmpfs for provisioning scripts"
+mount -t tmpfs -o size=1M /mnt/mnt
 
-# Hacky way to get the handlers inside the chroot
-PAC="/mnt/hooks.sh"
-cp /hooks.sh "$PAC"
+# Copy provisioning scripts inside the chroot
+################################################################################
+cp /hooks.sh "/mnt/mnt/hooks.sh"
 
-# FIXME: Secure random?
-ROOTPW="$(cat /proc/sys/kernel/random/uuid)"
-
-# TODO: Make a temporary ramfs to avoid dumping credentials to disk during install
-echo "[+] chroot to /mnt"
-cat >/mnt/provision.sh <<EOF
-source /hooks.sh
+# This phase is the script that must run in the chroot
+# provision.sh will briefly contain the raw password for $USER but it
+# resides on a tmpfs so it will never touch disk and be wiped at reboot.
+cat >"/mnt/mnt/provision.sh" <<EOF
+source /mnt/hooks.sh
 pac_in_chroot
 echo "[+] Configuring locale to en_CA.UTF-8"
 sed -i -e 's/#en_CA.UTF-8/en_CA.UTF-8/' /etc/locale.gen
@@ -103,25 +124,23 @@ echo "[+] Setting hostname to $HOST"
 echo "$HOST" > /etc/hostname
 echo "127.0.0.1        $HOST.localdomain $HOST" >> /etc/hosts
 
-echo "[+] Set root password."
-passwd root <<END
-$ROOTPW
-$ROOTPW
-END
-
-echo "[+] Creating user"
+echo "[+] Creating user: $USER"
 useradd $USER -m -G wheel
 passwd $USER <<END
 $PASSWD
 $PASSWD
 END
 
+echo "[+] Disable root login"
+passwd -l root
+
+echo "[+] Configure boot loader"
 pac_do_bootloader
 
+echo "[+] Configure ansible to run on first login."
 cat >"/home/$USER/.ansible-init"  <<END
 echo "[+] pacstrap.sh: fresh install detected."
-
-echo "[+] Waiting for network..."
+echo "[+] Waiting for network... (Ctrl+C to abort and retry on next login)"
 while : ; do
     ping -c1 -W1 8.8.8.8
     if [ $? -eq 0 ]; then
@@ -135,25 +154,30 @@ echo "[+] ==> Success. Cleaning up."
 sed -i -e '/^.*# PACSTRAP$/d' .bashrc
 rm ~/.ansible-init
 END
-chown $USER:$USER "/HOME/$USER/.ansible-init"
 
-# TODO: Can't run systemctl from chroot => ansible-pull is broken.
+chown $USER:$USER "/home/$USER/.ansible-init"
 echo 'source .ansible-init # PACSTRAP' >> "/home/$USER/.bashrc"
 EOF
-
-chmod +x /mnt/provision.sh
-arch-chroot /mnt /provision.sh
-
-unset ROOTPW
 unset PASSWD
-rm /mnt/{provision,hooks}.sh
+
+echo "[+] chroot to /mnt to continue installation"
+chmod +x /mnt/mnt/provision.sh
+arch-chroot /mnt /mnt/provision.sh
+
+# Clean up
+################################################################################
+rm /mnt/mnt/{provision,hooks}.sh # Technically not necessary.
+umount /mnt/mnt # unmount tmpfs
 
 echo "==> Done."
 echo "NOTE: If you are paranoid, arch-chroot /mnt passwd root"
 echo "and change the root password to something you control"
 echo "It is now possible to login with $USER and sudo as usual."
-echo "[!] ansible-pull will run automatically on your first logon."
-echo
-echo "Safe to reboot..."
+echo "   - Root login has been disabled"
+echo "   - ansible-pull will run on first logon with $USER"
+
+pac_after_install
+
+echo "It is now safe to reboot..."
 
 

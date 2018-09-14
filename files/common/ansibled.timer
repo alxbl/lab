@@ -1,0 +1,11 @@
+[Unit]
+Description=Runs ansible-pull at boot and twice per day
+
+[Timer]
+OnBootSec=1min
+OnCalendar=0/12:00:00
+RandomizedDelaySec=1h
+
+[Install]
+WantedBy=timers.target
+

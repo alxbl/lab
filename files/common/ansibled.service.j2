@@ -1,0 +1,8 @@
+[Unit]
+Name=ansibled
+Description=Synchronizes system configuration with master configuration repository
+
+[Service]
+Type=oneshot
+ExecStart=ansible-pull -d {{ ansible_pull_dir }} -U {{ ansible_pull_url }} -i {{ ansible_pull_hosts }}  {{ ansible_pull_playbook }}
+

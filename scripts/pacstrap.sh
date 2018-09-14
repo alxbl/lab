@@ -97,7 +97,7 @@ pac_prepare_disk # HOOK
 echo "[+] Installing base system"
 pacstrap /mnt base base-devel zsh git ansible vim sudo
 echo "[+] Add wheel group to sudoers"
-echo '%wheel ALL=(ALL) ALL' >> /mnt/etc/sudoers
+echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /mnt/etc/sudoers
 
 echo  "[+] Generating fstab"
 genfstab -U /mnt >> /mnt/etc/fstab

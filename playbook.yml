@@ -10,9 +10,36 @@
 #         update_cache: yes
 #         upgrade: yes
 
+- name: 'Enable ansible-pull periodically'
+  become: true
+  hosts: pull_config
+  vars:
+    ansible_pull_dir: '/var/tmp/ansible'
+    ansible_pull_url: 'https://github.com/alxbl/config'
+    ansible_pull_hosts: 'hosts'
+    ansible_pull_playbook: 'playbook.yml'
+  tasks:
+    - name: Configure ansible service
+      template:
+        src: files/common/ansibled.service.j2
+        dest: /usr/lib/systemd/system/ansibled.service
+        owner: root
+        groups: root
+        mode: 0644
+    - name: Configure ansible timer
+      block:
+        - copy:
+            src: files/common/ansibled.timer
+            dest: /usr/lib/systemd/system/ansibled.timer
+            owner: root
+            groups: root
+            mode: 0644
+        - service:
+            name: ansibled.timer
+            enabled: true
+            state: started
 
-- name: 'Role - Hypervisor'
-  hosts: hypervisor
+- hosts: hypervisor
   become: true
   roles:
     - hypervisor

@@ -25,11 +25,16 @@
           notify:
             - restart networkd
 
-        - service:
+        - name: Enable dnsmasq
+          service:
             name: dnsmasq@qemu0
             enabled: true
             state: started
-          name: Enable dnsmasq
+
+        - name: Create hosts file
+          file:
+            path: /var/lib/dnsmasq/qemu0.hosts
+            state: touch
 
     - name: Configure libvirtd
       block:

@@ -46,6 +46,8 @@ COMMIT
 # Accept DNS (port 53) and DHCP (port 67) packets from VMs.
 -A INPUT -i qemu0 -p udp -m udp -m multiport --dports 53,67 -j ACCEPT
 -A INPUT -i qemu0 -p tcp -m tcp -m multiport --dports 53,67 -j ACCEPT
+# Allow guests-host connectivity on port 4000
+-A INPUT -i qemu0 -p tcp -m tcp -m multiport --dports 4000 -j ACCEPT
 
 # Reject everything else.
 -A INPUT -m conntrack --ctstate INVALID -j DROP

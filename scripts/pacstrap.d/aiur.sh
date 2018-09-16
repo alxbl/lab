@@ -52,14 +52,8 @@ EOF
 
     echo "[+] Setting up full disk encryption"
     read_pass "[!] Encryption passphrase (do NOT forget): "
-    cryptsetup luksFormat --type luks2 "${DISK}p2" <<EOF
-YES
-$PASSWD
-$PASSWD
-EOF
-    cryptsetup open "${DISK}p2" $CROOT <<EOF
-$PASSWD
-EOF
+    echo -n $PASSWD | cryptsetup luksFormat --type luks2 "${DISK}p2" -
+    echo $PASSWD | cryptsetup open "${DISK}p2" $CROOT
     unset PASSWD # forget the passphrase.
 
     echo "[+] Creating volume group lvm0 on ${DISK}p2"

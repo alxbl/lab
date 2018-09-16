@@ -115,6 +115,8 @@ cp /hooks.sh "/mnt/mnt/hooks.sh"
 cat >"/mnt/mnt/provision.sh" <<EOF
 source /mnt/hooks.sh
 pac_in_chroot
+echo "[+] Setting timezone to Americas/Montreal"
+ln -sf /usr/share/zoneinfo/America/Montreal /etc/localtime
 echo "[+] Configuring locale to en_CA.UTF-8"
 sed -i -e 's/#en_CA.UTF-8/en_CA.UTF-8/' /etc/locale.gen
 locale-gen

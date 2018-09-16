@@ -77,7 +77,7 @@ EOF
 # Called when entering the arch-chroot
 function pac_in_chroot {
     echo "[+] Install NetworkManager"
-    pacman --noconfirm -S networkmanager sbsigntools
+    pacman --noconfirm -S archlinux-keyring networkmanager sbsigntools
 
     echo "[+] Rebuild initcpio with encryption support"
     sed -i -e \ 's/^HOOKS=.*/HOOKS=(base udev autodetect modconf block filesystems keyboard keymap encrypt lvm2 fsck)/' /etc/mkinitcpio.conf
@@ -98,12 +98,12 @@ function pac_do_bootloader {
 
     # TODO Need root= when using cryptdevice? Will find out soon.
     efibootmgr \
-        --disk /dev/sda \
+        --disk /dev/nvme0n1 \
         --part 1 \
         --create \
         --label 'Arch Linux' \
         --loader /vmlinuz-linux \
-        --unicode "cryptdevice=UUID=$UUID:$CROOT root=PARTUUID=$PARTUUID rw initrd=\\initramfs-linux.img" --verbose
+        --unicode "cryptdevice=UUID=$UUID:$CROOT rw initrd=\\initramfs-linux.img" --verbose
 }
 
 

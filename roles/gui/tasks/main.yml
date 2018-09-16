@@ -5,6 +5,12 @@
       - gdm
       - gnome
       - gnome-tweaks
+      - termite
+      - chromium
+      - ttf-droid
+      - noto-fonts
+      - noto-fonts-cjk
+      - noto-fonts-emoji
 
 - name: Enable graphical boot
   service:

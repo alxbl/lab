@@ -45,7 +45,7 @@ EOF
 
     mkfs.fat "${DISK}p1" # ESP
 
-    echo "[+] Securely wiping disk..."
+    # echo "[+] Securely wiping disk..."
     # cryptsetup open --type plain -d /dev/urandom "${DISK}p2" wipe
     # dd if=/dev/zero of=/dev/mapper/wipe bs=1M status=progress
     # cryptsetup close wipe
@@ -60,7 +60,7 @@ EOF
     pvcreate /dev/mapper/$CROOT
     vgcreate lvm0 /dev/mapper/$CROOT
     lvcreate -L 8G lvm0 -n swap
-    lvcreate -l 100%FREE -n root
+    lvcreate -l 100%FREE lvm0 -n root
 
     mkswap /dev/lvm0/swap
     mkfs.ext4 /dev/lvm0/root

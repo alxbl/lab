@@ -26,7 +26,7 @@
         src: files/common/ansibled.service.j2
         dest: /usr/lib/systemd/system/ansibled.service
         owner: root
-        groups: root
+        group: root
         mode: 0644
     - name: Configure ansible timer
       block:
@@ -35,7 +35,7 @@
             src: files/common/ansibled.timer
             dest: /usr/lib/systemd/system/ansibled.timer
             owner: root
-            groups: root
+            group: root
             mode: 0644
         - name: Enable timer
           service:

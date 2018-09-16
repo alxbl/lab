@@ -7,16 +7,9 @@
     - name: Configure dnsmasq
       block:
         - copy:
-            src:  files/dnsmasq
+            src:  files/dnsmasq/
             dest: /var/lib/dnsmasq
           name: Configure dnsmasq
-
-        - copy:
-            src: files/dnsmasq@.service
-            dest: /usr/lib/systemd/system/dnsmasq@.service
-          name: Enable dnsmasq
-          notify:
-            - restart dnsmasq
 
         - copy:
             src: files/qemu0/
@@ -25,16 +18,25 @@
           notify:
             - restart networkd
 
+        - name: Create hosts file
+          file:
+            path: /var/lib/dnsmasq/qemu0.hosts
+            state: touch
+
+        - copy:
+            src: files/dnsmasq@.service
+            dest: /usr/lib/systemd/system/dnsmasq@.service
+          name: Enable dnsmasq
+          notify:
+            - restart dnsmasq
+
+
         - name: Enable dnsmasq
           service:
             name: dnsmasq@qemu0
             enabled: true
             state: started
 
-        - name: Create hosts file
-          file:
-            path: /var/lib/dnsmasq/qemu0.hosts
-            state: touch
 
     - name: Configure libvirtd
       block:

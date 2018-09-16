@@ -6,8 +6,8 @@ function read_pass {
         echo -n "$1"
         read -s _P1 </dev/tty
         echo
-        echo -n "Confirm: " </dev/tty
-        read -s _P2
+        echo -n "Confirm: "
+        read -s _P2 </dev/tty
         echo
         if [[ -z "$_P1" || "$_P1" != "$_P2" ]]; then
             echo "Try again..."
@@ -46,9 +46,9 @@ EOF
     mkfs.fat "${DISK}p1" # ESP
 
     echo "[+] Securely wiping disk..."
-    cryptsetup open --type plain -d /dev/urandom "${DISK}p2" wipe
-    dd if=/dev/zero of=/dev/mapper/wipe bs=1M status=progress
-    cryptsetup close wipe
+    # cryptsetup open --type plain -d /dev/urandom "${DISK}p2" wipe
+    # dd if=/dev/zero of=/dev/mapper/wipe bs=1M status=progress
+    # cryptsetup close wipe
 
     echo "[+] Setting up full disk encryption"
     read_pass "[!] Encryption passphrase (do NOT forget): "

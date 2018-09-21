@@ -20,6 +20,7 @@
     ansible_pull_url: 'https://github.com/alxbl/config'
     ansible_pull_hosts: 'hosts'
     ansible_pull_playbook: 'playbook.yml'
+    ansible_pull_log_file: '/var/tmp/ansible/lastrun.log'
   tasks:
     - name: Configure ansible service
       template:

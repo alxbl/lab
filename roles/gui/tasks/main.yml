@@ -11,6 +11,8 @@
       - noto-fonts
       - noto-fonts-cjk
       - noto-fonts-emoji
+      - gimp
+      - inkscape
 
 - name: Enable graphical boot
   service:

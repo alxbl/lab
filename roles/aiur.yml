@@ -13,7 +13,6 @@
 - name: Baseline software
   pacman:
     name:
-      - gnome
       - bluez
       - bluez-utils
       - powertop

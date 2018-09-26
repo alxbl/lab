@@ -2,20 +2,18 @@
 - name: Install graphical user interface
   pacman:
     name:
-      - gdm
-      - gnome
-      - gnome-tweaks
-      - termite
-      - chromium
+      - fcitx
+      - fcitx-mozc
+      - fcitx-configtool
+      - awesome
+      - unclutter
+      - flameshot
+      - rdesktop
       - ttf-droid
       - noto-fonts
       - noto-fonts-cjk
       - noto-fonts-emoji
       - gimp
       - inkscape
+      - networkmanager
 
-- name: Enable graphical boot
-  service:
-    name: gdm
-    enabled: true
-    state: started

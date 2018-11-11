@@ -1,0 +1,8 @@
+[NetDev]
+Name=priv0
+Description=QEMU Internal Network
+Kind=bridge
+MACAddress=52:54:00:7e:33:33
+
+[Bridge]
+STP=1

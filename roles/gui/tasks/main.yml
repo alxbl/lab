@@ -7,6 +7,7 @@
       - fcitx-configtool
       - awesome
       - unclutter
+      - compton
       - flameshot
       - rdesktop
       - ttf-droid
@@ -16,4 +17,10 @@
       - gimp
       - inkscape
       - networkmanager
+      - lxappearance
+      - materia-gtk-theme
+      - i3lock
+      - xautolock
+
+# Enable GTK theme
 

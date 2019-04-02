@@ -30,13 +30,18 @@
           notify:
             - restart dnsmasq
 
+        - name: Configure OVMF
+          lineinfile:
+            path: /etc/libvirt/qemu.conf
+            regexp: '^nvram'
+            insertbefore: '^#nvram'
+            line: 'nvram = [ "/usr/share/ovmf/x64/OVMF_CODE.fd:/usr/share/ovmf/x64/OVMF_VARS.fd" ]'
 
         - name: Enable dnsmasq
           service:
             name: dnsmasq@qemu0
             enabled: true
             state: started
-
 
     - name: Configure libvirtd
       block:

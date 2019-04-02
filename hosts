@@ -3,6 +3,7 @@ aiur
 tarsonis
 segfault
 moria
+hysteria
 
 [workstation]
 aiur
@@ -19,6 +20,7 @@ moria
 
 [hypervisor]
 aiur
+hyseria
 
 [windows]
 artesia

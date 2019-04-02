@@ -6,7 +6,6 @@
       - fcitx-mozc
       - fcitx-configtool
       - awesome
-      - unclutter
       - compton
       - flameshot
       - rdesktop
@@ -14,9 +13,6 @@
       - noto-fonts
       - noto-fonts-cjk
       - noto-fonts-emoji
-      - gimp
-      - inkscape
-      - networkmanager
       - lxappearance
       - materia-gtk-theme
       - i3lock

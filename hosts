@@ -2,7 +2,6 @@
 aiur
 tarsonis
 segfault
-moria
 hysteria
 
 [workstation]
@@ -15,7 +14,6 @@ aiur
 [server]
 segfault
 tarsonis
-moria
 
 
 [hypervisor]

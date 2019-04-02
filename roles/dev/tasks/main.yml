@@ -20,6 +20,7 @@
       - lxc
       - the_silver_searcher
       - fzf
+      - reflector
 
 # TODO: Run as the configured user, not root.
 # - name: Install gems

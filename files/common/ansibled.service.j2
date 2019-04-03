@@ -4,5 +4,6 @@ Description=Synchronizes system configuration with master configuration reposito
 
 [Service]
 Type=oneshot
+Environment=ANSIBLE_USER={{ lookup('env', 'ANSIBLE_USER') }}
 ExecStart=ansible-pull -d {{ ansible_pull_dir }} -U {{ ansible_pull_url }} -i {{ ansible_pull_hosts }}  {{ ansible_pull_playbook }} > "{{ ansible_pull_log_file }}"
 

@@ -155,7 +155,7 @@ while : ; do
 done
 
 echo "[+] Pulling ansible repository."
-USER="$USER" ansible-pull -U "$REPO" -d /tmp/ansible -i hosts playbook.yml
+ANSIBLE_USER="$USER" ansible-pull -U "$REPO" -d /tmp/ansible -i hosts playbook.yml
 echo "[+] ==> Success. Cleaning up."
 rm ~/.zlogin
 rm ~/.ansible-init

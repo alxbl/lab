@@ -33,6 +33,7 @@ EOF
 
 # Called when entering the arch-chroot
 function pac_in_chroot {
+    return
 }
 
 function pac_do_bootloader {
@@ -54,5 +55,6 @@ function pac_do_bootloader {
 }
 
 function pac_after_install {
+    return
 }
 

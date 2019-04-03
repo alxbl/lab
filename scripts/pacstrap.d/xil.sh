@@ -6,12 +6,12 @@ function pac_prepare_disk {
     sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/'  <<EOF | gdisk ${DISK} >/dev/null
 o     # ------ Create a clean GUID Partition Table ---
 Y     # In case there is already a GPT
-n     # ------ ${DISK}0: ESP (500MB) ---
+n     # ------ ${DISK}1: ESP (500MB) ---
 1     # Part:  1
       # Start: First aligned sector
 +500M # End:   500MB later
 ef00  # Type:  EFI (0xEF00)
-n     # ------ ${DISK}1: root (*) ---
+n     # ------ ${DISK}2: root (*) ---
 2     # Part:  2
       # Start: Immediately after ESP
       # End:   100%
@@ -20,13 +20,13 @@ w     # ------ Write partition table
 Y     # Confirm write
 EOF
 
-    mkfs.fat "${DISK}0" # ESP
-    mkfs.ext4 "{DISK}1" # root
+    mkfs.fat "${DISK}1" # ESP
+    mkfs.ext4 "${DISK}2" # root
 
     echo "[+] Mounting..."
-    mount "${DISK}1" /mnt
+    mount "${DISK}2" /mnt
     mkdir /mnt/boot
-    mount "${DISK}p1" /mnt/boot
+    mount "${DISK}1" /mnt/boot
 
     lsblk # Show the final disk layout
 }
@@ -51,7 +51,7 @@ function pac_do_bootloader {
         --create \
         --label 'Arch Linux' \
         --loader /vmlinuz-linux \
-        --unicode "rw initrd=\\initramfs-linux.img root=${DISK}1" --verbose
+        --unicode "rw initrd=\\initramfs-linux.img root=${DISK}2" --verbose
 }
 
 function pac_after_install {

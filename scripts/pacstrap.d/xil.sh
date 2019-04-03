@@ -51,7 +51,7 @@ function pac_do_bootloader {
         --create \
         --label 'Arch Linux' \
         --loader /vmlinuz-linux \
-        --unicode "cryptdevice=UUID=$UUID:$CROOT rw initrd=\\initramfs-linux.img root=${DISK}1" --verbose
+        --unicode "rw initrd=\\initramfs-linux.img root=${DISK}1" --verbose
 }
 
 function pac_after_install {

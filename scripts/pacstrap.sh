@@ -127,11 +127,15 @@ echo "$HOST" > /etc/hostname
 echo "127.0.0.1        $HOST.localdomain $HOST" >> /etc/hosts
 
 echo "[+] Creating user: $USER"
-useradd $USER -m -G wheel
+useradd $USER -m -G wheel -s /bin/zsh
 passwd $USER <<END
 $PASSWD
 $PASSWD
 END
+
+echo "[+] Add authorized_keys"
+mkdir -p "/home/$USER/.ssh" && chmod 700 "/home/$USER/.ssh"
+curl -sSf "$BASE/../files/common/authorized_keys" --output "/home/$USER/.ssh/authorized_keys" && chmod 600 "/home/$USER/.ssh/authorized_keys"
 
 echo "[+] Disable root login"
 passwd -l root
@@ -151,14 +155,14 @@ while : ; do
 done
 
 echo "[+] Pulling ansible repository."
-ansible-pull -U https://github.com/alxbl/config -d /tmp/ansible -i hosts playbook.yml
+USER="$USER" ansible-pull -U "$REPO" -d /tmp/ansible -i hosts playbook.yml
 echo "[+] ==> Success. Cleaning up."
-sed -i -e '/^.*# PACSTRAP$/d' .bashrc
+rm ~/.zlogin
 rm ~/.ansible-init
 END
 
 chown $USER:$USER "/home/$USER/.ansible-init"
-echo 'source .ansible-init # PACSTRAP' >> "/home/$USER/.bashrc"
+echo 'source .ansible-init # PACSTRAP' >> "/home/$USER/.zlogin"
 EOF
 unset PASSWD
 

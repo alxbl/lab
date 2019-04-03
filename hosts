@@ -1,5 +1,6 @@
 [pull_config]
 aiur
+xil
 tarsonis
 segfault
 hysteria
@@ -15,6 +16,7 @@ hysteria
 [server]
 segfault
 tarsonis
+xil
 
 
 [hypervisor]

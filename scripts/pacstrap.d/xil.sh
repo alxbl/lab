@@ -1,4 +1,4 @@
-DISK=/dev/vda
+export DISK=/dev/vda
 function pac_prepare_disk {
     # Prepares the disk as an LVM on LUKS encrypted root partition.
     echo "[+] Partitioning ${DISK}"

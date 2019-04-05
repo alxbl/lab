@@ -13,7 +13,9 @@
 # COMMON TO ALL HOSTS {{{
 - name: Baseline
   hosts: all
-  include_tasks: 'base.yml'
+  tasks:
+    - name: Do baseline setup
+      include_tasks: 'base.yml'
 # }}}
 # ANSIBLE-PULL {{{
 - name: 'Enable ansible-pull periodically'

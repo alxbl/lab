@@ -38,15 +38,14 @@ function pac_in_chroot {
 
 function pac_do_bootloader {
     pacman --noconfirm -S efibootmgr
-    eval "$(blkid "${DISK}p2" -o export)"
+    eval "$(blkid "${DISK}2" -o export)"
     echo "[+] Root partition UUID: $PARTUUID"
     # TODO: Clean up existing 'Arch Linux' entries
     # TODO: Set boot order? Goes to first by default.
     # efibootmgr | grep 'Arch Linux' | awk ... + for to destroy existing labels.
 
-    # TODO Need root= when using cryptdevice? Will find out soon.
     efibootmgr \
-        --disk /dev/nvme0n1 \
+        --disk "$DISK" \
         --part 1 \
         --create \
         --label 'Arch Linux' \

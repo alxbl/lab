@@ -1,8 +1,6 @@
 ---
 # Tasks common to all hosts regardless of roles.
-- name: Install Secure Boot Tools
-  tasks:
-  - name:
-    pacman:
-      name: efitools,efibootmgr,sbsigntools
+- name:
+  pacman:
+    name: efitools,efibootmgr,sbsigntools
 

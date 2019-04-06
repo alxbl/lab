@@ -3,6 +3,14 @@
       pacman:
         name: qemu,ovmf,dnsmasq,libvirt
 
+    # ip forwarding
+    - name: Enable IP forwarding.
+      copy:
+        src: files/30-forward.conf
+        dest: /etc/sysctl.d/30-forward.conf
+        owner: root
+        group: root
+        mode: 0644
     # dnsmasq
     - name: Configure dnsmasq
       block:
@@ -43,7 +51,7 @@
             enabled: true
             state: started
 
-    - name: Configure libvirtd
+    - name: Configure services
       block:
         - service:
             name: libvirtd
@@ -56,4 +64,10 @@
             enabled: true
             state: started
           name: Enable virtlogd
+
+        - service:
+            name: systemd-networkd
+            enabled: true
+            state: started
+          name: Enable networkd
 

@@ -100,10 +100,7 @@ echo "[+] Add wheel group to sudoers"
 echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /mnt/etc/sudoers
 
 echo  "[+] Generating fstab"
-genfstab -U /mnt >> /mnt/etc/fstab
-
-echo "[+] Mounting tmpfs for provisioning scripts"
-mount -t tmpfs -o size=1M /mnt/mnt
+genfstab -U /mnt > /mnt/etc/fstab
 
 # Copy provisioning scripts inside the chroot
 ################################################################################
@@ -136,6 +133,8 @@ END
 echo "[+] Add authorized_keys"
 mkdir -p "/home/$USER/.ssh" && chmod 700 "/home/$USER/.ssh"
 curl -sSf "$BASE/../files/common/authorized_keys" --output "/home/$USER/.ssh/authorized_keys" && chmod 600 "/home/$USER/.ssh/authorized_keys"
+chown -R "$USER:$USER" /home/$USER/.ssh
+
 
 echo "[+] Disable root login"
 passwd -l root
@@ -172,8 +171,7 @@ arch-chroot /mnt /mnt/provision.sh
 
 # Clean up
 ################################################################################
-rm /mnt/mnt/{provision,hooks}.sh # Technically not necessary.
-umount /mnt/mnt # unmount tmpfs
+rm /mnt/mnt/{provision,hooks}.sh
 
 echo "==> Done."
 echo "NOTE: If you are paranoid, arch-chroot /mnt passwd root"

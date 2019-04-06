@@ -160,8 +160,8 @@ rm ~/.zlogin
 rm ~/.ansible-init
 END
 
-chown $USER:$USER "/home/$USER/.ansible-init"
 echo 'source .ansible-init # PACSTRAP' >> "/home/$USER/.zlogin"
+chown $USER:$USER /home/$USER/.{ansible-init,zlogin}
 EOF
 unset PASSWD
 

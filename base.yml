@@ -1,6 +1,7 @@
 ---
 # Tasks common to all hosts regardless of roles.
 - name:
+  become: true
   pacman:
     name: efitools,efibootmgr,sbsigntools
 

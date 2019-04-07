@@ -1,0 +1,15 @@
+---
+- name: Host-specific Packages
+  pacman:
+    name:
+      - firefox
+      - awesome
+      - compton
+      - fcitx
+      - fcitx-mozc
+      - fcitx-configtool
+      - i3lock
+      - xautolock
+      - noto-fonts
+      - noto-fonts-cjk
+      - noto-fonts-emoji

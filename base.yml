@@ -3,5 +3,5 @@
 - name:
   become: true
   pacman:
-    name: efitools,efibootmgr,sbsigntools
+    name: sbsigntools
 

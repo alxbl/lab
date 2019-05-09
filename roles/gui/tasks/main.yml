@@ -8,15 +8,11 @@
       - awesome
       - compton
       - flameshot
-      - rdesktop
       - ttf-droid
       - noto-fonts
       - noto-fonts-cjk
       - noto-fonts-emoji
-      - lxappearance
-      - materia-gtk-theme
       - i3lock
       - xautolock
-
-# Enable GTK theme
-
+      - papirus-icon-theme
+      - adapta-gtk-theme

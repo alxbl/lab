@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sauce4zwift
+  namespace: default
+  labels:
+    app: sauce4zwift
+    app.kubernetes.io/name: sauce4zwift
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sauce4zwift
+  template:
+    metadata:
+      labels:
+        app: sauce4zwift
+        app.kubernetes.io/name: sauce4zwift
+    spec:
+      containers:
+      - name: s4z
+        image: segvcr.azurecr.io/s4z:0.2
+        volumeMounts:
+        - name: s4z-secrets
+          mountPath: "/secrets"
+          readOnly: true
+        ports:
+        - containerPort: 1080
+      imagePullSecrets:
+        - name: segvcr-auth
+      volumes:
+        - name: s4z-secrets
+          secret:
+            secretName: s4z-creds
+            optional: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: s4z
+spec:
+  selector:
+    app.kubernetes.io/name: sauce4zwift
+  ports:
+    - protocol: TCP
+      port: 1080
+      targetPort: 1080

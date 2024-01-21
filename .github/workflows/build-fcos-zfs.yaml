@@ -7,8 +7,9 @@ on:
   schedule:
     # https://crontab.guru/#00_01_*_*_1
     - cron: '00 01 * * 1'
-  push:
-    branches: [ "main" ]
+  # To enable rebuilding every time a commit is pushed to main
+  # push:
+  #   branches: [ "main" ]
 
 env:
   REGISTRY: ghcr.io
@@ -88,7 +89,8 @@ jobs:
         with:
           context: ./build/fcos-zfs
           push: true
-          platforms: "linux/amd64, linux/arm64"
+          # NOTE: ARM64 takes too long to run on github free agents. (5+ hours): Must be built by an ARM64 host.
+          platforms: "linux/amd64"
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           file: ./build/fcos-zfs/Dockerfile

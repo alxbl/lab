@@ -10,6 +10,7 @@ on:
   # To enable rebuilding every time a commit is pushed to main
   # push:
   #   branches: [ "main" ]
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io

@@ -13,9 +13,9 @@
 ################################################################################
 
 # Ansible Repository for ansible-pull
-REPO="https://github.com/alxbl/config"
+REPO="https://github.com/alxbl/lab"
 # Base path for scripts
-BASE="https://raw.githubusercontent.com/alxbl/config/master/scripts"
+BASE="https://raw.githubusercontent.com/alxbl/lab/main/scripts"
 
 # Retrieve configuration
 ################################################################################
@@ -183,5 +183,4 @@ echo "   - ansible-pull will run on first logon with $USER"
 pac_after_install
 
 echo "It is now safe to reboot..."
-
 

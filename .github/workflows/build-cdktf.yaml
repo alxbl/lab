@@ -1,7 +1,6 @@
 name: "Build CDKTF image"
 
 on:
-  schedule:
   push:
     branches: [ "main" ]
     paths:

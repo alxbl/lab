@@ -36,7 +36,7 @@ RUN curl https://releases.hashicorp.com/terraform/1.6.3/terraform_1.6.3_linux_am
 
 # Install cdktf
 # https://developer.hashicorp.com/terraform/tutorials/cdktf/cdktf-install#install-cdktf
-RUN npm install -g cdktf-cli
+RUN npm install -g cdktf-cli@0.20.3
 
 WORKDIR /src
 ENTRYPOINT ["cdktf"]

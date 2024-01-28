@@ -1,26 +1,12 @@
 [pull_config]
-aiur
-xil
-tarsonis
-segfault
-hysteria
-
-[workstation]
-aiur
-tarsonis
-
-[gui]
-aiur
-
-[server]
-segfault
-tarsonis
-xil
-
+th1nk
+cortex
 
 [hypervisor]
-aiur
-hysteria
+th1nk
 
 [windows]
 artesia
+
+[k8s_node]
+ceres

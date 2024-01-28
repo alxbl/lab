@@ -11,14 +11,14 @@
 #         update_cache: yes
 #         upgrade: yes
 # COMMON TO ALL HOSTS {{{
-- name: Baseline
+- name: Configure baseline
   hosts: all
   tasks:
-    - name: Do baseline setup
+    - name: Configure baseline
       include_tasks: 'base.yml'
 # }}}
 # ANSIBLE-PULL {{{
-- name: 'Enable ansible-pull periodically'
+- name: 'Enable periodic ansible-pull'
   become: true
   hosts: pull_config
   vars:
@@ -28,7 +28,7 @@
     ansible_pull_playbook: 'playbook.yml'
     ansible_pull_log_file: '/var/tmp/ansible/lastrun.log'
   tasks:
-    - name: Configure ansible service
+    - name: Install ansible service
       template:
         src: files/common/ansibled.service.j2
         dest: /usr/lib/systemd/system/ansibled.service
@@ -70,7 +70,7 @@
 # }}}
 # PER-HOST SPECIFIC TASKS (optional) {{{
 ################################################################################
-- name: Host-specific tasks
+- name: Run host-specific tasks
   hosts: all
   tasks:
     - name: Load task list

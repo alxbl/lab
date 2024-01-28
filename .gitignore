@@ -1,1 +1,21 @@
 *.retry
+
+
+# infra
+*.key
+*.pfx
+*.pem
+pxe/
+*.d.ts
+*.js
+node_modules
+cdktf.out
+cdktf.log
+*terraform.*.tfstate*
+.gen
+.terraform
+tsconfig.tsbuildinfo
+!jest.config.js
+!setup.js
+
+**/*.tf

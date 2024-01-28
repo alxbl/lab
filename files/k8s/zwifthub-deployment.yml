@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: zwifthub
-        image: segvcr.azurecr.io/zwifthub:0.2
+        image: segvcr.azurecr.io/zwifthub:0.7
         env:
         - name: INTERVALS__INTERVALSAPIKEY
           valueFrom:

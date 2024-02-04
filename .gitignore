@@ -1,6 +1,7 @@
 *.retry
 
-
+build/bootstrap/matchbox/assets/fedora-coreos/*
+!build/bootstrap/matchbox/assets/fedora-coreos/.keep
 # infra
 *.key
 *.pfx

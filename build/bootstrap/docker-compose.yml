@@ -19,7 +19,7 @@ services:
     cap_add:
       - NET_ADMIN
     volumes:
-      - ./proxydhcp.conf:/etc/dnsmasq.conf:Z
+      - ./dnsmasq.conf:/etc/dnsmasq.conf:Z
       - ./tftp/:/var/lib/tftpboot:Z
     # Required to bind to host interfaces for answering DHCP on the physical network.
     network_mode: host

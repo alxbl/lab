@@ -1,4 +1,5 @@
 *.retry
+*.0
 
 build/bootstrap/matchbox/assets/fedora-coreos/*
 !build/bootstrap/matchbox/assets/fedora-coreos/.keep

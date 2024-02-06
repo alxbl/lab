@@ -1,0 +1,12 @@
+{
+  "id": "rpi4-zebes",
+  "name": "Zebes",
+  "profile": "fcos-live-arm64",
+  "selector": {
+    "mac": "d8:3a:dd:63:11:e8"
+  },
+  "metadata": {
+    "hostname": "K8SCTLZEBES",
+    "etcd_name": "zebes"
+  }
+}

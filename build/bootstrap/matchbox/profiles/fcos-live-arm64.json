@@ -1,0 +1,19 @@
+{
+  "id": "fcos-live-arm64",
+  "name": "Fedora CoreOS Live (ARM64)",
+  "boot": {
+    "kernel": "/assets/fedora-coreos/fedora-coreos-38.20230918.3.0-live-kernel-aarch64",
+    "initrd": [
+      "--name main /assets/fedora-coreos/fedora-coreos-38.20230918.3.0-live-initramfs.aarch64.img"
+    ],
+    "args": [
+      "initrd=main",
+      "coreos.live.rootfs_url=http://th1nk.lan:8080/assets/fedora-coreos/fedora-coreos-38.20230918.3.0-live-rootfs.aarch64.img",
+      "systemd.journald.max_level_console=debug",
+      "ignition.firstboot",
+      "ignition.platform.id=metal",
+      "ignition.config.url=http://th1nk.lan:8080/ignition?uuid=${uuid}&mac=${mac:hexhyp}&buildarch=${buildarch:uristring}"
+    ]
+  },
+  "ignition_id": "fcos-live.ign"
+}

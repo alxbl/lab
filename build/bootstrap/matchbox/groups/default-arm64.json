@@ -1,0 +1,7 @@
+{
+  "id": "default-arm64",
+  "name": "Fedora CoreOS Live (ARM64)",
+  "profile": "fcos-live-arm64",
+  "selector": {"buildarch": "arm64"},
+  "metadata": {}
+}

@@ -1,6 +1,6 @@
 {
-  "id": "fedora-coreos",
-  "name": "Fedora CoreOS",
+  "id": "k8s-ctl-arm64",
+  "name": "Fedora CoreOS (k8s:controller) ARM64",
   "boot": {
     "kernel": "/assets/fedora-coreos/fedora-coreos-38.20230918.3.0-live-kernel-aarch64",
     "initrd": [
@@ -15,5 +15,5 @@
       "ignition.config.url=http://th1nk.lan:8080/ignition?uuid=${uuid}&mac=${mac:hexhyp}"
     ]
   },
-  "ignition_id": "fedora-coreos.ign"
+  "ignition_id": "k8s-ctl-arm64.ign"
 }

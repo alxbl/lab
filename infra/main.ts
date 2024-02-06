@@ -1,6 +1,7 @@
 import { Construct } from "constructs";
-import { App, TerraformStack } from "cdktf";
+import { App, TerraformOutput, TerraformStack } from "cdktf";
 
+// AzureRM
 import { AzurermProvider } from "@cdktf/provider-azurerm/lib/provider";
 import { VirtualNetwork } from "@cdktf/provider-azurerm/lib/virtual-network"
 import { Subnet } from "@cdktf/provider-azurerm/lib/subnet";import { PublicIp } from "@cdktf/provider-azurerm/lib/public-ip";
@@ -8,6 +9,11 @@ import { NetworkSecurityGroup } from "@cdktf/provider-azurerm/lib/network-securi
 import { NetworkInterface } from "@cdktf/provider-azurerm/lib/network-interface";
 import { NetworkInterfaceSecurityGroupAssociation } from "@cdktf/provider-azurerm/lib/network-interface-security-group-association";
 import { LinuxVirtualMachine } from "@cdktf/provider-azurerm/lib/linux-virtual-machine";
+
+// Ansible
+import { Playbook } from "./.gen/providers/ansible/playbook";
+import { AnsibleProvider } from "./.gen/providers/ansible/provider";
+
 
 let SUB_ID = process.env.ARM_SUBSCRIPTION_ID;
 let LOCATION = "eastus";
@@ -20,7 +26,9 @@ class MyStack extends TerraformStack {
     new AzurermProvider(this, "segv",  {
       subscriptionId: SUB_ID,
       features: {},
-    })
+    });
+
+    new AnsibleProvider(this, "segv-ansible", {});
 
     // TODO: Pull into a class.
     var vnet = new VirtualNetwork(this,
@@ -83,7 +91,7 @@ class MyStack extends TerraformStack {
       name: "matchbox-nic",
       location: LOCATION,
       resourceGroupName: RESOURCE_GROUP,
-      ipConfiguration: [ 
+      ipConfiguration: [
         {
           name: "vm-ip-cfg",
           subnetId: subnet.id,
@@ -99,7 +107,7 @@ class MyStack extends TerraformStack {
       networkSecurityGroupId: nsg.id,
     });
 
-    new LinuxVirtualMachine(this, "vm", {
+    let vm = new LinuxVirtualMachine(this, "vm", {
       name: "matchbox-vm",
       adminUsername: "core",
       adminSshKey:  [{
@@ -123,6 +131,29 @@ class MyStack extends TerraformStack {
         sku: "22_04-lts",
         version: "latest",
       },
+    });
+
+    // Apply the playbook
+    var pb = new Playbook(this, "ansible-playbook", {
+      name: "matchbox",
+      playbook: "/src/ansible/playbook.yml",
+
+      // Apparently ansible_host doesn't work with ansible_playbook, which seems rather silly.
+      extraVars: {
+        "ansible_ssh_user": vm.adminUsername,
+        "ansible_host": ip.ipAddress,
+      },
+      verbosity: 3,
+      // checkMode: true, // can be set based on cdktf invocation?
+      ignorePlaybookFailure: true // HACK: If playbook fails, terraform state might not contain all stdout/stderr if this is false.
+    });
+
+    new TerraformOutput(this, "output-ansible-stderr", {
+      value: pb.ansiblePlaybookStderr
+    });
+
+    new TerraformOutput(this, "output-ansible-stdout", {
+      value: pb.ansiblePlaybookStdout
     });
   }
 }

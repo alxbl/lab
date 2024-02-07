@@ -1,9 +1,15 @@
+# Misc
 *.retry
 *.0
 
+# binaries/scripts
+scripts/bin/terraform
+
+# OS images
 build/bootstrap/matchbox/assets/fedora-coreos/*
 !build/bootstrap/matchbox/assets/fedora-coreos/.keep
-# infra
+
+# infra (cdktf, PXE blobs, PKI, etc.)
 *.crt
 *.key
 *.pfx
@@ -20,5 +26,4 @@ cdktf.log
 tsconfig.tsbuildinfo
 !jest.config.js
 !setup.js
-
 **/*.tf

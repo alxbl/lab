@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# https://stackoverflow.com/a/630387
+SCRIPT_DIR="$(dirname -- "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd -- "$SCRIPT_DIR" && pwd)"
+if [[ -z "$SCRIPT_DIR" ]] ; then
+  exit 1
+fi
+
+REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
+PKI=/mnt/pki/segv
+
+# Ensure .env is loaded
+source "$REPO_ROOT/.env"
+
+if [[ ! -e "/dev/disk/by-partuuid/$LAB_SECRETS_PARTUUID" ]]; then
+  echo "ERROR: secrets drive not detected. Make sure it is plugged before running this script"
+  exit 1
+fi
+
+if [ ! -d "$PKI" ]; then
+  echo "ERROR: secrets drive must be available at /mnt"
+  echo "Plug the USB key and mount it by running:"
+  ehco "  sudo mount \"/dev/disk/by-partuuid/$LAB_SECRETS_PARTUUID\" /mnt"
+fi
+
+echo "Copying $PKI/ca.crt..."
+cp "$PKI/ca.crt" "$REPO_ROOT/pki/ca.crt"
+for f in $(find "$PKI/issued" -name '*.crt'); do
+  echo "Copying $f..."
+  cp "$f" "$REPO_ROOT/pki/"
+done
+

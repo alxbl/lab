@@ -4,6 +4,7 @@
 build/bootstrap/matchbox/assets/fedora-coreos/*
 !build/bootstrap/matchbox/assets/fedora-coreos/.keep
 # infra
+*.crt
 *.key
 *.pfx
 *.pem

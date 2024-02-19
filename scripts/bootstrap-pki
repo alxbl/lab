@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# note: Script uses -batch and -subj, instead of interactive prompts.
+# ref: https://github.com/poseidon/matchbox/blob/main/scripts/tls/cert-gen
+set -e
+
+SCRIPT_DIR="$(dirname -- "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(cd -- "$SCRIPT_DIR" && pwd)"
+if [[ -z "$SCRIPT_DIR" ]] ; then
+  exit 1
+fi
+
+REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
+pushd "$REPO_ROOT/pki" > /dev/null
+
+rm -f ca.key ca.crt server.key server.csr server.crt client.key client.csr client.crt index.* serial*
+rm -rf certs crl newcerts
+
+mkdir certs newcerts crl
+
+# This is a bootstrap script, generate localhost certs since everything is operated from the calling machine.
+SAN="DNS.1:localhost,IP.1:127.0.0.1"
+
+echo "Creating bootstrap CA, server cert/key, and client cert/key..."
+
+# basic files/directories
+touch index.txt
+touch index.txt.attr
+echo 1000 > serial
+
+# CA private key (unencrypted)
+openssl genrsa -out ca.key 4096
+# Certificate Authority (self-signed certificate)
+openssl req -config openssl.conf -new -x509 -days 3650 -sha256 -key ca.key -extensions v3_ca -out ca.crt -subj "/CN=bootstrap-ca"
+
+# Server private key (unencrypted)
+openssl genrsa -out server.key 2048
+# Server certificate signing request (CSR)
+openssl req -config openssl.conf -new -sha256 -key server.key -out server.csr -subj "/CN=bootstrap-server"
+# Certificate Authority signs CSR to grant a certificate
+openssl ca -batch -config openssl.conf -extensions server_cert -days 365 -notext -md sha256 -in server.csr -out server.crt -cert ca.crt -keyfile ca.key
+
+# Client private key (unencrypted)
+openssl genrsa -out client.key 2048
+# Signed client certificate signing request (CSR)
+openssl req -config openssl.conf -new -sha256 -key client.key -out client.csr -subj "/CN=bootstrap-client"
+# Certificate Authority signs CSR to grant a certificate
+openssl ca -batch -config openssl.conf -extensions usr_cert -days 365 -notext -md sha256 -in client.csr -out client.crt -cert ca.crt -keyfile ca.key
+
+# Remove CSR's
+rm *.csr
+popd

@@ -14,7 +14,9 @@ build/bootstrap/matchbox/assets/fedora-coreos/*
 *.key
 *.pfx
 *.pem
+*.csr
 pki/index.*
+pki/serial
 pxe/
 *.d.ts
 *.js

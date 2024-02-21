@@ -18,7 +18,7 @@ rm -rf certs crl newcerts
 mkdir certs newcerts crl
 
 # This is a bootstrap script, generate localhost certs since everything is operated from the calling machine.
-SAN="DNS.1:localhost,IP.1:127.0.0.1"
+export SAN="DNS.1:localhost,IP.1:127.0.0.1"
 
 echo "Creating bootstrap CA, server cert/key, and client cert/key..."
 
@@ -48,4 +48,4 @@ openssl ca -batch -config openssl.conf -extensions usr_cert -days 365 -notext -m
 
 # Remove CSR's
 rm *.csr
-popd
+popd >/dev/null

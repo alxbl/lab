@@ -21,13 +21,13 @@ failure of all nodes.
 
 **Bootstrapping Synthetic Test Status**: `Not implemented`
 
-
 ### Requirements
 
 The following requirements must be met for bootstrapping to work:
 
 These tools must be available on the OS: 
 
+- zsh
 - docker
 - docker-compose
 - nodejs and npm > 12

@@ -10,13 +10,10 @@ services:
     ports:
       - 8080:8080
       - 8081:8081
-    command: ['-address=0.0.0.0:8080', '-rpc-address=0.0.0.0:8081', '-log-level=debug', '-assets-path=/var/lib/matchbox/assets']
+    command: ['-address=0.0.0.0:8080', '-rpc-address=0.0.0.0:8081', '-log-level=trace', '-assets-path=/var/lib/matchbox/assets']
     volumes:
       - ./matchbox:/var/lib/matchbox:Z
-      - /mnt/pki/segv/private/matchbox.key:/etc/matchbox/server.key:Z
-      - /mnt/pki/segv/issued/matchbox.crt:/etc/matchbox/server.crt:Z
-      - /mnt/pki/segv/ca.crt:/etc/matchbox/ca.crt:Z
-      - /mnt/pki/segv/issued/th1nk.crt:/etc/matchbox/client.crt:Z
+      - ../../pki/:/etc/matchbox:Z
 
   # docker run --name dnsmasq --cap-add=NET_ADMIN -v $PWD/contrib/dnsmasq/docker0.conf:/etc/dnsmasq.conf:Z quay.io/poseidon/dnsmasq -d
   proxydhcp:

@@ -4,10 +4,13 @@
   "projectId": "3e50f611-e58a-46e4-b485-0de00d3a7bc5",
   "sendCrashReports": "false",
   "terraformProviders": [
-    "poseidon/ct",
-    "poseidon/matchbox",
     "ansible/ansible@~>1.1.0"
   ],
-  "terraformModules": [],
+  "terraformModules": [
+    {
+      "name": "typhoon",
+      "source": "./terraform/typhoon/bare-metal/fedora-coreos/kubernetes"
+    }
+  ],
   "context": {}
 }

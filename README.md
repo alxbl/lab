@@ -48,7 +48,7 @@ Lastly, a removable media containing secrets must be plugged in the computer.
 
 In the interest of reproducibility, here is the overall structure that the secrets drive must have:
 
-```
+```plain
 TODO
 ```
 
@@ -57,8 +57,9 @@ to work as expected:
 
 ```sh
 lsblk -o NAME,UUID /dev/sda1
+# NAME      UUID
+# sda1 AB1C-999D
 ```
-
 
 ### Usage
 
@@ -66,11 +67,16 @@ lsblk -o NAME,UUID /dev/sda1
 - Plug the secrets removable media in a port 
 - (TODO) Update `cluster.json` to specify the MAC address of the machines that are to be part ofthe cluster
 - Run `scripts/bootstrap.sh`
-- When prompted, power on the machines so that they network boot
-- Grab a coffee and wait.
+- When prompted, power on the machines so that they network boot*
+- Grab a coffee and wait
 
+cdktf will report that it is waiting for provisioning as such:
+
+```plain
+segv-lab  module.typhoon-module.null_resource.copy-controller-secrets[0]: 
+Provisioning with 'file'...
+segv-lab  module.typhoon-module.null_resource.copy-controller-secrets[0]: Still creating... [10s elapsed]
+```
 
 Bootstrapping must provision at least one controller node. The cluster is bootstrapped to be able to provision
 new nodes as necessary, so nodes can be dynamically added without running the bootstrap script again.
-
-

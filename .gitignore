@@ -1,22 +1,28 @@
 # Misc
 *.retry
 *.0
+attic/
 
 # binaries/scripts
 scripts/bin/terraform
 
-# OS images
+build/bootstrap/tftp/*
+build/bootstrap/matchbox/ignition/*
+build/bootstrap/matchbox/profiles/*
+build/bootstrap/matchbox/groups/*
 build/bootstrap/matchbox/assets/fedora-coreos/*
 !build/bootstrap/matchbox/assets/fedora-coreos/.keep
 
 # infra (cdktf, PXE blobs, PKI, etc.)
+*.ipxe
+*.img
 *.crt
 *.key
 *.pfx
 *.pem
 *.csr
 pki/index.*
-pki/serial
+pki/serial*
 pxe/
 *.d.ts
 *.js

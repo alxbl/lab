@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# USAGE: ./scripts/get-fedora-coreos
+# USAGE: ./scripts/get-fedora-coreos stream version dest
+#
+# Adapted from: https://github.com/poseidon/matchbox/blob/main/scripts/get-fedora-coreos
+set -eou pipefail
+
+STREAM=${1:-"stable"}
+VERSION=${2:-"39.20240128.3.0"}
+DEST_DIR=${3:-"$PWD/../build/bootstrap/matchbox/assets"}
+DEST=$DEST_DIR/fedora-coreos
+ARCH=${4:-"x86_64"}
+BASE_URL=https://builds.coreos.fedoraproject.org/prod/streams/$STREAM/builds/$VERSION/$ARCH
+# check stream/version exist based on the header response
+if ! curl -s -I $BASE_URL/fedora-coreos-$VERSION-metal.$ARCH.raw.xz | grep -q -E '^HTTP/[0-9.]+ [23][0-9][0-9]' ; then
+  echo "Stream or Version not found"
+  exit 1
+fi
+
+if [ ! -d "$DEST" ]; then
+  echo "Creating directory $DEST"
+  mkdir -p $DEST
+fi
+
+echo "Downloading Fedora CoreOS $STREAM $VERSION images to $DEST"
+
+# PXE kernel
+echo "fedora-coreos-$VERSION-live-kernel-$ARCH"
+curl -# $BASE_URL/fedora-coreos-$VERSION-live-kernel-$ARCH -o $DEST/fedora-coreos-$VERSION-live-kernel-$ARCH
+
+# PXE initrd
+echo "fedora-coreos-$VERSION-live-initramfs.$ARCH.img"
+curl -# $BASE_URL/fedora-coreos-$VERSION-live-initramfs.$ARCH.img -o $DEST/fedora-coreos-$VERSION-live-initramfs.$ARCH.img
+
+# rootfs
+echo "fedora-coreos-$VERSION-live-rootfs.$ARCH.img"
+curl -# $BASE_URL/fedora-coreos-$VERSION-live-rootfs.$ARCH.img -o $DEST/fedora-coreos-$VERSION-live-rootfs.$ARCH.img

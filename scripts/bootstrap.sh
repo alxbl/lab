@@ -21,22 +21,26 @@ echo "[*] Restoring git submodules"
 git submodule update --init --recursive
 
 
-pushd "$REPO_ROOT/infra" >/dev/null
-echo "[*] Installing CDKTF dependencies"
-npm install
+if [[ ! -v BOOTSTRAP_QUICK ]]; then
+  pushd "$REPO_ROOT/infra" >/dev/null
+  echo "[*] Installing CDKTF dependencies"
+  npm install
 
-echo "[*] Compiling CDKTF providers"
-npm run get
-popd
+  echo "[*] Compiling CDKTF providers"
+  npm run get
+  popd >/dev/null
+fi
 
 # SETUP
 #############################################################################################
-echo "[*] Mounting secrets drive..."
-if [[ ! -e "/dev/disk/by-partuuid/$LAB_SECRETS_PARTUUID" ]]; then
-  echo "ERROR: secrets drive not detected. Make sure it is plugged before running this script"
-  exit 1
+if [[ ! -v BOOTSTRAP_NOSECRETS ]]; then
+  echo "[*] Mounting secrets drive..."
+  if [[ ! -e "/dev/disk/by-partuuid/$LAB_SECRETS_PARTUUID" ]]; then
+    echo "ERROR: secrets drive not detected. Make sure it is plugged before running this script"
+    exit 1
+  fi
+  sudo mount "/dev/disk/by-partuuid/$LAB_SECRETS_PARTUUID" /mnt
 fi
-sudo mount "/dev/disk/by-partuuid/$LAB_SECRETS_PARTUUID" /mnt
 
 #############################################################################################
 echo "[*] Stopping DNS services..."
@@ -78,7 +82,9 @@ function do_bootstrap {
 
   echo "[*] Generating bootstrapping PKI..."
   
-  if "$REPO_ROOT/scripts/bootstrap-pki"; then :; else return 1; fi
+  if [[ ! -v BOOTSTRAP_QUICK ]]; then
+    if "$REPO_ROOT/scripts/bootstrap-pki"; then :; else return 1; fi
+  fi
 
   #############################################################################################
   # echo "Creating symlinks for RPI4 nodes"
@@ -89,7 +95,7 @@ function do_bootstrap {
   pushd "$REPO_ROOT/infra" >/dev/null
   
   if EASYRSA_PKI="$REPO_ROOT/pki" npm run apply; then :; else return 1; fi
-  popd
+  popd >/dev/null
 }
 
 if do_bootstrap; then
@@ -116,6 +122,12 @@ sudo iptables -D UDP -m udp -p udp --dport 67 -j ACCEPT
 sudo iptables -D UDP -m udp -p udp --dport 69 -j ACCEPT
 sudo iptables -D UDP -m udp -p udp --dport 4011 -j ACCEPT
 sudo iptables -D TCP -m tcp -p tcp --dport 8080 -j ACCEPT
+
+#############################################################################################
+if [[ ! -v BOOTSTRAP_NOSECRETS ]]; then
+  echo "[*] Unmounting secrets drive"
+  sudo umount /mnt
+fi
 
 #############################################################################################
 if [[ $fail ]]; then

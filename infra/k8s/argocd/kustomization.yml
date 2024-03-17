@@ -4,4 +4,4 @@ kind: Kustomization
 namespace: argocd
 resources:
 - https://raw.githubusercontent.com/argoproj/argo-cd/v2.10.3/manifests/install.yaml
-- overlays/lab.yaml
+- overlays/root.yaml

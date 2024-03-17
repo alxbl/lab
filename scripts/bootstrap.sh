@@ -5,7 +5,6 @@ set -e
 
 DNS_SERVICES=(dnsmasq@qemu0 systemd-resolved)
 
-# FIXME: Pull the docker and firewall rules so that they clean up regardless of script success.
 # TODO: Check requirements.
 # echo "Checking requirements"
 # required=(git iptables docker docker-compose jq)
@@ -16,20 +15,6 @@ echo "[*] Loading environment..."
 SCRIPT_DIR=${0:a:h}
 REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
 source "$REPO_ROOT/.env"
-
-echo "[*] Restoring git submodules"
-git submodule update --init --recursive
-
-
-if [[ ! -v BOOTSTRAP_QUICK ]]; then
-  pushd "$REPO_ROOT/infra" >/dev/null
-  echo "[*] Installing CDKTF dependencies"
-  npm install
-
-  echo "[*] Compiling CDKTF providers"
-  npm run get
-  popd >/dev/null
-fi
 
 # SETUP
 #############################################################################################
@@ -69,6 +54,11 @@ sudo iptables -A UDP -m udp -p udp --dport 4011 -j ACCEPT
 sudo iptables -A TCP -m tcp -p tcp --dport 8080 -j ACCEPT
 
 #############################################################################################
+if [[ ! -v BOOTSTRAP_QUICK ]]; then
+  echo "[*] Generating bootstrapping PKI..."
+  "$REPO_ROOT/scripts/bootstrap-pki" >/dev/null
+fi
+
 echo "[*] Starting matchbox and DHCP PXE server"
 docker-compose -f "$REPO_ROOT/build/bootstrap/docker-compose.yml" up -d
 
@@ -80,21 +70,17 @@ docker-compose -f "$REPO_ROOT/build/bootstrap/docker-compose.yml" up -d
 # Actual bootstap happens in this function.
 function do_bootstrap {
 
-  echo "[*] Generating bootstrapping PKI..."
-  
-  if [[ ! -v BOOTSTRAP_QUICK ]]; then
-    if "$REPO_ROOT/scripts/bootstrap-pki"; then :; else return 1; fi
-  fi
-
   #############################################################################################
   # echo "Creating symlinks for RPI4 nodes"
   # TODO
 
   #############################################################################################
   echo "[*] Bootstrapping cluster..."
-  pushd "$REPO_ROOT/infra" >/dev/null
-  
-  if EASYRSA_PKI="$REPO_ROOT/pki" npm run apply; then :; else return 1; fi
+  pushd "$REPO_ROOT/infra/terraform/invoke-typhoon" >/dev/null
+
+  if terraform init; then :; else return 1; fi
+  if terraform apply; then :; else return 1; fi
+
   popd >/dev/null
 }
 
@@ -130,7 +116,7 @@ if [[ ! -v BOOTSTRAP_NOSECRETS ]]; then
 fi
 
 #############################################################################################
-if [[ $fail ]]; then
+if [[ $fail -ne 0 ]]; then
   echo "[!] ERROR: Bootstrapping failed. check output for details."
   exit 1
 else

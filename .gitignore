@@ -29,7 +29,9 @@ pxe/
 node_modules
 cdktf.out
 cdktf.log
-*terraform.*.tfstate*
+**/*.tfstate
+**/*.backup
+**/*.hcl
 .gen
 .terraform
 tsconfig.tsbuildinfo

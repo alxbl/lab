@@ -10,7 +10,7 @@
   "terraformModules": [
     {
       "name": "typhoon",
-      "source": "./terraform/typhoon/bare-metal/fedora-coreos/kubernetes"
+      "source": "./../../../github.com/alxbl/typhoon/bare-metal/fedora-coreos/kubernetes"
     }
   ],
   "context": {}

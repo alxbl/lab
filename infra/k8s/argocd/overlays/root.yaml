@@ -1,0 +1,49 @@
+# https://argo-cd.readthedocs.io/en/stable/user-guide/application-specification/
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    # Add this finalizer ONLY if you want these to cascade delete.
+    # The default behaviour is foreground cascading deletion
+    - resources-finalizer.argocd.argoproj.io
+    # Alternatively, you can use background cascading deletion
+    # - resources-finalizer.argocd.argoproj.io/background
+  # Add labels to your application object.
+  labels:
+    name: root
+spec:
+  project: default
+  source:
+    # Can point to either a Helm chart repo or a git repo.
+    repoURL: https://github.com/alxbl/lab.git
+    # For Helm, this refers to the chart version.
+    targetRevision: HEAD  
+    # This has no meaning for Helm charts pulled directly from a Helm repo instead of git.
+    path: infra/k8s/argocd/apps
+
+    # helm specific config
+    # chart: chart-name # Set when pulling directly Helm repo. DO NOT set for git-hosted charts.
+    helm:
+      # Optional Helm version to template with. If omitted it will fall back to look at the 'apiVersion' in Chart.yaml
+      # and decide which Helm binary to use automatically. This field can be either 'v2' or 'v3'.
+      version: v2
+
+  # Destination cluster and namespace to deploy the application
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  # Extra information to show in the Argo CD Application details tab
+  info:
+    - name: 'Description:'
+      value: 'Meta-application which deploys all cluster applications'
+
+    # The retry feature is available since v1.7
+    retry:
+      limit: 5 # number of failed sync attempt retries; unlimited number of attempts if less than 0
+      backoff:
+        duration: 5s # the amount to back off. Default unit is seconds, but could also be a duration (e.g. "2m", "1h")
+        factor: 2 # a factor to multiply the base duration after each failed retry
+        maxDuration: 3m # the maximum amount of time allowed for the backoff strategy

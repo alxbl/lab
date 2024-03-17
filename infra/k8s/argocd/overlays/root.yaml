@@ -23,13 +23,6 @@ spec:
     # This has no meaning for Helm charts pulled directly from a Helm repo instead of git.
     path: infra/k8s/argocd/apps
 
-    # helm specific config
-    # chart: chart-name # Set when pulling directly Helm repo. DO NOT set for git-hosted charts.
-    helm:
-      # Optional Helm version to template with. If omitted it will fall back to look at the 'apiVersion' in Chart.yaml
-      # and decide which Helm binary to use automatically. This field can be either 'v2' or 'v3'.
-      version: v2
-
   # Destination cluster and namespace to deploy the application
   destination:
     server: https://kubernetes.default.svc

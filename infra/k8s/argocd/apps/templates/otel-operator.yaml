@@ -1,16 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cert-manager
+  name: otel-operator
   namespace: argocd
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: cert-manager
     server: {{ .Values.spec.destination.server }}
   project: default
   source:
-    path: infra/k8s/apps/cert-manager
+    path: infra/k8s/apps/otel-operator
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}

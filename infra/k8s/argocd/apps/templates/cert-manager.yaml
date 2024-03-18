@@ -17,5 +17,5 @@ spec:
 
   ignoreDifferences:
   # Cilium creates identities for each pod, do not trigger sync for those
-  - group: "*"
+  - group: cilium.io
     kind: CiliumIdentity

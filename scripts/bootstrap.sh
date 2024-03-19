@@ -76,7 +76,7 @@ function do_bootstrap {
 
   #############################################################################################
   echo "[*] Bootstrapping cluster..."
-  pushd "$REPO_ROOT/infra/terraform/invoke-typhoon" >/dev/null
+  pushd "$REPO_ROOT/infra/clusters/segv" >/dev/null
 
   if terraform init; then :; else return 1; fi
   if terraform apply; then :; else return 1; fi

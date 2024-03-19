@@ -37,4 +37,4 @@ cdktf.log
 tsconfig.tsbuildinfo
 !jest.config.js
 !setup.js
-**/*.tf
+**/kube.conf

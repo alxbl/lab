@@ -21,7 +21,7 @@ spec:
     # For Helm, this refers to the chart version.
     targetRevision: HEAD  
     # This has no meaning for Helm charts pulled directly from a Helm repo instead of git.
-    path: infra/k8s/argocd/apps
+    path: infra/k8s/catalog
 
   # Destination cluster and namespace to deploy the application
   destination:

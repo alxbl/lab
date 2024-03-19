@@ -55,8 +55,8 @@ NODE3_NAME=node3
 NODE3_MAC=52:54:00:c3:61:77
 
 function create_docker {
-  virt-install --name $NODE1_NAME --network=bridge:$VM_BRIDGE,mac=$NODE1_MAC $COMMON_VIRT_OPTS --boot=network
-  virt-install --name $NODE2_NAME --network=bridge:$VM_BRIDGE,mac=$NODE2_MAC $COMMON_VIRT_OPTS --boot=network
+  virt-install --name $NODE1_NAME --network=bridge:$VM_BRIDGE,mac=$NODE1_MAC $COMMON_VIRT_OPTS --boot=hd,network
+  virt-install --name $NODE2_NAME --network=bridge:$VM_BRIDGE,mac=$NODE2_MAC $COMMON_VIRT_OPTS --boot=hd,network
   # virt-install --name $NODE3_NAME --network=bridge:$VM_BRIDGE,mac=$NODE3_MAC $COMMON_VIRT_OPTS --boot=hd,network
 }
 

@@ -38,6 +38,10 @@ module "dev" {
   install_disk = "/dev/vda"
   cached_install = true
 
+  # Avoid clashing with qemu0 stuff.
+  pod_cidr = "10.22.0.0/16"
+  service_cidr = "10.33.0.0/16"
+
   controllers = [
     {
       name = "node1",
@@ -54,6 +58,12 @@ module "dev" {
         arch = "x86_64"
     }
   ]
+
+  # Setup static DNS in /etc/hosts so that routing works properly.
+  snippets = {
+    "node1" = [ file("./file-hosts.yaml") ]
+    "node2" = [ file("./file-hosts.yaml") ]
+  }
 }
 
 resource "local_file" "kubeconfig-dev" {

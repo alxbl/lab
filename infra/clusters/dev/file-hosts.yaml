@@ -1,0 +1,11 @@
+variant: fcos
+version: 1.5.0
+storage:
+  files:
+    - path: /etc/hosts
+      overwrite: true
+      contents:
+        inline: |
+          10.2.0.101 node1
+          10.2.0.102 node2
+      mode: 0644

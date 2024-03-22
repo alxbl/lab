@@ -1,22 +1,41 @@
 # Homelab Infra-as-Code / GitOps
 
-This repository hosts my infra-as-code and gitops configurations for my home network.
-It also contains various bootstrapping scripts for workstations and servers alike.
-
+This repository hosts my infra-as-code and gitops configurations for
+my home network. It also contains various bootstrapping scripts for
+workstations and servers alike.
 
 ## Workstation Bootstrapping
-Workstations running ArchLinux (btw) are provisioned via `scripts/pacstrap.sh`
+
+Workstations running ArchLinux (btw) are provisioned via
+`scripts/pacstrap.sh`
 
 ```sh
 # After booting into ArchLinux Live USB
-# alternatively: https://raw.githubusercontent.com/alxbl/lab/main/scripts/pacstrap.sh
+# https://raw.githubusercontent.com/alxbl/lab/main/scripts/pacstrap.sh
 curl -sSfL https://bit.ly/pacstrap | HOST=hostname sh`
 ```
 
+## Cluster Overview
+
+Each node is running Fedora Core OS with an additional layer (via
+`rpm-ostree rebase`) which includes ZFS drivers and userland utilities
+as well as my fork of Typhoon.
+
+Currently, my homelab cluster is made up of the following nodes:
+
+- HP Proliant D630p G8 (2x 2.5GHz Xeon / 256GB RAM)
+  - OS Drive: 500GB external SSD (`/`)
+  - Data Pool: 8x1.2TB HDDs in a ZFS Raidz2 configuation (`/var/data`)
+
+The high level diagram [can be found here](#TODO)
+
 ## Cluster Bootstrapping
 
-Once the cluster is bootstrapped, it is self-sufficient as long as there is at least one controller node
-up and running. Bootstrapping is only necessary in case a full recovery is necessary after simultaneous
+For a visual overview of the bootstrapping process, [see this diagram](#TODO)
+
+Once the cluster is bootstrapped, it is self-sufficient as long as
+there is at least one controller node up and running. Bootstrapping is
+only necessary in case a full recovery is necessary after simultaneous
 failure of all nodes.
 
 **Bootstrapping Synthetic Test Status**: `Not implemented`
@@ -25,17 +44,15 @@ failure of all nodes.
 
 The following requirements must be met for bootstrapping to work:
 
-These tools must be available on the OS: 
+The following tools must be available on the OS:
 
 - zsh
 - docker
 - docker-compose
-- nodejs and npm > 12
 - git
 - jq
 - ip
 - sudo
-
 
 Additionally, the user running the bootstrap script must be a `sudoer` (without password for maximum automation)
 
@@ -64,19 +81,32 @@ lsblk -o NAME,UUID /dev/sda1
 ### Usage
 
 - Ensure the requirements are met
-- Plug the secrets removable media in a port 
-- (TODO) Update `cluster.json` to specify the MAC address of the machines that are to be part ofthe cluster
+- Plug the secrets removable media in a port
 - Run `scripts/bootstrap.sh`
-- When prompted, power on the machines so that they network boot*
+- When prompted, power on the machines so that they network boot
 - Grab a coffee and wait
 
-cdktf will report that it is waiting for provisioning as such:
+terraform will report that it is waiting for provisioning as such:
 
 ```plain
-segv-lab  module.typhoon-module.null_resource.copy-controller-secrets[0]: 
+segv  module.typhoon-module.null_resource.copy-controller-secrets[0]: 
 Provisioning with 'file'...
-segv-lab  module.typhoon-module.null_resource.copy-controller-secrets[0]: Still creating... [10s elapsed]
+segv  module.typhoon-module.null_resource.copy-controller-secrets[0]: Still creating... [10s elapsed]
 ```
 
-Bootstrapping must provision at least one controller node. The cluster is bootstrapped to be able to provision
-new nodes as necessary, so nodes can be dynamically added without running the bootstrap script again.
+Bootstrapping must provision at least one controller node. The cluster
+is bootstrapped to be able to provision new nodes as necessary, so
+nodes can be dynamically added without running the bootstrap script
+from this repository again other than in disaster recovery scenarios
+where the entire cluster is lost at once.
+
+## Disaster Recovery
+
+Cluster data is backed up to Azure Blob Storage daily using `rustic`
+as well as to an external hard drive via `rsync`.
+
+The external hard drive should be the first source to attempt recovery
+from, as it is the simplest, cheapest, and fastest.
+
+If the hard drive is also lost as part of disaster, then recovery from
+Azure Blob Storage can be achieved by [following these steps](#TODO).

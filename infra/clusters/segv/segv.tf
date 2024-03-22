@@ -38,6 +38,8 @@ module "segv" {
   install_disk = "/dev/sda"
   cached_install = true
 
+  networking = "calico"
+
   controllers = [
     {
       name = "tachyon",
@@ -47,11 +49,15 @@ module "segv" {
   ]
 
   # workers = []
+
+  snippets = {
+    # Wipe root file system so that reprovisioning is easy
+    "tachyon" = [ file("../butane/wipe-root.yaml") ]
+  }
 }
 
 resource "local_file" "kubeconfig-segv" {
   content  = module.segv.kubeconfig-admin
-  # FIXME: Write to $HOME or to /mnt/secrets
-  filename = "/home/dom0/.kube/configs/segv.conf"
+  filename = "${path.module}/kube.conf"
   file_permission = "0600"
 }

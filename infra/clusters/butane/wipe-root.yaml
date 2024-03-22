@@ -1,0 +1,9 @@
+
+variant: fcos
+version: 1.5.0
+storage:
+  filesystems:
+    - device: /dev/disk/by-partlabel/root
+      wipe_filesystem: true
+      format: xfs
+      label: root

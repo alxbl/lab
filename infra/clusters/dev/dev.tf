@@ -41,6 +41,7 @@ module "dev" {
   # Avoid clashing with qemu0 stuff.
   pod_cidr = "10.22.0.0/16"
   service_cidr = "10.33.0.0/16"
+  networking = "calico"
 
   controllers = [
     {
@@ -61,14 +62,13 @@ module "dev" {
 
   # Setup static DNS in /etc/hosts so that routing works properly.
   snippets = {
-    "node1" = [ file("./file-hosts.yaml") ]
-    "node2" = [ file("./file-hosts.yaml") ]
+    "node1" = [ file("../butane/wipe-root.yaml"), file("./butane/hosts.yaml") ]
+    "node2" = [ file("../butane/wipe-root.yaml"), file("./butane/hosts.yaml") ]
   }
 }
 
 resource "local_file" "kubeconfig-dev" {
   content  = module.dev.kubeconfig-admin
-  # FIXME: Write to $HOME or to /mnt/secrets
   filename = "${path.module}/kube.conf"
   file_permission = "0600"
 }

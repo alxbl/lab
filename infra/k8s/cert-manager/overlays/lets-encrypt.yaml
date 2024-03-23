@@ -1,0 +1,22 @@
+# Certificate issuer for external services.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-issuer
+spec:
+  acme:
+    email: admin@segfault.me
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-key
+    solvers:
+    - dns01:
+        cloudflare:
+          email: admin@segfault.com
+          apiKeySecretRef:
+            # kubectl apply -f /mnt/secrets/manifests/cloudflare-api-secret.yaml
+            name: cloudflare-api-secret
+            key: token
+      selector:
+        dnsZones:
+          - segfault.me

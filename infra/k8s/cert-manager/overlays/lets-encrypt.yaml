@@ -13,10 +13,10 @@ spec:
     - dns01:
         cloudflare:
           email: admin@segfault.com
-          apiKeySecretRef:
+          apiTokenSecretRef:
             # kubectl apply -f /mnt/secrets/manifests/cloudflare-api-secret.yaml
             name: cloudflare-api-secret
-            key: token
+            key: api-token
       selector:
         dnsZones:
           - segfault.me

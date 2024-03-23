@@ -1,0 +1,26 @@
+# istio
+apiVersion: v1
+kind: Secret
+metadata:
+  name: istio-helm
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  name: istio.io
+  url: https://istio-release.storage.googleapis.com/charts
+  type: helm
+---
+# hashicorp
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hashicorp-helm
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  name: hashicorp.com
+  url: https://helm.releases.hashicorp.com
+  type: helm
+

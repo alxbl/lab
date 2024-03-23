@@ -3,6 +3,7 @@ kind: Kustomization
 
 namespace: argocd
 resources:
+- overlays/helm-repositories.yaml 
 - overlays/namespace.yaml
 - overlays/root.yaml
 - https://raw.githubusercontent.com/argoproj/argo-cd/v2.10.3/manifests/install.yaml

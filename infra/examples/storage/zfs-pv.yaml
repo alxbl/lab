@@ -1,0 +1,39 @@
+# Test snippets Deploys a pod which consumes some ZFS storage directly.
+# Create a persistent volume claim which uses ZFS directly.
+# This volume can only be mounted in Read/Write Once by a single container
+# in a single pod.
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: my-pvc
+spec:
+  storageClassName: zfs-rwo
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+---
+# Create a pod which consumes the persistent volume claim and mounts it
+# to /data.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-zfs-pod
+spec:
+  restartPolicy: Never
+  containers:
+  - name: nginx
+    image: nginx:latest
+    volumeMounts:
+       - mountPath: /data
+         name: nginx-vol
+    tty: true
+    resources:
+      limits:
+        cpu: 100m
+        memory: 100M
+  volumes:
+  - name: nginx-vol
+    persistentVolumeClaim:
+      claimName: my-pvc

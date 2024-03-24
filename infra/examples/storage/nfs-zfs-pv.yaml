@@ -1,0 +1,60 @@
+# Creates two pods which bind the same shared ZFS-backed volume via a
+# dynamically provisioned NFS server.
+# ref: https://github.com/openebs/dynamic-nfs-provisioner/blob/develop/docs/intro.md
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nfs-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: "zfs-rwx"
+  resources:
+    requests:
+      storage: 100Mi
+---
+# Pod 1
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nfs-1
+spec:
+  restartPolicy: Never
+  containers:
+  - name: nginx
+    image: nginx:latest
+    volumeMounts:
+       - mountPath: /data
+         name: nginx-vol
+    tty: true
+    resources:
+      limits:
+        cpu: 100m
+        memory: 100M
+  volumes:
+  - name: nginx-vol
+    persistentVolumeClaim:
+      claimName: nfs-pvc
+---
+# Pod 2
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nfs-2
+spec:
+  restartPolicy: Never
+  containers:
+  - name: nginx
+    image: nginx:latest
+    volumeMounts:
+       - mountPath: /mnt  # It's okay to use a different mount path.
+         name: mount-vol
+    tty: true
+    resources:
+      limits:
+        cpu: 100m
+        memory: 100M
+  volumes:
+  - name: mount-vol
+    persistentVolumeClaim:
+      claimName: nfs-pvc

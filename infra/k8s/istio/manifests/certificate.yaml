@@ -1,4 +1,4 @@
-# Certificate for HTTP(s) ingress (https://cert-manager.io/docs/usage/certificate/#creating-certificate-resources)
+# Certificate for HTTPS ingress (https://cert-manager.io/docs/usage/certificate/#creating-certificate-resources)
 # Issued by Let's Encrypt
 apiVersion: cert-manager.io/v1
 kind: Certificate
@@ -12,13 +12,11 @@ spec:
   subject:
     organizations:
       - segfault.me
-  # The use of the common name field has been deprecated since 2000 and is discouraged.
-  # commonName: segfault.me
   isCA: false
   privateKey:
-    algorithm: ECDSA
+    algorithm: RSA  # Switch to Ed25519 someday... 
     encoding: PKCS1
-    size: 384
+    size: 4096
   usages:
     - server auth
     - client auth

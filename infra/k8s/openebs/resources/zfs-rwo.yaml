@@ -1,0 +1,30 @@
+# ZFS StorageClass on ZFS pool named `data`.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: zfs-rwo
+parameters:
+  # Use external pool settings. Uncomment to override.
+  # recordsize: "128k"
+  # compression: "off"
+  # dedup: "off"
+  fstype: "zfs"
+  poolname: "data"
+provisioner: zfs.csi.openebs.io
+# Retain deleted volumes.
+#
+# This keeps the datasets around in the ZFS pool and makes it possible to
+# reprovision the cluster without losing data.
+#
+# NOTE: There is currently no way to retrieve the original datasets
+# other than manually creating a PV. This is someting to investigate
+# in the future if the need arises.
+reclaimPolicy: Retain
+
+# Restrict nodes on which ZFS volumes can be assigned to nodes
+# which have ZFS pools.
+allowedTopologies:
+- matchLabelExpressions:
+  - key: kubernetes.io/hostname
+    values:
+      - tachyon.lan

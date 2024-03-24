@@ -36,3 +36,16 @@ stringData:
   name: openebs.io
   url: https://openebs.github.io/charts
   type: helm
+---
+# OpenEBS-nfs (Beta)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: openebs-nfs-helm
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  name: openebs.io/nfs
+  url: https://openebs.github.io/dynamic-nfs-provisioner
+  type: helm

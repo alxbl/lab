@@ -1,0 +1,8 @@
+# Deploys and sets up OpenEBS with ZFS support and dynamic NFS provisioning
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - https://openebs.github.io/charts/zfs-operator.yaml
+  - resources/charts.yaml
+  - resources/zfs-rwo.yaml

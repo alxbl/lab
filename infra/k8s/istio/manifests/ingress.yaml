@@ -19,7 +19,8 @@ spec:
       name: https
       protocol: HTTPS
     tls:
-      mode: PASSTHROUGH
+      mode: SIMPLE
+      credentialName: https-in-gw-tls
     hosts:
     - "tachyon.lan"
     - "*.segfault.me"

@@ -1,0 +1,78 @@
+# https://istio.io/latest/docs/setup/install/helm/
+# istio/base
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: istio-base
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: base
+    repoURL: https://istio-release.storage.googleapis.com/charts
+    targetRevision: 1.21.0
+  destination:
+    server: "https://kubernetes.default.svc"
+---
+# istio/cni
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: istio-cni
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: cni
+    repoURL: https://istio-release.storage.googleapis.com/charts
+    targetRevision: 1.21.0
+    helm:
+      valuesObject:
+        cni:
+          enabled: true
+          chained: true
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: kube-system
+---
+# istio/istiod
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: istio-istiod
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: istiod
+    repoURL: https://istio-release.storage.googleapis.com/charts
+    targetRevision: 1.21.0
+    helm:
+      valuesObject:
+        istio_cni:
+          enabled: true
+          chained: true
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: istio-system
+---
+# istio/gateway
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: istio-gateway
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: gateway
+    repoURL: https://istio-release.storage.googleapis.com/charts
+    targetRevision: 1.21.0
+    helm:
+      valuesObject:
+        service:
+          # Disable the service, as it does not support static ClusterIP configuration.
+          type: None
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: istio-ingress

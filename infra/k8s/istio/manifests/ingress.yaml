@@ -1,0 +1,25 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: https-in-gw
+  namespace: istio-ingress
+spec:
+  selector:
+    istio: gateway
+  servers:
+  - port:
+      number: 80
+      protocol: HTTP
+      name: http
+    hosts:
+    - "tachyon.lan"
+    - "*.segfault.me"
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: PASSTHROUGH
+    hosts:
+    - "tachyon.lan"
+    - "*.segfault.me"

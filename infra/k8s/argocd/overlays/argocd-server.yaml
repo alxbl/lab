@@ -1,0 +1,26 @@
+# env was added because of https://github.com/argoproj/argo-cd/issues/3572 error
+# ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#istio
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: argocd-server
+spec:
+ template:
+   spec:
+     containers:
+     - args:
+       - /usr/local/bin/argocd-server
+       - --staticassets
+       - /shared/app
+       - --redis
+       - argocd-redis-ha-haproxy:6379
+       - --insecure  # TODO: Remove once mTLS configured
+       - --basehref
+       - /argocd
+       - --rootpath
+       - /argocd
+       name: argocd-server
+       env:
+       - name: ARGOCD_MAX_CONCURRENT_LOGIN_REQUESTS_COUNT
+         value: "0"

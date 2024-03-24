@@ -7,3 +7,5 @@ resources:
   - manifests/certificate.yaml
   - manifests/ingress.yaml
   - manifests/service.yaml
+  
+  - services/argocd.yaml

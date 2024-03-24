@@ -10,3 +10,4 @@ resources:
 patches:
 - path: overlays/argocd-cm.yaml
 - path: overlays/argocd-server.yaml
+- path: overlays/argocd-redis.yaml

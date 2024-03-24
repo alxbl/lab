@@ -1,0 +1,12 @@
+# Remove Egress restrictions on REDIS
+# FIXME: This may not be required after istio-calico NetworkPolicy integration.
+# https://docs.tigera.io/calico/latest/network-policy/adopt-zero-trust 
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: argocd-redis-network-policy
+spec:
+  policyTypes:
+    - Ingress
+  egress:
+    - $patch: delete

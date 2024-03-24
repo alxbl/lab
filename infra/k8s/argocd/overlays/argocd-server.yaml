@@ -14,7 +14,7 @@ spec:
        - --staticassets
        - /shared/app
        - --redis
-       - argocd-redis-ha-haproxy:6379
+       - argocd-redis:6379
        - --insecure  # TODO: Remove once mTLS configured
        - --basehref
        - /argocd

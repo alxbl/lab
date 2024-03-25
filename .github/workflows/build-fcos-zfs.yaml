@@ -44,9 +44,9 @@ jobs:
       # Install the cosign tool
       # https://github.com/sigstore/cosign-installer
       - name: Install cosign
-        uses: sigstore/cosign-installer@6e04d228eb30da1757ee4e1dd75a0ec73a653e06 #v3.1.1
-        with:
-          cosign-release: 'v2.2.0'
+        uses: sigstore/cosign-installer@main
+        # with: # Use latest
+        #  cosign-release: 'v2.2.0'
 
       # Add support for building for other platforms with QEMU
       # https://github.com/docker/setup-qemu-action

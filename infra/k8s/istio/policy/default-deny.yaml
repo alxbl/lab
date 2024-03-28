@@ -1,0 +1,12 @@
+# This policy enforces an allow rule that matches nothing.
+# The result is default DENY
+# ref: https://istio.io/latest/docs/reference/config/security/authorization-policy/
+# ref: https://www.tenable.com/policies/cloud-security/AC_K8S_0121
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: ingress-allow-nothing
+  namespace: istio-system
+spec:
+  action: ALLOW
+  # the rules field is not specified, and the policy will never match.

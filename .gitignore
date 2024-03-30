@@ -5,6 +5,7 @@ attic/
 
 # binaries/scripts
 scripts/bin/terraform
+scripts/bin/helm
 
 build/bootstrap/tftp/*
 build/bootstrap/matchbox/ignition/*

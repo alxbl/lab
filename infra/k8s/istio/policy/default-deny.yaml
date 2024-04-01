@@ -10,3 +10,16 @@ metadata:
 spec:
   action: ALLOW
   # the rules field is not specified, and the policy will never match.
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: ingress-allow-namespaces
+  namespace: istio-system
+spec:
+  action: ALLOW
+  rules:
+  - to:
+    - operation:
+        paths:
+        - "/argocd/*"

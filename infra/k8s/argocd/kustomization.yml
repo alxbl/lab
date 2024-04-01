@@ -8,6 +8,4 @@ resources:
 - overlays/root.yaml
 - https://raw.githubusercontent.com/argoproj/argo-cd/v2.10.3/manifests/install.yaml
 patches:
-- path: overlays/argocd-cm.yaml
 - path: overlays/argocd-server.yaml
-- path: overlays/argocd-redis.yaml

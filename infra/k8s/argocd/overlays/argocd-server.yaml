@@ -15,7 +15,7 @@ spec:
        - /shared/app
        - --redis
        - argocd-redis:6379
-       - --insecure  # TODO: Remove once mTLS configured
+       - --insecure
        - --basehref
        - /argocd
        - --rootpath

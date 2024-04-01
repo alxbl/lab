@@ -3,8 +3,8 @@ kind: Kustomization
 
 resources:
   # Allow CalicoPolicy integration with Istio
-  - https://raw.githubusercontent.com/projectcalico/calico/v3.27.2/manifests/csi-driver.yaml
-  - https://raw.githubusercontent.com/projectcalico/calico/v3.27.2/manifests/alp/istio-app-layer-policy-envoy-v3.yaml
+  # - https://raw.githubusercontent.com/projectcalico/calico/v3.27.2/manifests/csi-driver.yaml
+  # - https://raw.githubusercontent.com/projectcalico/calico/v3.27.2/manifests/alp/istio-app-layer-policy-envoy-v3.yaml
 
   - manifests/namespaces.yaml
   - manifests/charts.yaml
@@ -14,5 +14,4 @@ resources:
   - manifests/mtls.yaml
   
   - services/argocd.yaml
-
-  # - policy/default-deny.yaml
+  - policy/default-deny.yaml

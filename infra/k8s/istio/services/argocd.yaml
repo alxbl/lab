@@ -21,3 +21,27 @@ spec:
         port:
           number: 443
         host: argocd-server.argocd.svc.cluster.local
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: argocd-allow-internal
+  namespace: argocd
+spec:
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        namespaces: ["argocd"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-non-mtls
+  namespace: argocd
+spec:
+  action: DENY
+  rules:
+  - from:
+    - source:
+        notPrincipals: ["*"]

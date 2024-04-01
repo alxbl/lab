@@ -1,0 +1,92 @@
+# Test deployment of gluetun with hardcoded NordVPN config
+# https://github.com/qdm12/gluetun/tree/master
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gluetun-deployment
+  labels:
+    app: gluetun
+spec:
+  replicas: 1
+  strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 1
+  selector:
+    matchLabels:
+      app: gluetun
+  template:
+    metadata:
+      labels:
+        app: gluetun
+        # istio-proxy messes with VPN, so this is not part of the mesh.
+        # TODO: Network policy so this pod is not allowed to talk with anything other than the VPN tunnel.
+        # https://github.com/qdm12/gluetun-wiki/pull/7
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+        - name: gluetun
+          image: qmcgaw/gluetun
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 1G
+            requests:
+              cpu: 10m
+              memory: 30M
+
+          volumeMounts:
+            - mountPath: /dev/net/tun
+              readOnly: true
+              name: tun-device
+            - mountPath: /gluetun
+              name: scratch
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["NET_ADMIN"]
+          envFrom:
+            - configMapRef:
+                name: gluetun-config
+                optional: false
+        - name: bash
+          image: debian:buster
+          args:
+            - bash
+            - -c
+            - while sleep 5; do echo $(date); done
+      volumes:
+        - name: tun-device
+          hostPath:
+            path: /dev/net/tun
+        - name: scratch
+          emptyDir:
+---
+# TODO: Egress policy that restricts outbound traffic on eth0 to UDP 1194
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gluetun-config
+  namespace: default
+data:
+  # See https://github.com/qdm12/gluetun-wiki/tree/main/setup#setup
+  # Allow resolution of in-cluster addresses (DANGER: Leaks DNS queries)
+  # DNS_KEEP_NAMESERVER: "on"
+  
+  VPN_SERVICE_PROVIDER: nordvpn
+  VPN_TYPE: openvpn
+  SERVER_COUNTRIES: Netherlands 
+  # OpenVPN (this should probably come from a secretRef instead)
+  OPENVPN_USER: "[redacted]"
+  OPENVPN_PASSWORD: "[redacted]"
+  # Might not be required due to the node ip being allowed.
+  FIREWALL_OUTBOUND_SUBNETS: 10.3.0.0/16
+  # FIREWALL_DEBUG: "on"
+  # Wireguard:
+  # WIREGUARD_PRIVATE_KEY: "[redacted]" 
+  # WIREGUARD_ADDRESSES: 10.64.222.21/32
+  # Timezone for accurate log times
+  TZ: Americas/Toronto
+  # Server list updater
+  # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/servers.md#update-the-vpn-servers-list
+  UPDATER_PERIOD: 24h

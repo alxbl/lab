@@ -49,3 +49,16 @@ stringData:
   name: openebs.io/nfs
   url: https://openebs.github.io/dynamic-nfs-provisioner
   type: helm
+---
+# Grafana OSS
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-helm
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  name: grafana
+  url: https://grafana.github.io/helm-charts
+  type: helm

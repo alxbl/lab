@@ -1,0 +1,123 @@
+# This chart requires Kubernetes 1.29 and higher, because it makes use of SideCar containers to prevent
+# VPN leaks.
+
+# There should normally not be more than one in the cluster to avoid duplicate work and VPN connections.
+replicaCount: 1
+
+imagePullSecrets:
+# Override the image version for various components
+# leave empty to pull latest
+images:
+  sonarr: ""
+  radarr: ""
+  readarr: ""
+  prowlarr: ""
+  gluetun: ""
+
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1000
+
+# securityContext for all containers other than gluetun.
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# Configure the VPN sidecar.
+vpn:
+  # This enables a SOCKS proxy to the pod for VPN.
+  socks:
+    enabled: true
+    type: ClusterIP
+    port: 8888
+
+  # Tunnel all DNS queries through the VPN.
+  # DANGER: Setting this to false will use the local/ambient
+  #         DNS server, which will most likely leak DNS queries.
+  #         Setting to `false` is NOT recommended.
+  dns_over_vpn: true
+  
+  # VPN mode: openvpn or wireguard
+  mode: "openvpn"
+  # VPN provider (must be supported by gluetun)
+  provider: "nordvpn"
+  
+  # The name of a secret containing the VPN credentials.
+  # If the VPN mode is `openvpn`, the secret must contain two keys:
+  #     OPENVPN_USER:     "your_openvpn_user"
+  #     OPENVPN_PASSWORD: "your_openvpn_password"
+  #
+  # Otherwise, if Wireguard:
+  #     WIREGUARD_PRIVATE_KEY: "your_wg_private_key"
+  #     WIREGUARD_ADRESSES:    "your_wg_addresses"
+  #
+  # Refer to gluetun documentation for details.
+  credentialsSecretRef: gluetun-vpn-credentials
+
+  # List of comma separated countries to randomly VPN from when the sidecar starts.
+  countries: "Netherlands"
+  # Timezone (for logging)
+  timezone: "Americas/Toronto"
+  # Auto-update server list? This is performed over VPN
+  # See https://github.com/qdm12/gluetun-wiki/blob/main/setup/servers.md#update-the-vpn-servers-list
+  updater:
+    enabled: true
+    period: "24h"
+
+# If using PostgresQL, set it up here.
+# database:
+#   enabled: false
+#   endpoint: namespace.postgres_svc.svc
+
+
+# Configure the storage for the aquisition server.
+# This will usually be a ReadWriteMany (RWX) storage which is shared with the actual media server. 
+# Aquisition will write the data into this storage, and the media server will process/serve it.
+storage:
+  # The name of a PVC to bind. This PVC must exist or `create` must be true.
+  name: media-server-pvc
+  # Create the Volume Claim. If the claim is already provisioned or already exists, set to false.
+  create: true
+  # Size of the storage
+  size: 1G
+  # The storage class to use. "" for default. Recommended RWX volume so that media server and aquisition
+  # can run on different nodes.
+  storageClass: "zfs-rwx"
+  accessMode: ReadWriteMany
+
+# Standard Helm Boilerplate.
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

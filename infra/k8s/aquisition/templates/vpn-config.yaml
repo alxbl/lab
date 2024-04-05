@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vpn-config
+data:
+  # See https://github.com/qdm12/gluetun-wiki/tree/main/setup#setup
+  {{- with .Values.vpn }}
+  DNS_KEEP_NAMESERVER: {{ if .dns_over_vpn }}"off"{{ else }}"on"{{ end }}
+  VPN_SERVICE_PROVIDER: {{ .provider | default "protonvpn" | quote }}
+  VPN_TYPE: {{ .mode | default "openvpn" | quote }}
+  SERVER_COUNTRIES: {{ .countires | default "Netherlands" | quote }}
+  TZ: {{ .timezone | default "Americas/Toronto" | quote }}
+  {{- if .updater.enabled }}
+  UPDATER_PERIOD: {{ .updater.period | quote }}
+  {{- end }}
+  {{- end }}
+
+  # FIREWALL_OUTBOUND_SUBNETS: 10.3.0.0/16
+  # FIREWALL_DEBUG: "on"

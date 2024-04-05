@@ -1,0 +1,17 @@
+{{- if .Values.vpn.socks.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "aquisition.fullname" . }}
+  labels:
+    {{- include "aquisition.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.vpn.socks.type }}
+  ports:
+    - port: {{ .Values.vpn.socks.port }}
+      targetPort: {{ .Values.vpn.socks.port }}
+      protocol: TCP
+      name: socks
+  selector:
+    {{- include "aquisition.selectorLabels" . | nindent 4 }}
+{{- end }}

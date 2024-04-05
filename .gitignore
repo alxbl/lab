@@ -6,6 +6,8 @@ attic/
 # binaries/scripts
 scripts/bin/terraform
 scripts/bin/helm
+scripts/bin/k9s
+scripts/bin/kubectl
 
 build/bootstrap/tftp/*
 build/bootstrap/matchbox/ignition/*

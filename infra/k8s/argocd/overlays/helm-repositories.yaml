@@ -62,3 +62,16 @@ stringData:
   name: grafana
   url: https://grafana.github.io/helm-charts
   type: helm
+---
+# Bitnami 
+apiVersion: v1
+kind: Secret
+metadata:
+  name: bitnami-helm
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  name: bitnami
+  url: https://charts.bitnami.com/bitnami
+  type: helm

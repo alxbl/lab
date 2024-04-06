@@ -1,0 +1,71 @@
+replicaCount: 1
+
+image:
+  repository: wolveix/satisfactory-server
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+podLabels:
+  sidecar.istio.io/inject: "false"
+
+podSecurityContext:
+  # fsGroup: 1000
+
+securityContext:
+  # The SteamCMD container is rootful and drops its privileges...
+  privileged: true
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+resources:
+  limits:
+     cpu: 2000m
+     memory: 16Gi
+  requests:
+    cpu: 100m
+    memory: 8Gi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+service:
+  # If service is created, it will be a ClusterIP service, otherwise use host networking.
+  create: false
+
+storage:
+  create: true
+  name: satisfactory-data
+  storageClass: "zfs-rwo"
+  size: 30G
+  accessMode: ReadWriteOnce
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

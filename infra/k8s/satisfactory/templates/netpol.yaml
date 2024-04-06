@@ -1,0 +1,36 @@
+# apiVersion: crd.projectcalico.org/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: allow-satisfactory
+# spec:
+#   selector: app.kubernetes.io/name == '{{ include "satisfactory.name" . }}'
+#   ingress:
+#     - action: Allow
+#       protocol: UDP
+#       destination:
+#         ports:
+#           - 7777
+#           - 15000
+#           - 15777
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-satisfactory
+  namespace: satisfactory
+spec:
+  ingress:
+  - from:
+    - namespaceSelector: {}
+    ports:
+      - port: 15000
+        protocol: UDP
+      - port: 15777
+        protocol: UDP
+      - port: 7777
+        protocol: UDP
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: satisfactory
+  policyTypes:
+  - Ingress

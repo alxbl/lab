@@ -38,6 +38,14 @@ spec:
               readOnly: true
             - name: scratch
               mountPath: /gluetun
+            - name: firewall-rules
+              mountPath: /iptables/post-rules.txt
+              subPath: post-rules.txt
+          {{- if .Values.vpn.socks.enabled }}
+          ports:
+          - name: socks
+            containerPort: 8388
+          {{- end }}
           securityContext:
             privileged: true # FIXME: SELinux
             capabilities:
@@ -72,9 +80,6 @@ spec:
           volumeMounts:
             - name: media
               mountPath: /config/test
-            - name: sonarr-config
-              mountPath: /config/config.xml
-              subPath: config.xml
         - name: radarr
           image: lscr.io/linuxserver/radarr:{{ .Values.images.radarr | default "latest"}}
           securityContext:
@@ -101,16 +106,15 @@ spec:
             path: /dev/net/tun
         - name: scratch
           emptyDir:
-        - name: sonarr-config
-          configMap:
-            defaultMode: 0644
-            name: sonarr-config
-            items:
-              - key: config.xml
-                path: config.xml
         - name: media
           persistentVolumeClaim:
             claimName: {{ .Values.storage.name | quote }}
+        - name: firewall-rules
+          configMap:
+            name: vpn-firewall
+            items:
+              - key: post-rules.txt
+                path: post-rules.txt
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

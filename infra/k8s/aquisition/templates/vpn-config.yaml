@@ -9,11 +9,12 @@ data:
   VPN_SERVICE_PROVIDER: {{ .provider | default "protonvpn" | quote }}
   VPN_TYPE: {{ .mode | default "openvpn" | quote }}
   SERVER_COUNTRIES: {{ .countires | default "Netherlands" | quote }}
+  SHADOWSOCKS: {{ if .socks.enabled }}"on"{{ else }}"off"{{ end }}
+  # SHADOWSOCKS_LOG: "on"
   TZ: {{ .timezone | default "Americas/Toronto" | quote }}
   {{- if .updater.enabled }}
   UPDATER_PERIOD: {{ .updater.period | quote }}
   {{- end }}
   {{- end }}
-
   # FIREWALL_OUTBOUND_SUBNETS: 10.3.0.0/16
   # FIREWALL_DEBUG: "on"

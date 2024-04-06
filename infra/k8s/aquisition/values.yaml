@@ -19,8 +19,14 @@ images:
 nameOverride: ""
 fullnameOverride: ""
 
-podAnnotations: {}
-podLabels: {}
+podAnnotations:
+  # Do not proxy shadowSOCKS traffic.
+  traffic.sidecar.istio.io/excludeInboundPorts: "8388"
+  
+podLabels:
+  # Disable istio-proxy in this pod
+  sidecar.istio.io/inject: "false"
+
 
 podSecurityContext:
   fsGroup: 1000
@@ -37,10 +43,20 @@ securityContext: {}
 # Configure the VPN sidecar.
 vpn:
   # This enables a SOCKS proxy to the pod for VPN.
+  # When enabled, SHADOWSOCKS_PASSWORD is read from the VPN credentials secret
+  # and used to encrypt shadowSOCKS traffic.
   socks:
     enabled: true
+    cipher: AEAD
     type: ClusterIP
-    port: 8888
+    port: 8388
+  
+  # Extra firewall rules. Each line is an invocation of `iptables`
+  firewall:
+  # This accepts local traffic destined for the ShadowSOCKS proxy.
+  # Without this rule, shadow socks connections will timeout.
+  - -A INPUT -s 10.0.0.0/16 -p tcp -m tcp --dport 8388 -j ACCEPT
+  - -A INPUT -s 10.0.0.0/16 -p udp -m udp --dport 8388 -j ACCEPT
 
   # Tunnel all DNS queries through the VPN.
   # DANGER: Setting this to false will use the local/ambient

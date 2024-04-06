@@ -1,0 +1,11 @@
+{{ if .Values.vpn.firewall }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vpn-firewall
+data:
+  post-rules.txt: |-
+    {{- range .Values.vpn.firewall }}
+    iptables {{ . }}
+    {{- end }}
+{{- end }}

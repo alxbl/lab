@@ -9,7 +9,7 @@ spec:
   type: {{ .Values.vpn.socks.type }}
   ports:
     - port: {{ .Values.vpn.socks.port }}
-      targetPort: {{ .Values.vpn.socks.port }}
+      targetPort: 8388
       protocol: TCP
       name: socks
   selector:

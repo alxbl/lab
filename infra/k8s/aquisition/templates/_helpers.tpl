@@ -40,7 +40,6 @@ helm.sh/chart: {{ include "aquisition.chart" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-sidecar.istio.io/inject: "false"
 {{- end }}
 
 {{/*

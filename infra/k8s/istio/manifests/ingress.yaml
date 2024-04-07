@@ -26,3 +26,5 @@ spec:
       number: 445
       protocol: TCP
       name: smb
+    hosts:
+    - "*"

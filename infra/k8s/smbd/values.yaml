@@ -1,0 +1,95 @@
+# Default values for smbd.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: dockurr/samba
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "smbd"
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+
+securityContext:
+  # FIXME: Configurable users without having to run privileged (init?)
+  # smb has to run as root to be able to create users.
+  privileged: true
+
+service:
+  create: true
+  type: ClusterIP
+  port: 445
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+smb:
+  # A Secret which contains the SMB credentials.
+  # USER: netshareUser
+  # PASS: netsharePassword
+  credentialsSecretRef: smbd-credentials
+  
+  # The default SMB configuration. 
+  # `/storage` is where the PersistentVolume will be mounted and should not be changed.
+  config: |-
+    [global]
+    security = user
+    server min protocol = SMB2
+
+    # disable printing services
+    load printers = no
+    printing = bsd
+    printcap name = /dev/null
+    disable spoolss = yes
+
+    [data]
+    path = /storage
+    comment = Shared
+    valid users = @smb
+    browseable = yes
+    writable = yes
+    read only = no
+    force user = root
+    force group = root
+
+storage:
+  create: true
+  name: smbd-data
+  storageClass: "zfs-rwo"
+  size: 1Ti
+  accessMode: ReadWriteOnce
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

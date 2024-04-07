@@ -1,0 +1,17 @@
+{{- if .Values.service.create -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "smbd.name" . }}
+  labels:
+    {{- include "smbd.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 445
+      targetPort: 445
+      protocol: TCP
+      name: smb
+  selector:
+    {{- include "smbd.selectorLabels" . | nindent 4 }}
+{{- end }}

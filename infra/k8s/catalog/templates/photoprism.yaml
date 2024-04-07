@@ -22,6 +22,6 @@ spec:
             size: 5Gi
         settings:
           DatabaseDriver: 'mysql'
-    path: infra/k8s/smbd
+    path: infra/k8s/photoprism
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}

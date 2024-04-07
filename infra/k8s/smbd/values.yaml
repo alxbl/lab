@@ -27,7 +27,6 @@ serviceAccount:
 
 podAnnotations: {}
 podLabels: {}
-
 podSecurityContext: {}
 
 securityContext:
@@ -85,11 +84,9 @@ storage:
   create: true
   name: smbd-data
   storageClass: "zfs-rwo"
-  size: 1Ti
+  size: 1Gi
   accessMode: ReadWriteOnce
 
 nodeSelector: {}
-
 tolerations: []
-
 affinity: {}

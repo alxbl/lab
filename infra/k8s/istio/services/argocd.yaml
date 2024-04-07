@@ -1,27 +1,7 @@
 # It feels dirty to have this as part of a different application deployment,
 # but the services depend on Istio being present, so for now this is fine.
 
-# ArgoCD virtual service
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: argocd-svc
-  namespace: argocd
-spec:
-  hosts:
-  - "lab.segfault.me"
-  gateways:
-  - istio-ingress/https-in-gw
-  http:
-  - match:
-    - uri:
-        prefix: /argocd
-    route:
-    - destination:
-        port:
-          number: 443
-        host: argocd-server.argocd.svc.cluster.local
----
+# ArgoCD Policies
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:

@@ -23,3 +23,15 @@ spec:
     - operation:
         paths:
         - "/argocd/*"
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: ingress-allow-smbd
+  namespace: istio-system
+spec:
+  action: ALLOW
+  rules:
+  - to:
+    - operation:
+        ports: ["445"]

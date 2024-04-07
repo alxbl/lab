@@ -1,0 +1,65 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: https-in-gw
+  namespace: istio-ingress
+spec:
+  selector:
+    istio: gateway
+  servers:
+  - port:
+      number: 80  # Accepted to force 80 through ingress
+      protocol: HTTP
+      name: http
+    hosts:
+    - "*.segfault.me"
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: https-in-gw-tls
+    hosts:
+    - "*.segfault.me"
+  - port:
+      number: 445
+      protocol: TCP
+      name: smb
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: tcp-virtualservice
+  namespace: istio-ingress
+spec:
+  hosts:
+  - "lab.segfault.me"
+  gateways:
+  - istio-ingress/https-in-gw
+  http:
+  - name: Redirect to HTTPS
+    match:
+    - port: 80
+    redirect:
+      port: 443
+  - name: ArgoCD
+    match:
+    - uri:
+        prefix: /argocd
+    route:
+    - destination:
+        port:
+          number: 443
+        host: argocd-server.argocd.svc.cluster.local
+  tcp:
+  - name: SMB Share
+    match:
+    - port: 445
+    route:
+    - destination:
+        port:
+          number: 445
+        host: smbd.media.svc.cluster.local

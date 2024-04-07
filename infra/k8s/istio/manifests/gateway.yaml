@@ -55,8 +55,7 @@ spec:
           number: 443
         host: argocd-server.argocd.svc.cluster.local
   tcp:
-  - name: SMB Share
-    match:
+  - match:
     - port: 445
     route:
     - destination:

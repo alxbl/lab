@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "photoprism.name" . }}
+  labels:
+    {{- include "photoprism.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "photoprism.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "photoprism.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "photoprism.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.photoprism.repository }}:{{ .Values.image.photoprism.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.settings.HttpPort }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.configSecretRef | quote }}
+                optional: true
+          env:
+            - name: PHOTOPRISM_ORIGINALS_PATH
+              value: {{ .Values.settings.OriginalsPath | quote }}
+            - name: PHOTOPRISM_CONFIG_PATH
+              value: {{ .Values.settings.ConfigPath | quote }}
+            - name: PHOTOPRISM_STORAGE_PATH
+              value: {{ .Values.settings.StoragePath | quote }}
+            - name: PHOTOPRISM_IMPORT_PATH
+              value: {{ .Values.settings.ImportPath | quote }}
+            - name: PHOTOPRISM_DATABASE_USER
+              value: root
+          volumeMounts:
+            - name: photos
+              mountPath: /photoprism/originals
+            - name: config
+              mountPath: /etc/photoprism/defaults.yml
+              subPath: defaults.yml
+            - name: database
+              mountPath: {{ .Values.settings.StoragePath | quote }}
+        {{- if eq .Values.settings.DatabaseDriver "mysql" }}
+        - name: mariadb
+          securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.mariadb.repository }}:{{ .Values.image.mariadb.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: sql
+              containerPort: 3306
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+          - name: MARIADB_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.configSecretRef }}
+                key: PHOTOPRISM_DATABASE_PASSWORD
+          volumeMounts:
+            - name: database
+              mountPath: /var/lib/mysql
+        {{- end }}
+      volumes:
+        - name: photos
+          persistentVolumeClaim:
+            claimName: {{ .Values.storage.photos.name }}
+        - name: database
+          persistentVolumeClaim:
+            claimName: {{ .Values.storage.database.name }}
+        - name: config
+          configMap:
+            name: photoprism-config
+            items:
+              - key: defaults.yml
+                path: defaults.yml
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

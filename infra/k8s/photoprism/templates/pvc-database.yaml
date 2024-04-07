@@ -1,0 +1,15 @@
+{{- if .Values.storage.database.create -}}
+{{- with .Values.storage.database -}}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ .name | quote }}
+spec:
+  storageClassName: {{ .storageClass | default "" | quote }}
+  accessModes:
+    - {{ .accessMode | default "ReadWriteOnce" | quote }}
+  resources:
+    requests:
+      storage: {{ .size }}
+{{- end }}
+{{- end }}

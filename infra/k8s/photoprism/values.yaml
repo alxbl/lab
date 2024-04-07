@@ -1,0 +1,153 @@
+# Default values for photoprism.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  photoprism:
+    repository: photoprism/photoprism
+    tag: "latest"
+  mariadb:
+    repository: mariadb
+    tag: "11.3"
+
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "photoprism"
+
+podAnnotations: {}
+podLabels: {}
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  privileged: false
+  runAsUser: 1000
+  runAsGroup: 1000
+
+service:
+  create: true
+  type: ClusterIP
+  port: 80
+
+storage:
+  # The volume that will contain the actual picture bytes.
+  # You will usually want this to be shared with a file share (smbd)
+  # to easily import pictures.
+  photos:
+    create: true
+    name: photoprism-data
+    storageClass: "zfs-rwo"
+    size: 1Gi
+    accessMode: ReadWriteOnce
+  # Volume on which the database will be stored.
+  database:
+    create: true
+    name: photoprism-cache
+    storageClass: "zfs-rwo"
+    size: 1Gi
+    accessMode: ReadWriteOnce
+
+# A reference to a secret which contains the secret bits of configuration options.
+# Note: MariaDB is running within the pod exclusively for PhotoPrism and the `root`
+#       user will be used.
+# Example Keys:
+#   PHOTOPRISM_DATABASE_DRIVER: "mysql"
+#   PHOTOPRISM_DATABASE_NAME: "photoprism"
+#   PHOTOPRISM_DATABASE_SERVER: "mariadb:3306"
+#   PHOTOPRISM_DATABASE_PASSWORD: "p4ssw0rd"
+#   PHOTOPRISM_DATABASE_CONNS: 0
+#   PHOTOPRISM_ADMIN_PASSWORD: "p4ssw0rd"
+#   PHOTOPRISM_DOWNLOAD_TOKEN: ""
+#   PHOTOPRISM_PREVIEW_TOKEN: ""
+##
+configSecretRef: photoprism-secrets
+# Configure PhotoPrism's default Settings. Some of those settings can be overwritten by users.
+# Reference: https://docs.photoprism.app/getting-started/config-options
+settings:
+  # General deployment settings
+  LogLevel: info
+  Prod: true
+  Debug: false
+  Trace: false
+  HttpPort: 2342
+  HttpHost: "0.0.0.0"
+  HttpCompression: "gzip"
+  # If you have a ServiceMesh handling TLS, expose PhotoPrism over plain HTTP.
+  DisableTLS: true
+  DefaultTLS: false
+  
+  # If using `sqlite`, nothing else is necessary. Useful for testing, but not for production use.
+  # If using `mysql`, make sure configSecretRef exists and contains the database information.
+  DatabaseDriver: "sqlite" # alternatively, "mysql"
+
+  # Storage Paths
+  # Location for additional configuration files
+  ConfigPath: "/photoprism/originals/Photos/.config"
+  # Locttion for the Database and cache
+  StoragePath: "/photoprism/storage"
+  # Location for imported and categorized photos
+  OriginalsPath: "/photoprism/originals/Photos/collection"
+  # Location to scrape for new photos
+  ImportPath: "/photoprism/originals/Photos/import"
+
+  # Quality Limit (in MegaPixels) for individual uploads.
+  OriginalsLimit: 100
+
+  # Photo Processing
+  # Number of worker threads for photo processing. 
+  # More workers means faster imports and labeling, but more resource usage.
+  Workers: 4
+  # How often to run import/processing jobs.
+  WakeUpInterval: 15m
+
+  # Authentication
+  AdminUser: "admin"
+  # AdminPassword: Use credentialsSecretRef to set 
+  AuthMode: "password"
+  # You can set public to true if you have a Service Mesh enforcing authentication. This disables PhotoPrism's Password authentication.
+  Public: false  
+
+  # Features
+  Experimental: false
+  DisableWebDAV: false
+  DisableSettings: false
+  DisableTensorFlow: false
+  DisableFaces: false
+  DisableClassification: false
+  DisableVectors: false
+  DisableRaw: false
+  RawPresets: false
+  JpegQuality: 85
+  DetectNSFW: false
+  UploadNSFW: true
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

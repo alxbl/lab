@@ -9,7 +9,7 @@ metadata:
   namespace: argocd
 spec:
   hosts:
-  - "*"
+  - "lab.segfault.me"
   gateways:
   - istio-ingress/https-in-gw
   http:

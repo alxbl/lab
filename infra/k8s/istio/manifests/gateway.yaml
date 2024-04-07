@@ -12,7 +12,6 @@ spec:
       protocol: HTTP
       name: http
     hosts:
-    - "tachyon.lan"
     - "*.segfault.me"
   - port:
       number: 443
@@ -22,5 +21,8 @@ spec:
       mode: SIMPLE
       credentialName: https-in-gw-tls
     hosts:
-    - "tachyon.lan"
     - "*.segfault.me"
+  - port:
+      number: 445
+      protocol: TCP
+      name: smb

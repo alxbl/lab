@@ -21,7 +21,10 @@ spec:
     helm:
       valuesObject:
         storage:
+          create: true
           size: 1Ti
+          storageClass: 'zfs-rwx'
+          accessMode: ReadWriteMany
     path: infra/k8s/smbd
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}

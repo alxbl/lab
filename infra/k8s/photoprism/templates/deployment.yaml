@@ -53,6 +53,8 @@ spec:
               value: {{ .Values.settings.StoragePath | quote }}
             - name: PHOTOPRISM_IMPORT_PATH
               value: {{ .Values.settings.ImportPath | quote }}
+            - name: PHOTOPRISM_SITE_URL
+              value: {{ .Values.settings.SiteUrl | quote }}
           volumeMounts:
             - name: photos
               mountPath: /photoprism/originals

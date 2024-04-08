@@ -58,8 +58,6 @@ spec:
     match:
     - uri:
         prefix: /photos
-    rewrite:
-      uri: /library
     route:
     - destination:
         port:

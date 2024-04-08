@@ -63,12 +63,12 @@ storage:
     accessMode: ReadWriteOnce
 
 # A reference to a secret which contains the secret bits of configuration options.
-# Note: MariaDB is running within the pod exclusively for PhotoPrism and the `root`
-#       user will be used.
+
 # Example Keys:
 #   PHOTOPRISM_DATABASE_DRIVER: "mysql"
 #   PHOTOPRISM_DATABASE_NAME: "photoprism"
 #   PHOTOPRISM_DATABASE_SERVER: "mariadb:3306"
+#   PHOTOPRISM_DATABASE_USER: "photoprism"
 #   PHOTOPRISM_DATABASE_PASSWORD: "p4ssw0rd"
 #   PHOTOPRISM_DATABASE_CONNS: 0
 #   PHOTOPRISM_ADMIN_PASSWORD: "p4ssw0rd"
@@ -87,6 +87,9 @@ settings:
   HttpPort: 2342
   HttpHost: "0.0.0.0"
   HttpCompression: "gzip"
+  # If reverse proxying, you can add a prefix to the application here.
+  # This must be a full URL.
+  SiteUrl: "http://localhost"
   # If you have a ServiceMesh handling TLS, expose PhotoPrism over plain HTTP.
   DisableTLS: true
   DefaultTLS: false

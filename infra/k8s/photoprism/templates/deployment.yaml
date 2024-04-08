@@ -80,6 +80,21 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: {{ .Values.configSecretRef }}
+                key: PHOTOPRISM_ADMIN_PASSWORD
+          - name: MARIADB_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.configSecretRef }}
+                key: PHOTOPRISM_DATABASE_NAME
+          - name: MARIADB_USER
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.configSecretRef }}
+                key: PHOTOPRISM_DATABASE_USER
+          - name: MARIADB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.configSecretRef }}
                 key: PHOTOPRISM_DATABASE_PASSWORD
           volumeMounts:
             - name: database

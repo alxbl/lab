@@ -23,6 +23,7 @@ spec:
     - operation:
         paths:
         - "/argocd/*"
+        - "/photos/*"
 ---
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy

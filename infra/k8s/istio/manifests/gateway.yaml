@@ -54,6 +54,17 @@ spec:
         port:
           number: 443
         host: argocd-server.argocd.svc.cluster.local
+  - name: PhotoPrism
+    match:
+    - uri:
+        prefix: /photos
+    rewrite:
+      uri: /library
+    route:
+    - destination:
+        port:
+          number: 80
+        host: photoprism.media.svc.cluster.local
   tcp:
   - match:
     - port: 445

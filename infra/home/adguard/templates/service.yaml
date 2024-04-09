@@ -1,0 +1,17 @@
+{{- if .Values.service.create -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "adguard.name" . }}
+  labels:
+    {{- include "adguard.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 53
+      protocol: UDP
+      name: dns
+  selector:
+    {{- include "adguard.selectorLabels" . | nindent 4 }}
+{{- end }}

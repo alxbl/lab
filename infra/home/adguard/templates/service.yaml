@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "adguard.labels" . | nindent 4 }}
 spec:
-  type: ClusterIP
+  type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
       targetPort: 53

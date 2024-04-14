@@ -1,0 +1,15 @@
+# Looks like auto-creating HostEndpoints is not working
+---
+# tachyon (10.0.0.6)
+apiVersion: projectcalico.org/v3
+kind: HostEndpoint
+metadata:
+  name: tachyon-eno1
+  labels:
+    role: k8s-controller
+    type: endpoint
+    environment: production
+spec:
+  interfaceName: eno1
+  node: tachyon.lan
+  expectedIPs: ['10.0.0.6']

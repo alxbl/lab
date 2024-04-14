@@ -1,0 +1,15 @@
+# https://docs.tigera.io/calico/latest/reference/resources/felixconfig
+apiVersion: projectcalico.org/v3
+kind: FelixConfiguration
+metadata:
+  name: default
+spec:
+  bpfConnectTimeLoadBalancing: TCP
+  bpfHostNetworkedNATWithoutCTLB: Enabled
+  bpfLogLevel: ""
+  floatingIPs: Disabled
+  logSeverityScreen: Info
+  reportingInterval: 0s
+  # DANGER: Ensure SSH and kube-apiserver are allowed before uncommenting!
+  failsafeInboundHostPorts: []
+  failsafeOutboundHostPorts: []

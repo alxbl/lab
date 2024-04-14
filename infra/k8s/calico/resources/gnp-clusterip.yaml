@@ -1,0 +1,15 @@
+apiVersion: projectcalico.org/v3
+kind: GlobalNetworkPolicy
+metadata:
+  name: allow-cluster-ips
+spec:
+  selector: "type == 'endpoint'"
+  types:
+  - Ingress
+  applyOnForward: true
+  preDNAT: true
+  ingress:
+  - action: Allow
+    destination:
+      nets:
+      - '10.3.0.0/16'

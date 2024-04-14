@@ -1,0 +1,16 @@
+# Pods with a Service Account are allowed to talk to kubeapi
+apiVersion: projectcalico.org/v3
+kind: GlobalNetworkPolicy
+metadata:
+  name: allow-api-access
+spec:
+  namespaceSelector: has(kubernetes.io/metadata.name) && kubernetes.io/metadata.name not in {"kube-system", "istio-system"}
+  egress:
+    - action: Allow
+      source:
+        serviceAccounts:
+          selector: all()
+      destination:
+        services:
+          name: kubernetes
+          namespace: default

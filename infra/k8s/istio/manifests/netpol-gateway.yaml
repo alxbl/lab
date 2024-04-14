@@ -1,0 +1,21 @@
+# This doesn't seem sufficient?
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-istio-gateway
+  namespace: istio-ingress
+spec:
+  ingress:
+  - from:
+    ports:
+      - port: 80
+        protocol: TCP
+      - port: 443
+        protocol: TCP
+      - port: 445
+        protocol: TCP
+  podSelector:
+    matchLabels:
+      istio: gateway
+  policyTypes:
+  - Ingress

@@ -10,6 +10,7 @@ resources:
   - manifests/charts.yaml
   - manifests/certificate.yaml
   - manifests/gateway.yaml
+  - manifests/netpol-gateway.yaml
   - manifests/service.yaml
   - manifests/mtls.yaml
   - manifests/policies.yaml

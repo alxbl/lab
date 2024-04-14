@@ -1,0 +1,31 @@
+# Istio Mesh traffic cross-communication
+apiVersion: projectcalico.org/v3
+kind: GlobalNetworkPolicy
+metadata:
+  name: pods-allow-istio-mesh
+spec:
+  namespaceSelector: has(kubernetes.io/metadata.name) && kubernetes.io/metadata.name not in {"kube-system", "istio-system"}
+  types:
+  - Ingress
+  - Egress
+  ingress:
+    # Allow inbound mesh traffic
+    - action: Allow
+      protocol: TCP
+      destination:
+        selector: 'has(security.istio.io/tlsMode)'
+  egress:
+    # Allow all namespaces to reach discovery
+    - action: Allow
+      protocol: TCP
+      destination:
+        selector: 'app == "istiod"'
+        ports:
+        - 443   # Web Hook
+        - 15010 # GRPC-XDS
+        - 15012 # HTTPS DNS
+    # Allow outbound mesh traffic
+    - action: Allow
+      protocol: TCP
+      destination:
+        selector: 'has(security.istio.io/tlsMode)'

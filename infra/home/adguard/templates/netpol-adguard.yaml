@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+spec:
+  ingress:
+  - from:
+    ports:
+      - port: 53
+        protocol: UDP
+  podSelector:
+    matchLabels:
+      {{- include "adguard.selectorLabels" . | nindent 6 }}
+  egress:
+  - to:
+    ports:
+      - port: 53
+        protocol: UDP
+      - port: 443
+        protocol: TCP
+  policyTypes:
+  - Ingress
+  - Egress

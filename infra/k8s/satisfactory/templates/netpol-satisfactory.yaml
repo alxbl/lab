@@ -1,18 +1,3 @@
-# apiVersion: crd.projectcalico.org/v1
-# kind: NetworkPolicy
-# metadata:
-#   name: allow-satisfactory
-# spec:
-#   selector: app.kubernetes.io/name == '{{ include "satisfactory.name" . }}'
-#   ingress:
-#     - action: Allow
-#       protocol: UDP
-#       destination:
-#         ports:
-#           - 7777
-#           - 15000
-#           - 15777
-
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -21,7 +6,6 @@ metadata:
 spec:
   ingress:
   - from:
-    - namespaceSelector: {}
     ports:
       - port: 15000
         protocol: UDP
@@ -34,3 +18,16 @@ spec:
       app.kubernetes.io/name: satisfactory
   policyTypes:
   - Ingress
+---
+# FIXME: This is necessary until Satisfactory is no longer exposed on host network.
+apiVersion: projectcalico.org/v3
+kind: GlobalNetworkPolicy
+metadata:
+  name: host-allow-satisfactory
+spec:
+  selector: "type == 'endpoint'"
+  ingress:
+    - action: Allow
+      protocol: UDP
+      destination:
+        ports: [7777, 15000, 15777]

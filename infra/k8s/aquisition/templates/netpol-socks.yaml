@@ -1,0 +1,15 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-shadowsocks
+spec:
+  ingress:
+  - from:
+    ports:
+      - port: {{ .Values.vpn.socks.port }}
+        protocol: TCP
+  podSelector:
+    matchLabels:
+      {{- include "aquisition.selectorLabels" . | nindent 6 }}
+  policyTypes:
+  - Ingress

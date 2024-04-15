@@ -8,6 +8,8 @@ resources:
   - resources/gnp-istio.yaml
   - resources/gnp-clusterip.yaml
   - resources/gnp-apiserver.yaml
+  # - resources/bgpconfig.yaml
+  # - resources/controllerconfig.yaml
   # Finish with HostEndpoints as they will trigger policy enforcement.
   - resources/hosts.yaml
   # Apply FelixConfiguration -> Remove Failsafes.

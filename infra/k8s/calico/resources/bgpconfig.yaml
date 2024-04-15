@@ -1,0 +1,15 @@
+# https://docs.tigera.io/calico/latest/reference/resources/bgpconfig
+apiVersion: projectcalico.org/v3
+kind: BGPConfiguration
+metadata:
+  name: default
+spec:
+  logSeverityScreen: Info
+  nodeToNodeMeshEnabled: true
+  nodeMeshMaxRestartTime: 120s
+  asNumber: 63400
+  serviceClusterIPs:
+    - cidr: 10.3.0.0/16
+  serviceExternalIPs: []
+  listenPort: 179
+  bindMode: NodeIP

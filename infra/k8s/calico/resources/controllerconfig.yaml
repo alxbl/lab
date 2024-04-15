@@ -1,0 +1,25 @@
+# https://docs.tigera.io/calico/latest/reference/resources/kubecontrollersconfig
+apiVersion: projectcalico.org/v3
+kind: KubeControllersConfiguration
+metadata:
+  name: default
+spec:
+  logSeverityScreen: Info
+  healthChecks: Enabled
+  etcdV3CompactionPeriod: 10m
+  prometheusMetricsPort: 9094
+  controllers:
+    node:
+      reconcilerPeriod: 5m
+      leakGracePeriod: 15m
+      syncLabels: Enabled
+      hostEndpoint:
+        autoCreate: Disabled
+    policy:
+      reconcilerPeriod: 5m
+    workloadEndpoint:
+      reconcilerPeriod: 5m
+    serviceAccount:
+      reconcilerPeriod: 5m
+    namespace:
+      reconcilerPeriod: 5m

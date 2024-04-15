@@ -32,10 +32,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # TODO: Parallelize?
       - name: Build Sonarr
         uses: ./.github/actions/build-and-sign
         with:
           registry: ${{ env.REGISTRY }}
           image: ${{ github.actor }}/sonarr
           dockerfile: build/arr/sonarr.Dockerfile
+          context: build/arr
+          
+      - name: Build Radarr
+        uses: ./.github/actions/build-and-sign
+        with:
+          registry: ${{ env.REGISTRY }}
+          image: ${{ github.actor }}/radarr
+          dockerfile: build/arr/radarr.Dockerfile
           context: build/arr

@@ -1,11 +1,11 @@
-FROM ghcr.io/linuxserver/sonarr:4.0.3
-ENV ARR_APP_NAME=Sonarr
+FROM ghcr.io/linuxserver/radarr:5.4.6
+ENV ARR_APP_NAME=Radarr
 ENV ARR_DATA_DIR=/media/.config
 
 # Customize config file
-COPY sonarr/config.xml /config/config.xml
+COPY radarr/config.xml /config/config.xml
 COPY custom-cont-init.d /custom-cont-init.d
 # Override the service launch script to specify config path
-COPY sonarr/svc-sonarr /etc/s6-overlay/s6-rc.d/svc-sonarr/run
+COPY radarr/svc-radarr /etc/s6-overlay/s6-rc.d/svc-radarr/run
 
 RUN chown abc:users /media && chmod 0755 /media

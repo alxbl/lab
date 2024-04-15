@@ -4,4 +4,4 @@
 exec \
     s6-notifyoncheck -d -n 300 -w 1000 \
         cd /app/sonarr/bin s6-setuidgid abc /app/sonarr/bin/Sonarr \
-        -nobrowser -data=/media/.config/$APP
+        -nobrowser -data=/$ARR_DATA_DIR/$ARR_APP_NAME

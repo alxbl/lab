@@ -10,6 +10,6 @@ spec:
   floatingIPs: Disabled
   logSeverityScreen: Info
   reportingInterval: 0s
-  # DANGER: Ensure SSH and kube-apiserver are allowed before uncommenting!
-  failsafeInboundHostPorts: []
-  failsafeOutboundHostPorts: []
+  # Restricted failsafe ports for startup and recovery.
+  failsafeInboundHostPorts: [6443] # Always allow kube-api for controllers
+  failsafeOutboundHostPorts: [53, 67] # Always allow DNS and DHCP

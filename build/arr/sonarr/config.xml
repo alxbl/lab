@@ -1,0 +1,19 @@
+<Config>
+    <BindAddress>*</BindAddress>
+    <Port>8989</Port>
+    <SslPort>9898</SslPort>
+    <EnableSsl>False</EnableSsl>
+    <LaunchBrowser>False</LaunchBrowser>
+    <ApiKey></ApiKey>
+    <AuthenticationMethod>None</AuthenticationMethod>
+    <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>
+    <Branch>main</Branch>
+    <LogLevel>info</LogLevel>
+    <SslCertPath></SslCertPath>
+    <SslCertPassword></SslCertPassword>
+    <UrlBase>/sonarr</UrlBase>
+    <InstanceName>Sonarr</InstanceName>
+    <UpdateMechanism>Docker</UpdateMechanism>
+    <UpdateAutomatically>False</UpdateAutomatically>
+    <AnalyticsEnabled>False</AnalyticsEnabled>
+</Config>

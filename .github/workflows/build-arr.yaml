@@ -36,6 +36,6 @@ jobs:
         uses: ./.github/actions/build-and-sign
         with:
           registry: ${{ env.REGISTRY }}
-          image: sonarr
+          image: ${{ github.actor }}/sonarr
           dockerfile: build/arr/sonarr.Dockerfile
           context: build/arr

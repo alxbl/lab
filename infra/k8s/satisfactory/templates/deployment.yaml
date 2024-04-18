@@ -29,7 +29,6 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "satisfactory.serviceAccountName" . }}
       {{- if not .Values.service.create }}
-      hostNetwork: true
       {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}

@@ -7,6 +7,7 @@ metadata:
     {{- include "satisfactory.labels" . | nindent 4 }}
 spec:
   type: ClusterIP
+  clusterIP: 10.3.44.44
   ports:
     - port: 7777
       targetPort: 7777

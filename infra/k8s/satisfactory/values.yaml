@@ -55,7 +55,7 @@ autoscaling:
 
 service:
   # If service is created, it will be a ClusterIP service, otherwise use host networking.
-  create: false
+  create: true
 
 storage:
   create: true

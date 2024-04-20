@@ -32,15 +32,23 @@ securityContext: {}
 service:
   create: true
   type: ClusterIP
-  port: 5353
+  clusterIP: 10.3.0.53
+  port: 53
 
-resources: {}
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+storage:
+  create: true
+  name: adguard-data
+  storageClass: "zfs-rwo"
+  size: 5Gi
+  accessMode: ReadWriteOnce
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
 
 nodeSelector: {}
 tolerations: []

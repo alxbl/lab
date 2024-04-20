@@ -15,7 +15,7 @@ metadata:
 spec:
   destination:
     server: {{ .Values.spec.destination.server }}
-    namespace: media
+    namespace: home
   project: default
   source:
     helm:

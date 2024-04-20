@@ -6,7 +6,7 @@ metadata:
 spec:
   acme:
     email: admin@segfault.me
-    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
       name: letsencrypt-key
     solvers:
@@ -14,7 +14,6 @@ spec:
         cloudflare:
           email: admin@segfault.com
           apiTokenSecretRef:
-            # kubectl apply -f /mnt/secrets/manifests/cloudflare-api-secret.yaml
             name: cloudflare-api-secret
             key: api-token
       selector:

@@ -13,6 +13,9 @@ spec:
   source:
     helm:
       valuesObject:
+        vaultwarden:
+          config:
+            SIGNUPS_ALLOWED: "false"
         storage:
           create: true
           size: 5Gi

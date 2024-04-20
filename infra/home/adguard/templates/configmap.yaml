@@ -153,6 +153,8 @@ data:
         answer: 10.3.0.2
       - domain: dns.segfault.me
         answer: 10.3.0.53
+      - domain: tachyon.lan
+        answer: 10.0.0.6
       safebrowsing_cache_size: 1048576
       safesearch_cache_size: 1048576
       parental_cache_size: 1048576

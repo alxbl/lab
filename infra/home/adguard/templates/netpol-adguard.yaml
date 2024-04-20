@@ -11,13 +11,5 @@ spec:
   podSelector:
     matchLabels:
       {{- include "adguard.selectorLabels" . | nindent 6 }}
-  egress:
-  - to:
-    ports:
-      - port: 53
-        protocol: UDP
-      - port: 443
-        protocol: TCP
   policyTypes:
   - Ingress
-  - Egress

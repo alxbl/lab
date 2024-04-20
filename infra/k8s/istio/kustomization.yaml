@@ -15,4 +15,4 @@ resources:
   - manifests/mtls.yaml
   - manifests/policies.yaml
   
-  - services/argocd.yaml
+  - services/policies.yaml

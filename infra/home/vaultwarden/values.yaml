@@ -1,0 +1,76 @@
+# Config: 
+replicaCount: 1
+
+image:
+  repository: vaultwarden/server
+  pullPolicy: IfNotPresent
+  tag: "latest-alpine"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "vaultwarden"
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+
+service:
+  create: true
+  type: ClusterIP
+  clusterIP: 10.3.3.7
+  port: 80
+
+
+# Configuration. These will be directly mapped to the environment.
+# ref: https://github.com/dani-garcia/vaultwarden/wiki/Configuration-overview
+vaultwarden:
+  config:
+    ROCKET_PORT: "8080"
+    ROCKET_WORKERS: "10"
+    SIGNUPS_ALLOWED: "true"
+    INVITATIONS_ALLOWED: "false"
+    SHOW_PASSWORD_HINT: "false"
+    DOMAIN: "https://vw.example.com"
+    DATA_FOLDER: "/data"
+    LOG_LEVEL: "warn"
+    EXTENDED_LOGGING: "false"
+
+  # These are configuration options that should not be checked-in.
+  # They are also be mapped directly to the environment but via a secretRef
+  # (e.g. PUSH_INSTALLATION_ID, PUSH_INSTALLATION_KEY, ...)
+  configSecretRef: vaultwarden-secrets
+
+storage:
+  create: true
+  name: vaultwarden-data
+  storageClass: "zfs-rwo"
+  size: 5Gi
+  accessMode: ReadWriteOnce
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

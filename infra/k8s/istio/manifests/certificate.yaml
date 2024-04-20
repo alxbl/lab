@@ -21,9 +21,8 @@ spec:
     - server auth
     - client auth
   dnsNames:
-    - segfault.me
-    - www.segfault.me 
     - lab.segfault.me
+    - vault.segfault.me
   issuerRef:
     name: letsencrypt-issuer
     kind: ClusterIssuer

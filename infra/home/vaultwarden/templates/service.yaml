@@ -1,0 +1,18 @@
+{{- if .Values.service.create -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "vaultwarden.name" . }}
+  labels:
+    {{- include "vaultwarden.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  clusterIP: {{ .Values.service.clusterIP }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ int .Values.vaultwarden.config.ROCKET_PORT | default 80 }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "vaultwarden.selectorLabels" . | nindent 4 }}
+{{- end }}

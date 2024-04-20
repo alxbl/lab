@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-http
+spec:
+  ingress:
+  - from:
+    ports:
+      - port: 8080
+        protocol: TCP
+      # Which one is truly required?
+      - port: 80
+        protocol: TCP
+  podSelector:
+    matchLabels:
+      {{- include "vaultwarden.selectorLabels" . | nindent 6 }}
+  policyTypes:
+  - Ingress

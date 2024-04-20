@@ -1,7 +1,5 @@
 # It feels dirty to have this as part of a different application deployment,
 # but the services depend on Istio being present, so for now this is fine.
-
-# ArgoCD Policies
 apiVersion: security.istio.io/v1
 kind: AuthorizationPolicy
 metadata:
@@ -12,7 +10,7 @@ spec:
   rules:
   - from:
     - source:
-        namespaces: ["argocd"]
+        namespaces: ["argocd", "istio-ingress"]
 ---
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
@@ -25,3 +23,27 @@ spec:
   - from:
     - source:
         notPrincipals: ["*"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: home-allow-ingress
+  namespace: home
+spec:
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        namespaces: ["istio-ingress"]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: media-allow-ingress
+  namespace: media
+spec:
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        namespaces: ["istio-ingress"]

@@ -8,7 +8,7 @@ spec:
     istio: gateway
   servers:
   - port:
-      number: 80  # Accepted to force 80 through ingress
+      number: 80  # Accept for HTTPS redirection
       protocol: HTTP
       name: http
     hosts:
@@ -71,3 +71,28 @@ spec:
         port:
           number: 445
         host: smbd.media.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: vaultwarden-vsvc
+  namespace: istio-ingress
+spec:
+  hosts:
+  - "vault.segfault.me"
+  gateways:
+  - istio-ingress/https-in-gw
+  http:
+  - name: Redirect to HTTPS
+    match:
+    - port: 80
+    redirect:
+      port: 443
+  - name: Vaultwarden
+    match:
+    - port: 443
+    route:
+    - destination:
+        port:
+          number: 80
+        host: vaultwarden.home.svc.cluster.local

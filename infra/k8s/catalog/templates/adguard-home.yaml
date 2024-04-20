@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: home
+  labels:
+    istio-injection: enabled
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: adguard-home
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: media
+  project: default
+  source:
+    helm:
+      valuesObject:
+        storage:
+          create: true
+          size: 5Gi
+          storageClass: 'zfs-rwo'
+          accessMode: ReadWriteOnce
+    path: infra/home/adguard
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}

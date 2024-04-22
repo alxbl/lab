@@ -75,3 +75,16 @@ stringData:
   name: bitnami
   url: https://charts.bitnami.com/bitnami
   type: helm
+---
+# Velero / VMWare
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vmware-helm
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  name: vmware
+  url: https://vmware-tanzu.github.io/helm-charts
+  type: helm

@@ -79,7 +79,7 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: media
-              mountPath: /config/test
+              mountPath: /media
         - name: radarr
           image: lscr.io/linuxserver/radarr:{{ .Values.images.radarr | default "latest"}}
           securityContext:
@@ -99,7 +99,7 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: media
-              mountPath: /mnt
+              mountPath: /media
       volumes:
         - name: tun-device
           hostPath:

@@ -1,0 +1,79 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velero
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    chart: velero
+    repoURL: https://vmware-tanzu.github.io/helm-charts
+    targetRevision: 6.0.0
+    helm:
+      valuesObject:
+        # https://github.com/vmware-tanzu/helm-charts/blob/main/charts/velero/values.yaml
+        initContainers:
+          - name: velero-plugin-for-csi
+            image: velero/velero-plugin-for-csi:v0.7.0
+            immagePullPolicy: IfNotPresent
+            volumeMounts:
+              - mountPath: /target
+                name: plugins
+          - name: velero-plugin-for-microsoft-azure
+            image: velero/velero-plugin-for-microsoft-azure:v1.9.2
+            immagePullPolicy: IfNotPresent
+            volumeMounts:
+              - mountPath: /target
+                name: plugins
+
+        configuration:
+          backupStorageLocation: []
+          volumeSnapshotLocation: []
+          uploaderType: kopia
+          backupSyncPeriod: 15m
+          fsBackupTimeout: 4h
+          clientBurst: 30
+          clientPageSize: 500
+          clientQPS: 20.0
+          defaultBackupStorageLocation: azure
+          garbageCollectionFrequency: 24h
+          logLevel: warning
+          defaultSnapshotMoveData: true
+          features: EnableCSI
+          namespace: system
+          # defaultRepoMaintainFrequency: 
+
+        backupsEnabled: false
+        snapshotsEnabled: false
+        deployNodeAgent: true
+
+        schedules: {}
+        configMaps: {}
+
+        nodeAgent:
+          containerSecurityContext:
+            privileged: true
+          resources:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1024Mi
+
+        credentials:
+          useSecret: true
+          existingSecret: velero-azure-storage-key
+        serviceAccount:
+          server:
+            name: "velero"
+        resources:
+          requests:
+            cpu: 500m
+            memory: 128Mi
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: system

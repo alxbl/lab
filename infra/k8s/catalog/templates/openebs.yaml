@@ -10,6 +10,6 @@ spec:
     server: {{ .Values.spec.destination.server }}
   project: default
   source:
-    path: infra/k8s/openebs
+    path: infra/system/openebs
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}

@@ -1,0 +1,36 @@
+# Creates/Configures all namespaces defined in the cluster.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: system
+  labels:
+    istio-injection: disabled
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: home
+  labels:
+    istio-injection: enabled
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: postgres
+  labels:
+    istio-injection: enabled
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: media
+  labels:
+    istio-injection: enabled
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: satisfactory
+  labels:
+    istio-injection: disabled

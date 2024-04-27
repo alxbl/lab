@@ -53,9 +53,13 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
+config:
+  maxPlayers: "4"
+  
 service:
   # If service is created, it will be a ClusterIP service, otherwise use host networking.
   create: true
+  clusterIP: 10.3.44.44
 
 storage:
   create: true

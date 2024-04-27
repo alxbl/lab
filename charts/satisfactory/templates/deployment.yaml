@@ -39,7 +39,6 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            # TODO: ConfigMap
             - name: ROOTLESS
               value: "false"
             - name: STEAMBETA
@@ -49,7 +48,7 @@ spec:
             - name: PUID
               value: "1000"
             - name: MAXPLAYERS
-              value: "4"  
+              value: {{ .Values.config.maxPlayers | quote }} 
           ports:
             - name: beacon
               containerPort: 15000
@@ -64,12 +63,15 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: satisfactory-data
-              mountPath: /config
-
+              mountPath: /config/
+            - name: gamefiles
+              mountPath: /config/gamefiles
       volumes:
         - name: satisfactory-data
           persistentVolumeClaim:
             claimName: {{ .Values.storage.name | quote }}
+        - name: gamefiles
+          emptyDir:
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

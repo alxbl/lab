@@ -13,6 +13,8 @@ spec:
   source:
     helm:
       valuesObject:
+        podAnnotations:
+          backup.velero.io/backup-volumes: data
         vaultwarden:
           config:
             SIGNUPS_ALLOWED: "false"

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-policy-zfs
+  namespace: system
+data:
+  skipped.yaml: |
+    version: v1
+    volumePolicies:
+    - conditions:
+        nfs: {}
+      action:
+        type: skip
+    - conditions:
+        volumeTypes:
+          - emptyDir
+          - downwardAPI
+          - configmap
+      action:
+        type: skip

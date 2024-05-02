@@ -1,0 +1,34 @@
+# https://velero.io/docs/v1.13/api-types/schedule/
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: backup-pv-daily
+  namespace: system
+spec:
+  # Every day at 3AM UTC
+  schedule: 0 3 * * *
+  useOwnerReferencesInBackup: false
+  template:
+    csiSnapshotTimeout: 10m
+    resourcePolicy:
+      kind: configmap
+      name: backup-policy-zfs
+    includedNamespaces:
+      - 'home'
+      - 'media'
+      - 'openebs'
+      - 'satisfactory'
+    includedResources: []
+    excludedResources:
+      - 'secret'
+      - 'storageclasses.storage.k8s.io'
+    includeClusterResources: false
+    snapshotVolumes: false
+    storageLocation: azure
+    volumeSnapshotLocations: []
+    ttl: 720h # 30 days
+    defaultVolumesToFsBackup: false
+    snapshotMoveData: true
+    datamover: velero
+    uploaderConfig:
+        parallelFilesUpload: 10

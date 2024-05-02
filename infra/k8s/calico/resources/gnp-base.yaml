@@ -4,7 +4,7 @@ kind: GlobalNetworkPolicy
 metadata:
   name: pods-allow-nothing-except-dns
 spec:
-  namespaceSelector: has(kubernetes.io/metadata.name) && kubernetes.io/metadata.name not in {"kube-system", "istio-system"}
+  namespaceSelector: has(kubernetes.io/metadata.name) && kubernetes.io/metadata.name not in {"system", "kube-system", "istio-system"}
   types:
   - Ingress
   - Egress

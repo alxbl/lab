@@ -4,7 +4,7 @@ kind: GlobalNetworkPolicy
 metadata:
   name: allow-api-access
 spec:
-  namespaceSelector: has(kubernetes.io/metadata.name) && kubernetes.io/metadata.name not in {"kube-system", "istio-system"}
+  namespaceSelector: has(kubernetes.io/metadata.name) && kubernetes.io/metadata.name not in {"system", "kube-system", "istio-system"}
   egress:
     - action: Allow
       source:

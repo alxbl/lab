@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qbt-config
+data:
+  qBittorrent.conf: |
+    [Application]
+    FileLogger\Age=1
+    FileLogger\AgeType=1
+    FileLogger\Backup=false
+    FileLogger\DeleteOld=true
+    FileLogger\Enabled=true
+    FileLogger\MaxSizeBytes=66560
+    FileLogger\Path={{ .Values.qbt.configDir }}/qBittorrent/data/logs
+
+    [BitTorrent]
+    Session\DHTEnabled=false
+    Session\DefaultSavePath={{ .Values.qbt.downloadDir }}
+    Session\ExcludedFileNames=
+    Session\GlobalMaxRatio={{ .Values.qbt.maxSeedRatio }}
+    Session\GlobalMaxSeedingMinutes={{ .Values.qbt.maxSeedTime }}
+    Session\GlobalUPSpeedLimit={{ .Values.qbt.uploadLimit }}
+    Session\LSDEnabled=false
+    Session\MaxActiveTorrents=30
+    Session\MaxActiveUploads=30
+    Session\PeXEnabled=false
+    Session\Port=6881
+    Session\QueueingSystemEnabled=true
+    Session\TempPath={{ .Values.qbt.downloadDir }}/temp
+    Session\TorrentContentLayout=Subfolder
+
+    [Core]
+    AutoDeleteAddedTorrentFile=Never
+
+    [LegalNotice]
+    Accepted=true
+
+    [Meta]
+    MigrationVersion=6
+
+    [Network]
+    Proxy\HostnameLookupEnabled=false
+    Proxy\Profiles\BitTorrent=true
+    Proxy\Profiles\Misc=true
+    Proxy\Profiles\RSS=true
+
+    [Preferences]
+    General\Locale=en
+    MailNotification\req_auth=true
+    WebUI\AuthSubnetWhitelist=@Invalid()
+    WebUI\Password_PBKDF2="@ByteArray($QBT_WEBUI_PASSWORD_HASH)"
+
+    [RSS]
+    AutoDownloader\DownloadRepacks=true
+    AutoDownloader\SmartEpisodeFilter=s(\\d+)e(\\d+), (\\d+)x(\\d+), "(\\d{4}[.\\-]\\d{1,2}[.\\-]\\d{1,2})", "(\\d{1,2}[.\\-]\\d{1,2}[.\\-]\\d{4})"

@@ -158,7 +158,44 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: media
-              mountPath: /media      
+              mountPath: /media
+        - name: torrent
+          image: ghcr.io/alxbl/qbt:{{ .Values.images.qbt | default "latest"}}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          env:
+            - name: TZ
+              value: {{ .Values.vpn.timezone | default "Etc/UTC" | quote}}
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: QBT_WEBUI_PORT
+              value: "8080"
+            - name: QBT_WEBUI_PASSWORD_HASH
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.qbt.webuiPasswordHashSecretRef }}
+                  key: QBT_WEBUI_PASSWORD_HASH
+            - name: QBT_CONFIG_DIR
+              value: {{ .Values.qbt.configDir | quote }}
+            - name: QBT_DOWNLOAD_DIR
+              value: {{ .Values.qbt.downloadDir | quote }}
+          ports:
+            - name: webui
+              containerPort: 8080
+              protocol: TCP
+            - name: peer
+              containerPort: 6881
+              protocol: TCP
+            - name: peer-udp
+              containerPort: 6881
+              protocol: UDP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: media
+              mountPath: /downloads    
       volumes:
         - name: tun-device
           hostPath:

@@ -12,7 +12,9 @@ images:
   radarr: ""
   readarr: ""
   prowlarr: ""
+  lidarr: ""
   gluetun: ""
+  qbt: ""
 
   pullPolicy: IfNotPresent
 
@@ -39,6 +41,18 @@ securityContext: {}
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
+
+# Configure the aquisition client
+qbt:
+  # QBT_WEBUI_PASSWORD_HASH=<pbkdf2 byte array>
+  webuiPasswordHashSecretRef: qbt-admin-password
+  downloadDir: /media/downloads
+  configDir: /media/.config
+  configFileSource: /opt/qBittorrent.conf
+  maxSeedRatio: 3
+  maxSeedTime: 20400 # minutes
+  uploadLimit: 10000 # kb/s
+  # downloadLimit: 0 # kb/s
 
 # Configure the VPN sidecar.
 vpn:

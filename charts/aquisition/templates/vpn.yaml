@@ -59,9 +59,8 @@ spec:
                 optional: false
       containers:
         # PostgresQL can be configured via environment: Sonarr:Postgres
-        # TODO: k8s-ready images
         - name: sonarr
-          image: lscr.io/linuxserver/sonarr:{{ .Values.images.sonarr | default "latest"}}
+          image: ghcr.io/alxbl/sonarr:{{ .Values.images.sonarr | default "latest"}}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           env:
@@ -81,7 +80,7 @@ spec:
             - name: media
               mountPath: /media
         - name: radarr
-          image: lscr.io/linuxserver/radarr:{{ .Values.images.radarr | default "latest"}}
+          image: ghcr.io/alxbl/radarr:{{ .Values.images.radarr | default "latest"}}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           env:
@@ -100,6 +99,66 @@ spec:
           volumeMounts:
             - name: media
               mountPath: /media
+        - name: readarr
+          image: ghcr.io/alxbl/readarr:{{ .Values.images.readarr | default "latest"}}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          env:
+            - name: TZ
+              value: {{ .Values.vpn.timezone | default "Etc/UTC" | quote}}
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+          ports:
+            - name: http
+              containerPort: 8787
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: media
+              mountPath: /media
+        - name: lidarr
+          image: ghcr.io/alxbl/lidarr:{{ .Values.images.lidarr | default "latest"}}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          env:
+            - name: TZ
+              value: {{ .Values.vpn.timezone | default "Etc/UTC" | quote}}
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+          ports:
+            - name: http
+              containerPort: 8686
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: media
+              mountPath: /media
+        - name: prowlarr
+          image: ghcr.io/alxbl/prowlarr:{{ .Values.images.prowlarr | default "latest"}}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          env:
+            - name: TZ
+              value: {{ .Values.vpn.timezone | default "Etc/UTC" | quote}}
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+          ports:
+            - name: http
+              containerPort: 9696
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: media
+              mountPath: /media      
       volumes:
         - name: tun-device
           hostPath:

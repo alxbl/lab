@@ -3,7 +3,7 @@
   <Port>9696</Port>
   <SslPort>6969</SslPort>
   <EnableSsl>False</EnableSsl>
-  <LaunchBrowser>True</LaunchBrowser>
+  <LaunchBrowser>False</LaunchBrowser>
   <ApiKey></ApiKey>
   <AuthenticationMethod>None</AuthenticationMethod>
   <AuthenticationRequired>DisabledForLocalAddresses</AuthenticationRequired>

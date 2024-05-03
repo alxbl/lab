@@ -23,6 +23,6 @@ spec:
           size: 5Gi
           storageClass: 'zfs-rwo'
           accessMode: ReadWriteOnce
-    path: chart/vaultwarden
+    path: charts/vaultwarden
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}

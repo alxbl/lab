@@ -45,6 +45,13 @@ spec:
     - port: 80
     redirect:
       port: 443
+      scheme: https
+  - name: Default
+    match:
+    - uri:
+        exact: /
+    redirect:
+      uri: /watch
   - name: ArgoCD
     match:
     - uri:
@@ -63,6 +70,15 @@ spec:
         port:
           number: 80
         host: photoprism.media.svc.cluster.local
+  - name: Jellyfin
+    match:
+    - uri:
+        prefix: /watch
+    route:
+    - destination:
+        port:
+          number: 80
+        host: jellyfin.media.svc.cluster.local
   tcp:
   - match:
     - port: 445

@@ -5,9 +5,7 @@ metadata:
   labels:
     {{- include "jellyfin.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "jellyfin.selectorLabels" . | nindent 6 }}
@@ -38,22 +36,28 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: 8096
               protocol: TCP
-          livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
-          readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.volumeMounts }}
+          env:
+            - name: JELLYFIN_DATA_DIR
+              value: {{ .Values.jellyfin.JELLYFIN_CONFIG_DIR}}
+            - name: JELLYFIN_CONFIG_DIR
+              value: {{ .Values.jellyfin.JELLYFIN_CONFIG_DIR}}
+            - name: JELLYFIN_CACHE_DIR
+              value: {{ .Values.jellyfin.JELLYFIN_CACHE_DIR}}
           volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
+            - name: media
+              mountPath: /media
+            - name: cache
+              mountPath: /cache
       volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        - name: media
+          persistentVolumeClaim:
+            claimName: {{ .Values.storage.name | quote }}
+        - name: cache
+          emptyDir:
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

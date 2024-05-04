@@ -7,9 +7,9 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: 8096
       protocol: TCP
-      name: http
   selector:
     {{- include "jellyfin.selectorLabels" . | nindent 4 }}

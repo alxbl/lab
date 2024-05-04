@@ -5,7 +5,7 @@ if [ -z "$QBT_DOWNLOAD_DIR" ]; then
     QBT_DOWNLOAD_DIR="/downloads"
 fi
 
-if [ -z "$QBT_CONFIG_DIR"]; then
+if [ -z "$QBT_CONFIG_DIR" ]; then
     QBT_CONFIG_DIR="/config"
 fi
 
@@ -60,7 +60,7 @@ fi
 ##
 # WebUI admin password
 ##
-if [ -n "$QBT_WEBUI_PASSWORD_HASH"]; then
+if [ -n "$QBT_WEBUI_PASSWORD_HASH" ]; then
     sed -i "s#^WebUI\\\\Password_PBKDF2=.*\$#WebUI\\\\Password_PBKDF2=\"@ByteArray($QBT_WEBUI_PASSWORD_HASH)\"#g" "$qbtConfigFile"
 fi
 

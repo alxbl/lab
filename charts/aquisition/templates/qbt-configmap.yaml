@@ -20,6 +20,7 @@ data:
     Session\GlobalMaxRatio={{ .Values.qbt.maxSeedRatio }}
     Session\GlobalMaxSeedingMinutes={{ .Values.qbt.maxSeedTime }}
     Session\GlobalUPSpeedLimit={{ .Values.qbt.uploadLimit }}
+    Session\GlobalDLSpeedLimit={{ .Values.qbt.downloadLimit }}
     Session\LSDEnabled=false
     Session\MaxActiveTorrents=30
     Session\MaxActiveUploads=30

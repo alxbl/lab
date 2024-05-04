@@ -159,17 +159,13 @@ spec:
           volumeMounts:
             - name: media
               mountPath: /media
-        - name: torrent
+        - name: qbt
           image: ghcr.io/alxbl/qbt:{{ .Values.images.qbt | default "latest"}}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           env:
             - name: TZ
               value: {{ .Values.vpn.timezone | default "Etc/UTC" | quote}}
-            - name: PUID
-              value: "1000"
-            - name: PGID
-              value: "1000"
             - name: QBT_WEBUI_PORT
               value: "8080"
             - name: QBT_WEBUI_PASSWORD_HASH
@@ -181,6 +177,8 @@ spec:
               value: {{ .Values.qbt.configDir | quote }}
             - name: QBT_DOWNLOAD_DIR
               value: {{ .Values.qbt.downloadDir | quote }}
+            - name: QBT_CONFIG_SOURCE
+              value: /opt/qBittorrent.conf
           ports:
             - name: webui
               containerPort: 8080
@@ -195,7 +193,10 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: media
-              mountPath: /downloads    
+              mountPath: /media    
+            - name: qbt-config
+              mountPath: /opt/qBittorrent.conf
+              subPath: qBittorrent.conf
       volumes:
         - name: tun-device
           hostPath:
@@ -211,6 +212,12 @@ spec:
             items:
               - key: post-rules.txt
                 path: post-rules.txt
+        - name: qbt-config
+          configMap:
+            name: qbt-config
+            items:
+              - key: qBittorrent.conf
+                path: qBittorrent.conf
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

@@ -7,7 +7,6 @@ fi
 
 if [ -z "$QBT_CONFIG_DIR"]; then
     QBT_CONFIG_DIR="/config"
-else
 fi
 
 qbtConfigFile="$QBT_CONFIG_DIR/qBittorrent/config/qBittorrent.conf"

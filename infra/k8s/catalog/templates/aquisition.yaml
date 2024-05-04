@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: aquisition
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: media
+  project: default
+  source:
+    helm:
+      valuesObject:
+        qbt:
+          maxSeedTime: 20400
+          uploadLimit: 10000
+          downloadLimit: 10000
+        storage:
+          create: true
+          size: 1Ti
+        vpn:
+          mode: "openvpn"
+          provider: "nordvpn"
+    path: charts/aquisition
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}

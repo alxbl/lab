@@ -23,6 +23,8 @@ spec:
         vpn:
           mode: "openvpn"
           provider: "nordvpn"
+          extra:
+            SERVER_CATEGORIES: "legacy_p2p"
     path: charts/aquisition
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}

@@ -23,6 +23,7 @@ spec:
         vpn:
           mode: "openvpn"
           provider: "nordvpn"
+          countries: "Netherlands, Switzerland, Spain"
           extra:
             SERVER_CATEGORIES: "legacy_p2p"
     path: charts/aquisition

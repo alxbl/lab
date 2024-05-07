@@ -3,6 +3,7 @@ apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: zfs-rwo
+allowVolumeExpansion: true
 parameters:
   # Use external pool settings. Uncomment to override.
   # recordsize: "128k"

@@ -1,0 +1,133 @@
+<mxfile host="app.diagrams.net" modified="2024-04-02T12:06:19.283Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0" etag="BLpSy2WGw5VIcnmVudu2" version="24.2.1" type="google">
+  <diagram name="Overview" id="NGBvJDtBKH1LiE5RUZw4">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-47" value="nodes" style="rounded=1;whiteSpace=wrap;html=1;horizontal=1;verticalAlign=top;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="260" y="670" width="310" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-25" value="docker-compose" style="rounded=1;whiteSpace=wrap;html=1;horizontal=1;verticalAlign=top;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="260" y="480" width="250" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-22" value="bootstrap.sh" style="rounded=1;whiteSpace=wrap;html=1;horizontal=1;verticalAlign=top;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="260" y="30" width="160" height="430" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-37" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="dOs5yIH9Qk9haskhHPvI-3" target="dOs5yIH9Qk9haskhHPvI-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-38" value="Configure Nodes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="dOs5yIH9Qk9haskhHPvI-37">
+          <mxGeometry x="-0.164" y="3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-3" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=middle;html=1;outlineConnect=0;horizontal=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="dOs5yIH9Qk9haskhHPvI-4" target="dOs5yIH9Qk9haskhHPvI-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-4" value="Pre-Bootstrap" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="60" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-5" value="Post-Bootstrap" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="380" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="dOs5yIH9Qk9haskhHPvI-6" target="dOs5yIH9Qk9haskhHPvI-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-6" value="Start PXE Environment" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="140" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="dOs5yIH9Qk9haskhHPvI-7" target="dOs5yIH9Qk9haskhHPvI-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-7" value="&lt;div&gt;Synthesize Terraform&lt;/div&gt;&lt;div&gt;(cdktf)&lt;br&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="220" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="dOs5yIH9Qk9haskhHPvI-8" target="dOs5yIH9Qk9haskhHPvI-5">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="340" y="380" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-8" value="Apply Terraform" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="300" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-10" value="main.ts" style="shape=card;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="210" width="70" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-11" value="nodes.json" style="shape=card;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="210" width="70" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;endArrow=none;endFill=0;" edge="1" parent="1" source="dOs5yIH9Qk9haskhHPvI-7" target="dOs5yIH9Qk9haskhHPvI-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-19" value=".tfstate" style="shape=card;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="200" width="70" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.02;entryY=0.617;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;" edge="1" parent="1" source="dOs5yIH9Qk9haskhHPvI-7" target="dOs5yIH9Qk9haskhHPvI-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-23" value="dnsmasq&lt;br&gt;(DHCP-PXE)" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="280" y="510" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-24" value="matchbox" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="410" y="510" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-26" value="Open Firewall Ports" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="70" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-27" value="Generate bootstrap PKI" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="70" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-28" value="disable local DHCP/DNS services" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="690" y="70" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-29" value="Close Firewall Ports" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="390" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-30" value="Teardown PXE environment" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="390" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-31" value="enable local DHCP/DNS services" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="690" y="390" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-32" value="docker-compose" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="430" y="140" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-34" value="typhoon module" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="430" y="310" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;endArrow=none;endFill=0;" edge="1" parent="1" source="dOs5yIH9Qk9haskhHPvI-11" target="dOs5yIH9Qk9haskhHPvI-10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=-0.011;entryY=0.141;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="dOs5yIH9Qk9haskhHPvI-3" target="dOs5yIH9Qk9haskhHPvI-22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-40" value="Launch bootstrap" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="dOs5yIH9Qk9haskhHPvI-39">
+          <mxGeometry x="0.4119" y="1" relative="1" as="geometry">
+            <mxPoint x="-49" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-41" value="mount secrets" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="820" y="70" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-42" value="unmount secrets" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="820" y="390" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-43" value="wait for nodes" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="310" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-44" value="tachyon&lt;br&gt;(worker)" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="274" y="700" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-45" value="zeres&lt;br&gt;(control:rpi4)" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="374" y="700" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="dOs5yIH9Qk9haskhHPvI-46" value="ceres&lt;br&gt;(worker:rpi4)" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="474" y="700" width="80" height="80" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

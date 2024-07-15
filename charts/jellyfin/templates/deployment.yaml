@@ -47,9 +47,9 @@ spec:
               value: {{ .Values.jellyfin.JELLYFIN_CONFIG_DIR}}
             - name: JELLYFIN_CACHE_DIR
               value: {{ .Values.jellyfin.JELLYFIN_CACHE_DIR}}
-            - name: DOTNET_USE_POLLING_FILE_WATCHER:           
+            - name: DOTNET_USE_POLLING_FILE_WATCHER   
               value: '1'
-            - name: DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE:  
+            - name: DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE
               value: 'false'
           volumeMounts:
             - name: media

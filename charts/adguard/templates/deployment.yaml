@@ -9,7 +9,8 @@ spec:
   selector:
     matchLabels:
       {{- include "adguard.selectorLabels" . | nindent 6 }}
-  strategy: Recreate
+  strategy:
+    type: Recreate
   template:
     metadata:
       {{- with .Values.podAnnotations }}

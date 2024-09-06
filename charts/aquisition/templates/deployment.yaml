@@ -119,26 +119,26 @@ spec:
           volumeMounts:
             - name: media
               mountPath: /media
-        - name: lidarr
-          image: ghcr.io/alxbl/lidarr:{{ .Values.images.lidarr | default "latest"}}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          env:
-            - name: TZ
-              value: {{ .Values.vpn.timezone | default "Etc/UTC" | quote}}
-            - name: PUID
-              value: "1000"
-            - name: PGID
-              value: "1000"
-          ports:
-            - name: http
-              containerPort: 8686
-              protocol: TCP
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-          volumeMounts:
-            - name: media
-              mountPath: /media
+        # - name: lidarr
+        #   image: ghcr.io/alxbl/lidarr:{{ .Values.images.lidarr | default "latest"}}
+        #   securityContext:
+        #     {{- toYaml .Values.securityContext | nindent 12 }}
+        #   env:
+        #     - name: TZ
+        #       value: {{ .Values.vpn.timezone | default "Etc/UTC" | quote}}
+        #     - name: PUID
+        #       value: "1000"
+        #     - name: PGID
+        #       value: "1000"
+        #   ports:
+        #     - name: http
+        #       containerPort: 8686
+        #       protocol: TCP
+        #   resources:
+        #     {{- toYaml .Values.resources | nindent 12 }}
+        #   volumeMounts:
+        #     - name: media
+        #       mountPath: /media
         - name: prowlarr
           image: ghcr.io/alxbl/prowlarr:{{ .Values.images.prowlarr | default "latest"}}
           securityContext:

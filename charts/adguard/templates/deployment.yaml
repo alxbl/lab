@@ -9,6 +9,7 @@ spec:
   selector:
     matchLabels:
       {{- include "adguard.selectorLabels" . | nindent 6 }}
+  strategy: Recreate
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -31,6 +32,7 @@ spec:
       initContainers:
       - name: init-config
         image: busybox
+        imagePullPolicy: IfNotPresent
         envFrom:
           - secretRef:
               name: adguard-admin-password

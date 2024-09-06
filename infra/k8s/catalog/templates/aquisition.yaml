@@ -19,7 +19,7 @@ spec:
           downloadLimit: 10000
         storage:
           create: true
-          size: 2Ti
+          size: 1Ti
         vpn:
           mode: "openvpn"
           provider: "nordvpn"

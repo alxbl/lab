@@ -13,11 +13,14 @@ spec:
   source:
     helm:
       valuesObject:
+        image: 
+          pullPolicy: Always
         podAnnotations:
           backup.velero.io/backup-volumes: data
         vaultwarden:
           config:
             SIGNUPS_ALLOWED: "false"
+            DOMAIN: "vault.segfault.me"
         storage:
           create: true
           size: 5Gi

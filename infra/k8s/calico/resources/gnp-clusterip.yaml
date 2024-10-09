@@ -1,3 +1,4 @@
+# Allows direct service addressing from outside the cluster (BGP routing).
 apiVersion: projectcalico.org/v3
 kind: GlobalNetworkPolicy
 metadata:

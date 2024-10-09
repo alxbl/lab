@@ -1,4 +1,7 @@
-# Istio Mesh traffic cross-communication
+# Calico Policies to enable istio mesh traffic and ingress filtering.
+# -----------------------------------------------
+# Allow Istio peer-to-peer Mesh traffic
+# Allow: any to istio discovery, envoy-to-envoy traffic (has tlsMode)
 apiVersion: projectcalico.org/v3
 kind: GlobalNetworkPolicy
 metadata:
@@ -9,13 +12,13 @@ spec:
   - Ingress
   - Egress
   ingress:
-    # Allow inbound mesh traffic
+    # Allow inbound mesh traffic to envoy proxy
     - action: Allow
       protocol: TCP
       destination:
         selector: 'has(security.istio.io/tlsMode)'
   egress:
-    # Allow all namespaces to reach discovery
+    # Allow any to reach discovery
     - action: Allow
       protocol: TCP
       destination:
@@ -24,7 +27,7 @@ spec:
         - 443   # Web Hook
         - 15010 # GRPC-XDS
         - 15012 # HTTPS DNS
-    # Allow outbound mesh traffic
+    # Allow outbound mesh traffic to envoy proxy
     - action: Allow
       protocol: TCP
       destination:

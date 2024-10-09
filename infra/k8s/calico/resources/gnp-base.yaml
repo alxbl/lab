@@ -1,4 +1,11 @@
-# Deny all traffic from outside to Services and Pods other than kubeapi-server and istio-ingress
+# Calico Policies for base hardening of the cluster:
+#  - Default deny
+#  - Restricts Kube API to cluster internal and Management LAN
+# ------------------------------------------------------------
+
+# Default: Deny everything other than pod-to-pod DNS.
+# Allow: any to CoreDNS:53
+# Deny: All 
 apiVersion: projectcalico.org/v3
 kind: GlobalNetworkPolicy
 metadata:
@@ -22,9 +29,12 @@ spec:
         selector: 'k8s-app == "coredns"'
         ports:
         - 53
+    # egress: deny all other outbound traffic
   # ingress: deny all inbound traffic
 ---
-# TCP: 22 (SSH), 179 (BGP)
+# Host Rule: Cluster Nodes (Worker & Control Plane)
+# Allow inbound: TCP: 22 (SSH), 179 (BGP)
+# Allow oubound: TCP: 80 (HTTP), 443 (HTTPS); UDP: 53 (DNS) 67 (DHCP)
 apiVersion: projectcalico.org/v3
 kind: GlobalNetworkPolicy
 metadata:
@@ -65,7 +75,8 @@ spec:
           - '0.0.0.0/0'
         ports: [53, 67]
 ---
-# TCP: 2379-2380 (etcd), 6443 (kube-apiserver)
+# Host Rule: Control Plane Nodes
+# Allow inbound: TCP: 2379-2380 (etcd), 6443 (kube-apiserver) from LAN
 # https://kubernetes.io/docs/reference/networking/ports-and-protocols/
 apiVersion: projectcalico.org/v3
 kind: GlobalNetworkPolicy
@@ -82,15 +93,56 @@ spec:
       protocol: TCP
       source:
         nets:
-          # FIXME: k8s control-plane CIDR (Better: can check source host labels?)
-          - '10.0.0.0/16'
+          # FIXME: can check source host labels?
+          - '10.2.0.0/16'
+          - '10.3.0.0/16'
+          - '10.0.0.0/16' # FIXME: Requires to be externally accessible? 
       destination:
         ports: [2379, 2380]
-    # Allow kube-apiserver traffic
+    # Allow kube-apiserver traffic from LAN only
     - action: Allow
       protocol: TCP
       source:
         nets:
-          - '10.0.0.0/16'
+          - '10.0.0.0/16' # Management/Admin LAN CIDR
       destination:
         ports: [6443]
+---
+# Allow pods with a Service Account to reach kubeapi
+apiVersion: projectcalico.org/v3
+kind: GlobalNetworkPolicy
+metadata:
+  name: allow-authorized-kubeapi-access
+spec:
+  namespaceSelector: has(kubernetes.io/metadata.name) && kubernetes.io/metadata.name not in {"system", "kube-system", "istio-system"}
+  egress:
+    - action: Allow
+      source:
+        serviceAccounts:
+          selector: all()
+      destination:
+        services:
+          name: kubernetes
+          namespace: default
+---
+# FIXME: Allow all egress from pods (TEMP)
+# This rule exists to progressively tighten egress filtering.
+apiVersion: projectcalico.org/v3
+kind: GlobalNetworkPolicy
+metadata:
+  name: allow-all-egress-temp
+spec:
+  selector: all()
+  egress:
+    # Allow All TCP outbound traffic
+    - action: Allow
+      protocol: TCP
+      destination:
+        nets:
+         - '0.0.0.0/0'
+    # Allow All UDP outbound traffic
+    - action: Allow
+      protocol: UDP
+      destination:
+        nets:
+          - '0.0.0.0/0'

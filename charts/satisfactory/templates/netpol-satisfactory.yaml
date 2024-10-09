@@ -18,16 +18,3 @@ spec:
       app.kubernetes.io/name: satisfactory
   policyTypes:
   - Ingress
----
-# FIXME: This is necessary until Satisfactory is no longer exposed on host network.
-apiVersion: projectcalico.org/v3
-kind: GlobalNetworkPolicy
-metadata:
-  name: host-allow-satisfactory
-spec:
-  selector: "type == 'endpoint'"
-  ingress:
-    - action: Allow
-      protocol: UDP
-      destination:
-        ports: [7777, 15000, 15777]

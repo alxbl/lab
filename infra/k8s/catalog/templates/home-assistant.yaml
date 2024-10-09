@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: home-assistant
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: home
+  project: default
+  source:
+    helm:
+      valuesObject:
+        # Override for predictable name in backup config.
+        fullnameOverride: 'home-assistant'
+        podAnnotations:
+          backup.velero.io/backup-volumes: home-assistant
+        persistence:
+          enabled: true
+          accessMode: ReadWriteOnce
+          size: 5Gi
+          storageClass: 'zfs-rwo'
+          existingVolume: ''
+        configuration:
+          trusted_proxies:
+            - 10.3.0.2/32
+        addons:
+          codeserver:
+            enabled: true
+    path: charts/home-assistant
+    repoURL: https://pajikos.github.io/home-assistant-helm-chart
+    targetRevision: '0.2.81'

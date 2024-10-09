@@ -99,5 +99,5 @@ metadata:
     argocd.argoproj.io/secret-type: repository
 stringData:
   name: hass
-  url: https://pajikos.github.io/home-assistant-helm-chart
+  url: https://github.com/pajikos/home-assistant-helm-chart
   type: helm

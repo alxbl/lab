@@ -88,3 +88,16 @@ stringData:
   name: vmware
   url: https://vmware-tanzu.github.io/helm-charts
   type: helm
+---
+# HomeAssistant chart (3rd party)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: homeassistant-helm
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  name: hass
+  url: https://pajikos.github.io/home-assistant-helm-chart
+  type: helm

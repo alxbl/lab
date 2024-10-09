@@ -29,6 +29,6 @@ spec:
         addons:
           codeserver:
             enabled: true
-    path: charts/home-assistant
-    repoURL: https://github.com/pajikos/home-assistant-helm-chart
+    path: home-assistant
+    repoURL: https://pajikos.github.io/home-assistant-helm-chart
     targetRevision: '0.2.81'

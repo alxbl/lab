@@ -30,5 +30,5 @@ spec:
           codeserver:
             enabled: true
     path: home-assistant
-    repoURL: https://pajikos.github.io/home-assistant-helm-chart
-    targetRevision: '0.2.81'
+    repoURL: https://github.com/pajikos/home-assistant-helm-chart.git
+    targetRevision: HEAD

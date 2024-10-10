@@ -29,6 +29,6 @@ spec:
         addons:
           codeserver:
             enabled: true
-    path: home-assistant
+    path: charts/home-assistant
     repoURL: https://github.com/pajikos/home-assistant-helm-chart.git
     targetRevision: HEAD

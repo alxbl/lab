@@ -79,17 +79,6 @@ spec:
         port:
           number: 80
         host: jellyfin.media.svc.cluster.local
-  - name: HomeAssistant
-    match:
-    - uri:
-        prefix: /hass
-    rewrite:
-      uri: /
-    route:
-    - destination:
-        port:
-          number: 8080
-        host: home-assistant.home.svc.cluster.local
   tcp:
   - match:
     - port: 445
@@ -123,3 +112,28 @@ spec:
         port:
           number: 80
         host: vaultwarden.home.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: home-assistant-vsvc
+  namespace: istio-ingress
+spec:
+  hosts:
+  - "home.segfault.me"
+  gateways:
+  - istio-ingress/https-in-gw
+  http:
+  - name: Redirect to HTTPS
+    match:
+    - port: 80
+    redirect:
+      port: 443
+  - name: HomeAssistant
+    match:
+    - port: 443
+    route:
+    - destination:
+        port:
+          number: 8080
+        host: home-assistant.home.svc.cluster.local

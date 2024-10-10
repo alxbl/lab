@@ -79,6 +79,17 @@ spec:
         port:
           number: 80
         host: jellyfin.media.svc.cluster.local
+  - name: HomeAssistant
+    match:
+    - uri:
+        prefix: /hass
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        port:
+          number: 8080
+        host: home-assistant.home.svc.cluster.local
   tcp:
   - match:
     - port: 445

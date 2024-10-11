@@ -8,7 +8,7 @@ metadata:
 spec:
   secretName: https-in-gw-tls
   duration: 2160h # 90d
-  renewBefore: 360h # 15d
+  renewBefore: 504h # 21d
   subject:
     organizations:
       - segfault.me
@@ -21,8 +21,7 @@ spec:
     - server auth
     - client auth
   dnsNames:
-    - lab.segfault.me
-    - vault.segfault.me
+    - '*.segfault.me'
   issuerRef:
     name: letsencrypt-issuer
     kind: ClusterIssuer

@@ -17,13 +17,6 @@ metadata:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: postgres
-  labels:
-    istio-injection: enabled
----
-apiVersion: v1
-kind: Namespace
-metadata:
   name: media
   labels:
     istio-injection: enabled

@@ -20,7 +20,7 @@ spec:
         vaultwarden:
           config:
             SIGNUPS_ALLOWED: "false"
-            DOMAIN: "vault.segfault.me"
+            DOMAIN: "https://vault.segfault.me"
         storage:
           create: true
           size: 5Gi

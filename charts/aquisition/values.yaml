@@ -64,6 +64,13 @@ vpn:
     type: ClusterIP
     port: 8388
   
+  # Additional environment variables to add
+  extra:
+    PORT_FORWARD_ONLY: "on"
+    VPN_PORT_FORWARDING: "on"
+    # Only needed for Wireguard
+    # VPN_PORT_FORWARDING_PROVIDER: "protonvpn"
+  
   # Extra firewall rules. Each line is an invocation of `iptables`
   firewall:
   # This accepts local traffic destined for the ShadowSOCKS proxy.
@@ -80,7 +87,7 @@ vpn:
   # VPN mode: openvpn or wireguard
   mode: "openvpn"
   # VPN provider (must be supported by gluetun)
-  provider: "nordvpn"
+  provider: "protonvpn"
   
   # The name of a secret containing the VPN credentials.
   # If the VPN mode is `openvpn`, the secret must contain two keys:

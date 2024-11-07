@@ -22,10 +22,11 @@ spec:
           size: 1Ti
         vpn:
           mode: "openvpn"
-          provider: "nordvpn"
-          countries: "Switzerland, Spain"
+          provider: "protonvpn"
+          countries: "Switzerland"
           extra:
-            SERVER_CATEGORIES: "P2P"
+            PORT_FORWARD_ONLY: "on"
+            VPN_PORT_FORWARDING: "on"
     path: charts/aquisition
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}

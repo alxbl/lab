@@ -41,6 +41,9 @@ spec:
             - name: firewall-rules
               mountPath: /iptables/post-rules.txt
               subPath: post-rules.txt
+            - name: gluetun-config
+              mountPath: /etc/gluetun.toml
+              subPath: config.toml
           {{- if .Values.vpn.socks.enabled }}
           ports:
           - name: socks
@@ -57,6 +60,9 @@ spec:
             - secretRef:
                 name: {{ .Values.vpn.credentialsSecretRef | quote }}
                 optional: false
+          env:
+            - name: HTTP_CONTROL_SERVER_AUTH_CONFIG_FILEPATH
+              value: "/etc/gluetun.toml"
       containers:
         # PostgresQL can be configured via environment: Sonarr:Postgres
         - name: sonarr
@@ -198,6 +204,10 @@ spec:
             items:
               - key: qBittorrent.conf
                 path: qBittorrent.conf
+        - name: gluetun-config
+          secret:
+            secretName: gluetun-config
+            optional: false
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

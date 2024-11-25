@@ -8,7 +8,7 @@ data:
   DNS_KEEP_NAMESERVER: {{ if .dns_over_vpn }}"off"{{ else }}"on"{{ end }}
   VPN_SERVICE_PROVIDER: {{ .provider | default "protonvpn" | quote }}
   VPN_TYPE: {{ .mode | default "openvpn" | quote }}
-  SERVER_COUNTRIES: {{ .countires | default "Netherlands" | quote }}
+  SERVER_COUNTRIES: {{ .countries | default "Netherlands" | quote }}
   SHADOWSOCKS: {{ if .socks.enabled }}"on"{{ else }}"off"{{ end }}
   # SHADOWSOCKS_LOG: "on"
   TZ: {{ .timezone | default "Americas/Toronto" | quote }}

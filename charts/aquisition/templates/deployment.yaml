@@ -183,6 +183,19 @@ spec:
             - name: qbt-config
               mountPath: /opt/qBittorrent.conf
               subPath: qBittorrent.conf
+        - name: pmp-monitor
+          image: ghcr.io/alxbl/pmpd:{{ .Values.images.pmpd | default "latest"}}
+          restartPolicy: OnFailure
+          env:
+            - name: QBT_WEBUI_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.vpn.credentialsSecretRef | quote }}
+                  key: QBT_WEBUI_PASSWORD
+          volumeMounts:
+            - name: gluetun-config
+              mountPath: /etc/gluetun.toml
+              subPath: config.toml
       volumes:
         - name: tun-device
           hostPath:

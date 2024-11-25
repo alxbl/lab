@@ -60,7 +60,30 @@ fi
 ##
 # WebUI admin password
 ##
-if [ -n "$QBT_WEBUI_PASSWORD_HASH" ]; then
+if [ -n "$QBT_WEBUI_PASSWORD" ]; then
+    # Option 1: from plaintext secret
+    # https://github.com/qbittorrent/qBittorrent/discussions/15454
+    hash=$(python - "$QBT_WEBUI_PASSWORD" <<EOF
+import hashlib
+import base64
+import uuid
+
+password = "$QBT_WEBUI_PASSWORD"
+salt = uuid.uuid4()
+salt_bytes = salt.bytes
+
+password = str.encode(password)
+hashed_password = hashlib.pbkdf2_hmac('sha512', password, salt_bytes, 100000, dklen=64)
+b64_salt = base64.b64encode(salt_bytes).decode("utf-8")
+b64_password = base64.b64encode(hashed_password).decode("utf-8")
+password_string = "{salt}:{password}".format(salt=b64_salt,password=b64_password)
+print(password_string)
+EOF
+    )
+    sed -i "s#^WebUI\\\\Password_PBKDF2=.*\$#WebUI\\\\Password_PBKDF2=\"@ByteArray($hash)\"#g" "$qbtConfigFile"
+
+elif [ -n "$QBT_WEBUI_PASSWORD_HASH"]; then
+    # Option 2: from password hash
     sed -i "s#^WebUI\\\\Password_PBKDF2=.*\$#WebUI\\\\Password_PBKDF2=\"@ByteArray($QBT_WEBUI_PASSWORD_HASH)\"#g" "$qbtConfigFile"
 fi
 

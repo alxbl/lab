@@ -154,11 +154,11 @@ spec:
               value: {{ .Values.vpn.timezone | default "Etc/UTC" | quote}}
             - name: QBT_WEBUI_PORT
               value: "8080"
-            - name: QBT_WEBUI_PASSWORD_HASH
+            - name: QBT_WEBUI_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.qbt.webuiPasswordHashSecretRef }}
-                  key: QBT_WEBUI_PASSWORD_HASH
+                  name: {{ .Values.vpn.credentialsSecretRef }}
+                  key: QBT_WEBUI_PASSWORD
             - name: QBT_CONFIG_DIR
               value: {{ .Values.qbt.configDir | quote }}
             - name: QBT_DOWNLOAD_DIR

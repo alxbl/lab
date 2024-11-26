@@ -44,7 +44,6 @@ securityContext: {}
 
 # Configure the aquisition client
 qbt:
-  webuiPasswordHashSecretRef: qbt-admin-password
   downloadDir: /media/downloads
   configDir: /media/.config
   configFileSource: /opt/qBittorrent.conf

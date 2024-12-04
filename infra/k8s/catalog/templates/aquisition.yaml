@@ -24,6 +24,7 @@ spec:
           mode: "openvpn"
           provider: "protonvpn"
           countries: "Switzerland"
+          dns_over_vpn: false  # Pod is already forcing traffic through VPN.
           extra:
             PORT_FORWARD_ONLY: "on"
             VPN_PORT_FORWARDING: "on"

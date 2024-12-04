@@ -14,6 +14,10 @@ inputs:
   context:
     description: 'Path of the docker context to use for build.'
     required: true
+  version:
+    description: 'Additional version tag to add to the image'
+    required: false
+    default: ''
 # outputs:
 runs:
   using: "composite"
@@ -35,6 +39,7 @@ runs:
         tags: |
           type=raw,value=latest,enable={{is_default_branch}}
           type=schedule,pattern={{date 'YYYYMMDD'}}
+          type=raw,value=${{ inputs.version }},enabled=${{ inputs.version != ''}}
 
     # https://github.com/docker/build-push-action
     - name: "Build and push"

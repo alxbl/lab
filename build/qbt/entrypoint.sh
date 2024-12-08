@@ -82,7 +82,7 @@ EOF
     )
     sed -i "s#^WebUI\\\\Password_PBKDF2=.*\$#WebUI\\\\Password_PBKDF2=\"@ByteArray($hash)\"#g" "$qbtConfigFile"
 
-elif [ -n "$QBT_WEBUI_PASSWORD_HASH"]; then
+elif [ -n "$QBT_WEBUI_PASSWORD_HASH" ]; then
     # Option 2: from password hash
     sed -i "s#^WebUI\\\\Password_PBKDF2=.*\$#WebUI\\\\Password_PBKDF2=\"@ByteArray($QBT_WEBUI_PASSWORD_HASH)\"#g" "$qbtConfigFile"
 fi

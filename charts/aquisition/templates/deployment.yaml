@@ -185,7 +185,6 @@ spec:
               subPath: qBittorrent.conf
         - name: pmp-monitor
           image: ghcr.io/alxbl/pmpd:{{ .Values.images.pmpd | default "latest"}}
-          restartPolicy: OnFailure
           env:
             - name: QBT_WEBUI_PASSWORD
               valueFrom:

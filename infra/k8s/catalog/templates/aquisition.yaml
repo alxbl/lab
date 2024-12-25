@@ -18,13 +18,13 @@ spec:
           uploadLimit: 10000
           downloadLimit: 10000
         storage:
-          create: true
+          create: 'true'
           size: 1Ti
         vpn:
           mode: "openvpn"
           provider: "protonvpn"
           countries: "Switzerland"
-          dns_over_vpn: false  # Pod is already forcing traffic through VPN.
+          dns_over_vpn: 'true'
           extra:
             PORT_FORWARD_ONLY: "on"
             VPN_PORT_FORWARDING: "on"

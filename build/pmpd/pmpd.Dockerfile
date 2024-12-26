@@ -35,6 +35,6 @@ USER python
 # --- This part differs from base image.
 # Copy pmpd script
 COPY pmpd.py /home/python/pmpd.py
-ENTRYPOINT ["/usr/bin/python", "/home/python/pmpd.py"]
+ENTRYPOINT ["/usr/bin/python", "-u", "/home/python/pmpd.py"]
 
 

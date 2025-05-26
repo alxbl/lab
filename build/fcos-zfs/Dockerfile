@@ -1,7 +1,7 @@
 # https://github.com/coreos/layering-examples/tree/main/build-zfs-module
 # Needs to be set to the Fedora version on CoreOS stable stream, as it is our base image.
 #   BUILDER_VERSION=$(curl -s "https://builds.coreos.fedoraproject.org/streams/stable.json" | jq -r '.architectures.x86_64.artifacts.metal.release' | cut -d '.' -f 1)
-ARG BUILDER_VERSION=41
+ARG BUILDER_VERSION=42
 
 # Base image for the final layer
 ARG BASE_IMAGE=quay.io/fedora/fedora-coreos:stable

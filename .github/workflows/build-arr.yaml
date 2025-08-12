@@ -57,14 +57,6 @@ jobs:
           dockerfile: build/arr/lidarr.Dockerfile
           context: build/arr
 
-      - name: Build Readarr
-        uses: ./.github/actions/build-and-sign
-        with:
-          registry: ${{ env.REGISTRY }}
-          image: ${{ github.actor }}/readarr
-          dockerfile: build/arr/readarr.Dockerfile
-          context: build/arr
-
       - name: Build Prowlarr
         uses: ./.github/actions/build-and-sign
         with:

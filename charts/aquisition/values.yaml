@@ -10,7 +10,6 @@ imagePullSecrets:
 images:
   sonarr: ""
   radarr: ""
-  readarr: ""
   prowlarr: ""
   lidarr: ""
   gluetun: ""

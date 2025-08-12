@@ -13,7 +13,6 @@ aquisition deploys the following software:
 
 - Sonarr
 - Radarr
-- Readarr
 - Prowlarr
 - rtorrent
 - gluetun (SideCar)

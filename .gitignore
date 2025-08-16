@@ -38,3 +38,4 @@ tsconfig.tsbuildinfo
 !jest.config.js
 !setup.js
 **/kube.conf
+**/kube.conf*

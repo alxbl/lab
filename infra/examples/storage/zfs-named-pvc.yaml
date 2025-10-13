@@ -1,0 +1,82 @@
+# Reference: https://github.com/openebs/zfs-localpv/blob/release/2.8/docs/import-existing-volume.md
+# Naming ZFS volume w/ reserved claim. This makes it easier to perform cluster updates because
+# the volume will have a deterministic name. 
+#
+# The alternative is to backup and restore the ZFS resources after provisioning the new cluster. 
+# Volumes should still exist on the same nodes and retain the same names.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: reserved-pvc
+  namespace: test
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: "zfs-rwo"
+  volumeName: reserved-pv
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: reserved-pv
+spec:
+  persistentVolumeReclaimPolicy: Delete # Most likely want this set to Retain
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: "zfs-rwo"
+  claimRef:
+    name: reserved-pvc
+    namespace: test
+  csi:
+    driver: zfs.csi.openebs.io
+    volumeHandle: reserved-pv
+    fsType: zfs
+    volumeAttributes:
+      openebs.io/poolname: data
+---
+# Can use a ZFSVolume to manually create the volume on a given node and give it a name
+# But this assumes you know the node on which you want the volume to end up.
+apiVersion: zfs.openebs.io/v1
+kind: ZFSVolume
+metadata:
+  finalizers:
+  - zfs.openebs.io/finalizer  # This dictates whether the ZFS CSI deletes the volume
+  name: reserved-pv  # should be same as zfs volume name
+  namespace: openebs
+spec:
+  capacity: "1073741824" # size of the volume in bytes
+  fsType: zfs
+  ownerNodeID: tachyon.lan # should be the nodename where ZPOOL is running
+  poolName: data # poolname where the volume is present
+  volumeType: DATASET # whether it is a DATASET or ZVOL
+  shared: "yes" # whether or not the volume can be shared across pods
+status:
+  state: Ready # state should be Ready as volume is already present
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: uses-reserved-pvc
+  namespace: test
+spec:
+  restartPolicy: Never
+  containers:
+  - name: nginx
+    image: nginx:latest
+    volumeMounts:
+       - mountPath: /data
+         name: nginx-vol
+    tty: true
+    resources:
+      limits:
+        cpu: 100m
+        memory: 100M
+  volumes:
+  - name: nginx-vol
+    persistentVolumeClaim:
+      claimName: reserved-pvc

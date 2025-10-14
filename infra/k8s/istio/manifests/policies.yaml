@@ -20,7 +20,7 @@ spec:
   rules:
   - to:
     - operation:
-        hosts: ["*.segfault.me"]
+        hosts: ["segfault.me", "*.segfault.me", "segfault.me:*", "*.segfault.me:*"]
         ports: ["80", "443"]
 ---
 # Allow SMB to flow through ingress

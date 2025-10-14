@@ -46,6 +46,9 @@ spec:
         cidr: 172.64.0.0/13
     - ipBlock:
         cidr: 131.0.72.0/22
+    # segv-www
+    - ipBlock:
+        cidr: 172.177.238.119/32
     ports:
       - port: 80
         protocol: TCP

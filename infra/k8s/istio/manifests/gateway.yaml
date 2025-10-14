@@ -12,7 +12,7 @@ spec:
       protocol: HTTP
       name: http
     hosts:
-    - "*.segfault.me"
+    - "*"
   - port:
       number: 443
       name: https
@@ -21,7 +21,7 @@ spec:
       mode: SIMPLE
       credentialName: https-in-gw-tls
     hosts:
-    - "*.segfault.me"
+    - "*"
   - port:
       number: 445
       protocol: TCP
@@ -61,15 +61,6 @@ spec:
         port:
           number: 443
         host: argocd-server.argocd.svc.cluster.local
-  - name: PhotoPrism
-    match:
-    - uri:
-        prefix: /photos
-    route:
-    - destination:
-        port:
-          number: 80
-        host: photoprism.media.svc.cluster.local
   - name: Jellyfin
     match:
     - uri:
@@ -137,3 +128,32 @@ spec:
         port:
           number: 8080
         host: home-assistant.home.svc.cluster.local
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: https-external
+  namespace: istio-ingress
+spec:
+  hosts:
+  - "lab.segfault.me"
+  - "segfault.me"
+  gateways:
+  - istio-ingress/https-in-gw
+  http:
+  - name: Redirect to HTTPS
+    match:
+    - port: 80
+    redirect:
+      port: 443
+      scheme: https
+  - name: Photoprism
+    match:
+    - uri:
+        prefix: /photos
+    route:
+    - destination:
+        port:
+          number: 80
+        host: photoprism.media.svc.cluster.local
+---

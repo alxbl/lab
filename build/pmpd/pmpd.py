@@ -51,7 +51,7 @@ print('[*] pmpd: Port forwarding monitoring started')
 
 while True:
     # Get port exposed by natpmpc.
-    pmp_port = GLUETUN.get(f"{GLUETUN_API_URL}/v1/openvpn/portforwarded", auth=gluetun_creds)
+    pmp_port = GLUETUN.get(f"{GLUETUN_API_URL}/v1/portforwarded", auth=gluetun_creds)
     mapped = None 
     try:
         mapped = json.loads(pmp_port.text)['port']

@@ -21,7 +21,7 @@ spec:
           create: 'true'
           size: 1Ti
         vpn:
-          mode: "openvpn"
+          mode: "wireguard"
           provider: "protonvpn"
           countries: "Switzerland"
           dns_over_vpn: 'true'

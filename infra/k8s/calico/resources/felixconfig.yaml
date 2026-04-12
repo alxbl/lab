@@ -11,5 +11,15 @@ spec:
   logSeverityScreen: Info
   reportingInterval: 0s
   # Restricted failsafe ports for startup and recovery.
-  failsafeInboundHostPorts: [6443] # Always allow kube-api for controllers
-  failsafeOutboundHostPorts: [53, 67] # Always allow DNS and DHCP
+  failsafeInboundHostPorts:
+    # Always allow kube-api for controllers
+    - port: 6443 
+      protocol: TCP
+    - port: 22
+      protocol: TCP
+  failsafeOutboundHostPorts:
+    # Always allow DNS and DHCP
+    - port: 53
+      protocol: TCP
+    - port: 67 
+      protocol: TCP

@@ -88,3 +88,16 @@ stringData:
   name: hass
   url: https://github.com/pajikos/home-assistant-helm-chart.git
   type: helm
+---
+# CloudNative Postgres
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cnpg-helm
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  name: cnpg
+  url: https://cloudnative-pg.github.io/charts
+  type: helm

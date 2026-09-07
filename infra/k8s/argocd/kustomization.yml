@@ -6,7 +6,8 @@ resources:
 - overlays/helm-repositories.yaml 
 - overlays/namespace.yaml
 - overlays/root.yaml
-- https://raw.githubusercontent.com/argoproj/argo-cd/v3.3.6/manifests/install.yaml
+- https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.2/manifests/install.yaml
 patches:
 - path: overlays/argocd-server.yaml
-# FIXME: Patch redis to not inject istio (usersecret-init)
+# FIXME: Patch redis to not inject istio (usersecret-init) 
+#        Alternatively: (https://github.com/istio/istio/discussions/52841)

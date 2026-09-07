@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-argocd
+  namespace: argocd
+spec:
+  ingress:
+  - from:
+    ports:
+      - port: 80
+        protocol: TCP
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-server
+  policyTypes:
+  - Ingress
+

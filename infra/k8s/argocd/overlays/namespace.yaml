@@ -3,4 +3,4 @@ kind: Namespace
 metadata:
   name: argocd
   labels:
-    istio-injection: enabled
+    istio-injection: disabled # FIXME: Re-enable once istio->kubeapi netpols work.

@@ -11,6 +11,18 @@ spec:
     targetRevision: 0.13.2
     helm:
       valuesObject:
+        controllers:
+          main:
+            containers:
+              main:
+                env:
+                  DB_HOSTNAME: immich-database-rw
+                  DB_DATABASE_NAME: app
+                  DB_PASSWORD:
+                    valueFrom:
+                      secretKeyRef:
+                        name: immich-database-app
+                        key: password
         immich:
           metrics:
             enabled: false  # No ServiceMonitor deployed.

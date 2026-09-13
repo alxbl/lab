@@ -1,0 +1,64 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: system
+  namespace: argocd
+  # Ensure that project is not deleted until it is not referenced by any application.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: System components
+
+  # FIXME: Restrict to repos containing system applications.
+  sourceRepos:
+  - '*'
+
+  # FIXME: Restrict to namespaces that host the system components.
+  destinations:
+  - namespace: '*'
+    server: https://kubernetes.default.svc
+
+
+  # FIXME: Restrict.
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+
+  # Deny all Namespace resources from being created if their name starts with 'kube-'
+  clusterResourceBlacklist: []
+
+  # Allow all namespaced-scoped resources to be created, except for ResourceQuota, LimitRange, NetworkPolicy
+  namespaceResourceBlacklist: []
+
+  # Deny all namespaced-scoped resources from being created, except for Deployment and StatefulSet
+  namespaceResourceWhitelist: []
+  # Enables namespace orphaned resource monitoring.
+  orphanedResources:
+    warn: false
+
+  roles: []
+
+  # https://argo-cd.readthedocs.io/en/stable/user-guide/sync_windows/
+  syncWindows: []
+
+  # By default, apps may sync to any cluster specified under the `destinations` field, even if they are not
+  # scoped to this project. Set the following field to `true` to restrict apps in this cluster to only clusters
+  # scoped to this project.
+  permitOnlyProjectScopedClusters: false
+
+  # When using Applications-in-any-namespace, this field determines which namespaces this AppProject permits
+  # Applications to reside in. Details: https://argo-cd.readthedocs.io/en/stable/operator-manual/app-any-namespace/
+  sourceNamespaces:
+  - "argocd"
+
+  # https://argo-cd.readthedocs.io/en/latest/user-guide/source-integrity/
+  # sourceIntegrity:
+  #   git:
+  #     policies:
+  #       - repos:
+  #           - url: 'https://github.com/alxbl/*'
+  #           - url: '!https://github.com/alxbl/excluded.git'
+  #         gpg:
+  #           mode: strict
+  #           keys:
+  #             - "{{ gpg_key }}"

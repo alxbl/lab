@@ -6,6 +6,7 @@ resources:
 - overlays/helm-repositories.yaml 
 - overlays/namespace.yaml
 - overlays/root.yaml
+- projects/argoproj-system.yaml
 - https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.2/manifests/install.yaml
 patches:
 - path: overlays/argocd-server.yaml

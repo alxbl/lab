@@ -1,0 +1,6 @@
+apiVersion: v2
+name: system-catalog
+description: Meta-chart to bootstrap system applications
+type: application
+version: 0.1.0
+appVersion: "1.0"

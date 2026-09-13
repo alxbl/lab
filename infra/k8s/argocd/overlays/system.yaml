@@ -2,21 +2,22 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: root
+  name: system-catalog
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
   labels:
-    name: root
+    name: system-catalog
 spec:
-  project: default
+  project: system
   source:
     repoURL: https://github.com/alxbl/lab.git
     targetRevision: HEAD  
-    path: infra/k8s/catalog
+    path: infra/system/catalog
+
   destination:
     server: https://kubernetes.default.svc
     namespace: default
   info:
     - name: 'Description:'
-      value: 'Meta-application which deploys cluster applications'
+      value: 'Meta-application for cluster system applications'

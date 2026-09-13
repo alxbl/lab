@@ -5,9 +5,9 @@ metadata:
 spec:
   ingress:
   - from:
-  namespaceSelector:
-    matchLabels:
-      app.kubernetes.io/instance: immich-app
+    namespaceSelector:
+      matchLabels:
+        app.kubernetes.io/instance: immich-app
   policyTypes:
   - Ingress
 

@@ -13,7 +13,7 @@ spec:
       valuesObject:
         immich:
           metrics:
-            enabled: true
+            enabled: false  # No ServiceMonitor deployed.
           persistence:
             library:
               existingClaim: immich

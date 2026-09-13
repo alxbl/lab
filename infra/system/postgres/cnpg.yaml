@@ -9,7 +9,6 @@ spec:
   source: 
     chart: cloudnative-pg
     repoURL: https://cloudnative-pg.github.io/charts
-    targetRevision: HEAD
     # helm:
     #   valuesObject:
     #     key: value

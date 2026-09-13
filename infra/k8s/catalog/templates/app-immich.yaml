@@ -18,6 +18,7 @@ spec:
                 env:
                   DB_HOSTNAME: immich-database-rw
                   DB_DATABASE_NAME: app
+                  DB_USERNAME: app
                   DB_PASSWORD:
                     valueFrom:
                       secretKeyRef:

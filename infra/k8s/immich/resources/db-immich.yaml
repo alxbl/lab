@@ -1,0 +1,21 @@
+# https://github.com/immich-app/immich-charts/blob/main/local/cloudnative-pg-database.yaml
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: immich-database
+  namespace: immich
+spec:
+  # "app"/"app" is auto-generated via cnpg in each cluster, adjust to your user/database
+  name: app
+  owner: app
+  cluster:
+    name: immich-database
+  extensions:
+    - name: vector
+      ensure: present
+    - name: vchord
+      ensure: present
+    - name: earthdistance
+      ensure: present
+    - name: cube
+      ensure: present

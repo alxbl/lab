@@ -16,7 +16,7 @@ spec:
   # FIXME: Restrict to namespaces that host the system components.
   destinations:
   - namespace: '*'
-    server: https://kubernetes.default.svc
+    server: '*'
 
 
   # FIXME: Restrict.
@@ -31,7 +31,9 @@ spec:
   namespaceResourceBlacklist: []
 
   # Deny all namespaced-scoped resources from being created, except for Deployment and StatefulSet
-  namespaceResourceWhitelist: []
+  namespaceResourceWhitelist:
+   - group: '*'
+     kind: '*'
   # Enables namespace orphaned resource monitoring.
   orphanedResources:
     warn: false

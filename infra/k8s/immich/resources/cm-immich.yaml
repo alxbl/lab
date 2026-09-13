@@ -8,7 +8,7 @@ data:
       "backup": {
         "database": {
           "cronExpression": "0 02 * * *",
-          "enabled": true,
+          "enabled": false,
           "keepLastAmount": 14
         }
       },
@@ -103,7 +103,7 @@ data:
       },
       "logging": {
         "enabled": true,
-        "level": "log"
+        "level": "debug"
       },
       "machineLearning": {
         "availabilityChecks": {
@@ -134,7 +134,7 @@ data:
           "minRecognitionScore": 0.8,
           "modelName": "PP-OCRv5_mobile"
         },
-        "urls": ["http://immich-machine-learning:3003"]
+        "urls": ["http://immich-app-machine-learning:3003"]
       },
       "map": {
         "darkStyle": "https://tiles.immich.cloud/v1/style/dark.json",

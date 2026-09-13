@@ -1,9 +1,7 @@
-# https://istio.io/latest/docs/setup/install/helm/
-# istio/base
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: immich-chart
+  name: immich-app
   namespace: argocd
 spec:
   project: default
@@ -23,4 +21,5 @@ spec:
           configurationKind: ConfigMap
   destination:
     server: "https://kubernetes.default.svc"
+    namespace: immich
   

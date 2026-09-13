@@ -5,4 +5,5 @@ resources:
 - resources/pvc-immich.yaml
 - resources/db-immich.yaml
 - resources/pg-immich.yaml
+- resources/cm-immich.yaml
 - resources/app-immich.yaml

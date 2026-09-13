@@ -101,3 +101,16 @@ stringData:
   name: cnpg
   url: https://cloudnative-pg.github.io/charts
   type: helm
+---
+# Immich
+apiVersion: v1
+kind: Secret
+metadata:
+  name: immich-helm
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  name: immich
+  url: oci://ghcr.io/immich-app/immich-charts/immich
+  type: helm

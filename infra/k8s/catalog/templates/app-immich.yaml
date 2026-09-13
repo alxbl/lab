@@ -31,6 +31,8 @@ spec:
               existingClaim: immich
           existingConfiguration: immich-cm
           configurationKind: ConfigMap
+        valkey:
+          enabled: true
   destination:
     server: "https://kubernetes.default.svc"
     namespace: immich

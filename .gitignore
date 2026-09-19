@@ -13,6 +13,8 @@ build/bootstrap/matchbox/groups/*
 build/bootstrap/matchbox/assets/fedora-coreos/*
 !build/bootstrap/matchbox/assets/fedora-coreos/.keep
 
+# chart dependencies
+*.tgz
 # infra (cdktf, PXE blobs, PKI, etc.)
 *.ipxe
 *.img

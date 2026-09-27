@@ -29,12 +29,12 @@ spec:
             enabled: false  # No ServiceMonitor deployed.
           persistence:
             library:
-              existingClaim: immich
+              existingClaim: media-server-pvc
           existingConfiguration: immich-cm
           configurationKind: ConfigMap
         valkey:
           enabled: true
   destination:
     server: "https://kubernetes.default.svc"
-    namespace: immich
+    namespace: media
   

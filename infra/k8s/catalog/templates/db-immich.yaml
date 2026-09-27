@@ -8,7 +8,7 @@ metadata:
 spec:
   destination:
     server: {{ .Values.spec.destination.server }}
-    namespace: immich
+    namespace: media
   project: default
   source:
     path: infra/k8s/immich

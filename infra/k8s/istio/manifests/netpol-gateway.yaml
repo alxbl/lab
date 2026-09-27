@@ -10,6 +10,7 @@ spec:
     # LAN
     - ipBlock:
         cidr: 10.0.0.0/8
+    # VPN
     - ipBlock:
         cidr: 192.168.2.0/24
     # Loopback

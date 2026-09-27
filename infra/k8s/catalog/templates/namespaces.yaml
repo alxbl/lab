@@ -27,10 +27,3 @@ metadata:
   name: satisfactory
   labels:
     istio-injection: disabled
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: immich
-  labels:
-    istio-injection: disabled

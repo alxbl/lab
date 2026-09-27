@@ -3,7 +3,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
   name: immich-database
-  namespace: immich
+  namespace: media
 spec:
   # "app"/"app" is auto-generated via cnpg in each cluster, adjust to your user/database
   name: app

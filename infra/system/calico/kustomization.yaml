@@ -11,5 +11,4 @@ resources:
   - resources/hosts.yaml
   # Apply FelixConfiguration -> Remove Failsafes.
   - resources/felixconfig.yaml
-  # Calico API Server (Requires manual creation of the cert secret)
-  - https://raw.githubusercontent.com/projectcalico/calico/v3.27.2/manifests/apiserver.yaml
+  - https://raw.githubusercontent.com/projectcalico/calico/refs/heads/release-v3.32/manifests/v3_projectcalico_org.yaml

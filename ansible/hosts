@@ -1,12 +1,5 @@
-[pull_config]
-th1nk
-cortex
-
-[hypervisor]
-th1nk
-
-[windows]
-artesia
-
-[k8s_node]
-ceres
+hypervisor:
+  hosts:
+    th1nk:
+    artesia:
+      ansible_connection: local

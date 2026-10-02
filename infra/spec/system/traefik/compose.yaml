@@ -1,0 +1,26 @@
+# https://github.com/aeger/traefik-rootless
+services:
+  traefik:
+    image: docker.io/traefik:v3.7
+    security_opt:
+      - label=type:container_runtime_t
+    command:
+      - "--api.insecure=true"
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    cap_add:
+      - NET_BIND_SERVICE
+    networks: 
+     - traefik
+    volumes:
+      - /var/run/podman/podman.sock:/var/run/docker.sock:z
+
+networks:
+  traefik:
+    name: traefik
+  acquisition:
+    name: acquisition

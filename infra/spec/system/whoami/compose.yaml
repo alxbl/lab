@@ -1,0 +1,12 @@
+# Simple service to test routing.
+services:
+  whoami:
+    image: docker.io/traefik/whoami
+    networks: 
+      - traefik
+    labels:
+      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
+
+networks:
+  traefik:
+    name: traefik

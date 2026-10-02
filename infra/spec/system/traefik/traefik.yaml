@@ -1,0 +1,11 @@
+metrics:
+  otlp:
+    grpc:
+      endpoint: otelcol:4317
+
+api:
+  insecure: true
+  dashboard: true
+entrypoints:
+  web:
+    address: :80

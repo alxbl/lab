@@ -1,0 +1,27 @@
+# https://eff-certbot.readthedocs.io/en/stable/install.html#installation
+# https://github.com/oneuptime/blog/tree/master/posts/2026-03-18-fix-podman-container-dns-resolution-failures
+services:
+  certbot:
+    image: docker.io/certbot/dns-cloudflare
+    env_file:
+      - .env
+    # dns:
+    #   - 1.1.1.1
+    # dns_search:
+    #   - letsencrypt.org
+    command:
+      - "--non-interactive"
+      - "--agree-tos"
+      - "--dns-cloudflare"
+      - "--dns-cloudflare-credentials"
+      - "/etc/cloudflare.ini"
+      - "-v"
+      - "-d"
+      - "${DNS_NAME}"
+      - "certonly"
+    network_mode: host # FIXME: WHy is DNS broken?? 
+    volumes:
+      - ../../../secrets/cloudflare.ini:/etc/cloudflare.ini:ro
+      - ./etc:/etc/letsencrypt
+      - ./var:/var/lib/letsencrypt
+      - ./log:/var/log/letsencrypt

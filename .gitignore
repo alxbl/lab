@@ -1,3 +1,6 @@
+# Secrets
+infra/secrets
+
 # Misc
 *.retry
 *.0

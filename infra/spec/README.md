@@ -42,3 +42,10 @@ traefik is the ingress on its own network.
 ### Smbd: File Server
 
 ### Acquisition: Arrrrrr!
+
+
+## References
+
+- Podman Network Isolation: https://oneuptime.com/blog/post/2026-03-17-use-compose-networks-podman/view
+
+- Traefik: https://doc.traefik.io/traefik/setup/docker/

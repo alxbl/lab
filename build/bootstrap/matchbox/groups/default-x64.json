@@ -1,7 +1,0 @@
-{
-  "id": "default-x64",
-  "name": "Fedora CoreOS Live (x64)",
-  "profile": "fcos-live-x64",
-  "selector": {},
-  "metadata": {}
-}

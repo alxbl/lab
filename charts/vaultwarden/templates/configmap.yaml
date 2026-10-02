@@ -1,6 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: vaultwarden-config
-data:
-  {{- toYaml .Values.vaultwarden.config | nindent 2}}

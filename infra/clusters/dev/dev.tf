@@ -23,7 +23,7 @@ terraform {
 }
 
 module "dev" {
-  source = "git::https://github.com/poseidon/typhoon//bare-metal/fedora-coreos/kubernetes?ref=v1.36.1"
+  source = "git::https://github.com/alxbl/typhoon//bare-metal/fedora-coreos/kubernetes?ref=u/alxbl/cilium-1.20.2"
 
   # bare-metal
   cluster_name            = "dev"

@@ -1,7 +1,34 @@
 metrics:
+  addInternals: true
   otlp:
     grpc:
       endpoint: otelcol:4317
+      tls:
+        insecureskipverify: true
+# Traces
+tracing:
+  otlp:
+    grpc:
+      endpoint: otelcol:4317
+      tls:
+        insecureskipverify: true
+# Logging
+experimental:
+  otlpLogs: true
+log:
+  level: WARN
+  otlp:
+    grpc:
+      endpoint: otelcol:4317
+      tls:
+        insecureskipverify: true
+accessLog:
+  # dualOutput: false
+  otlp:
+    grpc:
+      endpoint: otelcol:4317
+      tls:
+        insecureskipverify: true
 
 api:
   insecure: true
@@ -9,3 +36,6 @@ api:
 entrypoints:
   web:
     address: :80
+
+providers:
+  docker: true

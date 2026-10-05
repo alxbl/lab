@@ -18,5 +18,3 @@ services:
 networks:
   traefik:
     name: traefik
-  acquisition:
-    name: acquisition

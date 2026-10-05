@@ -1,0 +1,6 @@
+# https://grafana.com/docs/grafana/latest/administration/provisioning/#example-data-source-configuration-file
+apiVersion: 1
+
+deleteDatasources: []
+prune: true
+datasources: []

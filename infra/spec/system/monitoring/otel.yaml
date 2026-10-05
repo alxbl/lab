@@ -3,21 +3,55 @@ receivers:
     protocols:
       grpc:
         endpoint: 0.0.0.0:4317
+        tls:
+          cert_file: /etc/letsencrypt/live/segfault.me/cert.pem
+          key_file: /etc/letsencrypt/live/segfault.me/privkey.pem
       http:
         endpoint: 0.0.0.0:4318
+        tls:
+          cert_file: /etc/letsencrypt/live/segfault.me/cert.pem
+          key_file: /etc/letsencrypt/live/segfault.me/privkey.pem
+
+  # hostmetrics:
+  # podman_stats:
+  #   endpoint: unix:///run/podman/podman.sock
+  #   timeout: 10s
+  #   collection_interval: 10s
+  #   initial_delay: 1s
+  #   metrics:
+  #     container.cpu.usage.system:
+  #       enabled: false
 
 exporters:
   debug:
     verbosity: detailed
+  
+  zipkin:
+    endpoint: "http://zipkin:9411/api/v2/spans"
+  
+  otlphttp/loki: # https://grafana.com/docs/loki/latest/send-data/otel/
+    endpoint: http://loki:3100/otlp
 
+  # otlphttp/prometheus:
+  #   endpoint: http://prometheus:9090/api/v1/otlp
+  prometheus_remote_write: # https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.162.0/exporter/prometheusremotewriteexporter
+    http:
+      endpoint: prometheus:9090
+    # FIXME: Disk I/O permissions
+    # wal: # Enabling the Write-Ahead-Log for the exporter.
+    #   directory: ./prom_rw # The directory to store the WAL in
+    #   buffer_size: 300 # Optional count of elements to be read from the WAL before truncating; default of 300
+    #   truncate_frequency: 45s # Optional frequency for how often the WAL should be truncated. It is a time.ParseDuration; default of 1m
+    resource_to_telemetry_conversion:
+      enabled: true # Convert resource attributes to metric labels
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [debug]
+      exporters: [zipkin]
     metrics:
       receivers: [otlp]
-      exporters: [debug]
+      exporters: [prometheus_remote_write]
     logs:
       receivers: [otlp]
-      exporters: [debug]
+      exporters: [otlphttp/loki]

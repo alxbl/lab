@@ -6,14 +6,25 @@
 set -eou pipefail
 
 STREAM=${1:-"stable"}
-VERSION=${2:-"39.20240128.3.0"}
 DEST_DIR=${3:-"$PWD/../build/bootstrap/matchbox/assets"}
 DEST=$DEST_DIR/fedora-coreos
 ARCH=${4:-"x86_64"}
+
+JSON=$(curl "https://builds.coreos.fedoraproject.org/streams/$STREAM.json") # FIXME: Error handling
+
+if [[ -z "$JSON" ]]; then
+  echo "Release Stream not found"
+  exit 1
+fi
+
+VERSION_LATEST=$(echo $JSON | jq -r ".architectures.$ARCH.artifacts.metal.release")
+VERSION=${2:-"$VERSION_LATEST"}
+
+
 BASE_URL=https://builds.coreos.fedoraproject.org/prod/streams/$STREAM/builds/$VERSION/$ARCH
 # check stream/version exist based on the header response
 if ! curl -s -I $BASE_URL/fedora-coreos-$VERSION-metal.$ARCH.raw.xz | grep -q -E '^HTTP/[0-9.]+ [23][0-9][0-9]' ; then
-  echo "Stream or Version not found"
+  echo "Release version not found"
   exit 1
 fi
 
@@ -24,14 +35,19 @@ fi
 
 echo "Downloading Fedora CoreOS $STREAM $VERSION images to $DEST"
 
-# PXE kernel
-echo "fedora-coreos-$VERSION-live-kernel-$ARCH"
-curl -# $BASE_URL/fedora-coreos-$VERSION-live-kernel-$ARCH -o $DEST/fedora-coreos-$VERSION-live-kernel-$ARCH
+ KERNEL=$(echo $JSON | jq -r ".architectures.$ARCH.artifacts.metal.formats.pxe.kernel.location")
+ INITRAMFS=$(echo $JSON | jq -r ".architectures.$ARCH.artifacts.metal.formats.pxe.initramfs.location")
+ ROOTFS=$(echo $JSON | jq -r ".architectures.$ARCH.artifacts.metal.formats.pxe.rootfs.location")
 
-# PXE initrd
+
+# kernel
+echo "fedora-coreos-$VERSION-live-kernel.$ARCH"
+curl -# "$KERNEL" -o $DEST/fedora-coreos-$VERSION-live-kernel.$ARCH
+
+# initramfs
 echo "fedora-coreos-$VERSION-live-initramfs.$ARCH.img"
-curl -# $BASE_URL/fedora-coreos-$VERSION-live-initramfs.$ARCH.img -o $DEST/fedora-coreos-$VERSION-live-initramfs.$ARCH.img
+curl -# "$INITRAMFS" -o $DEST/fedora-coreos-$VERSION-live-initramfs.$ARCH.img
 
 # rootfs
 echo "fedora-coreos-$VERSION-live-rootfs.$ARCH.img"
-curl -# $BASE_URL/fedora-coreos-$VERSION-live-rootfs.$ARCH.img -o $DEST/fedora-coreos-$VERSION-live-rootfs.$ARCH.img
+curl -# "$ROOTFS" -o $DEST/fedora-coreos-$VERSION-live-rootfs.$ARCH.img

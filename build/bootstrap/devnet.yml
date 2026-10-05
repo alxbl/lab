@@ -1,4 +1,3 @@
-version: '2'
 services:
   matchbox:
     image: quay.io/poseidon/matchbox:latest
@@ -14,7 +13,7 @@ services:
       - ./../../pki/client.crt:/etc/matchbox/client.crt:Z
 
   proxydhcp:
-    image: quay.io/poseidon/dnsmasq
+    image: docker.io/dockurr/dnsmasq
     cap_add:
       - NET_ADMIN
     volumes:

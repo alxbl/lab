@@ -20,7 +20,7 @@ services:
 
   # docker run --name dnsmasq --cap-add=NET_ADMIN -v $PWD/contrib/dnsmasq/docker0.conf:/etc/dnsmasq.conf:Z quay.io/poseidon/dnsmasq -d
   proxydhcp:
-    image: quay.io/poseidon/dnsmasq
+    image: docker.io/dockurr/dnsmasq
     cap_add:
       - NET_ADMIN
     volumes:

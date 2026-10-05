@@ -13,7 +13,7 @@ terraform {
   required_providers {
     ct = {
       source  = "poseidon/ct"
-      version = "0.13.0"
+      version = "0.14.0"
     }
     matchbox = {
       source = "poseidon/matchbox"
@@ -23,13 +23,13 @@ terraform {
 }
 
 module "dev" {
-  source = "git::https://github.com/alxbl/typhoon//bare-metal/fedora-coreos/kubernetes?ref=alxbl/aarch64"
+  source = "git::https://github.com/poseidon/typhoon//bare-metal/fedora-coreos/kubernetes?ref=v1.36.1"
 
   # bare-metal
   cluster_name            = "dev"
   matchbox_http_endpoint  = "http://10.2.0.1:8080"
   os_stream               = "stable"
-  os_version              = "39.20240112.3.0"
+  os_version              = "44.20260913.3.2"
 
   # configuration
   k8s_domain_name    = "node1"
@@ -41,7 +41,7 @@ module "dev" {
   # Avoid clashing with qemu0 stuff.
   pod_cidr = "10.22.0.0/16"
   service_cidr = "10.33.0.0/16"
-  networking = "calico"
+  networking = "cilium"
 
   controllers = [
     {
@@ -69,6 +69,6 @@ module "dev" {
 
 resource "local_file" "kubeconfig-dev" {
   content  = module.dev.kubeconfig-admin
-  filename = "${path.module}/kube.conf"
+  filename = "${path.module}/dev.conf"
   file_permission = "0600"
 }

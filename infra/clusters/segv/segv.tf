@@ -1,5 +1,4 @@
 # This is a wrapper around the Typhoon module so that it can be invoked via CDKTF eventually.
-
 provider "matchbox" {
   endpoint    = "127.0.0.1:8081"
   client_cert = file("${path.module}/../../../pki/client.crt")

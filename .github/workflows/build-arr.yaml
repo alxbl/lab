@@ -1,6 +1,9 @@
 name: "Build ARR images"
 
 on:
+  schedule:
+    # Mondays 02:00 UTC, an hour after the FCOS build
+    - cron: '00 02 * * 1'
   # push:
   #   branches: [ "main" ]
   #   paths:

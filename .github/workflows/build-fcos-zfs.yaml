@@ -36,10 +36,12 @@ jobs:
         run: |
           echo "IMAGE_NAME=${IMAGE_NAME,,}" >>${GITHUB_ENV}
 
-      # Gets the version of Fedora distribution used in the Fedora CoreOS base image
-      - name: Set BUILDER_VERSION
+      # Detects the latest FCOS stable release and its Fedora version
+      - name: Detect FCOS stable release
         run: |
-          echo "BUILDER_VERSION=$(curl -s "https://builds.coreos.fedoraproject.org/streams/stable.json" | jq -r '.architectures.x86_64.artifacts.metal.release' | cut -d '.' -f 1)" >> "$GITHUB_ENV"
+          fcos_version=$(curl -fsS "https://builds.coreos.fedoraproject.org/streams/stable.json" | jq -er '.architectures.x86_64.artifacts.metal.release')
+          echo "FCOS_VERSION=${fcos_version}" >> "$GITHUB_ENV"
+          echo "BUILDER_VERSION=${fcos_version%%.*}" >> "$GITHUB_ENV"
 
       # Install the cosign tool
       # https://github.com/sigstore/cosign-installer
@@ -95,6 +97,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           file: ./build/fcos-zfs/Dockerfile
+          build-args: |
+            BUILDER_VERSION=${{ env.BUILDER_VERSION }}
+            BASE_IMAGE=quay.io/fedora/fedora-coreos:${{ env.FCOS_VERSION }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

@@ -1,13 +1,14 @@
 # https://github.com/coreos/layering-examples/tree/main/build-zfs-module
-# Needs to be set to the Fedora version on CoreOS stable stream, as it is our base image.
-#   BUILDER_VERSION=$(curl -s "https://builds.coreos.fedoraproject.org/streams/stable.json" | jq -r '.architectures.x86_64.artifacts.metal.release' | cut -d '.' -f 1)
-ARG BUILDER_VERSION=43
+# The CI workflow sets these from the CoreOS stable stream:
+#   FCOS_VERSION=$(curl -s "https://builds.coreos.fedoraproject.org/streams/stable.json" | jq -r '.architectures.x86_64.artifacts.metal.release')
+#   BUILDER_VERSION=${FCOS_VERSION%%.*}
+ARG BUILDER_VERSION=44
 
 # Base image for the final layer
 ARG BASE_IMAGE=quay.io/fedora/fedora-coreos:stable
 
 # We can't use the `uname -r` as it will pick up the host kernel version
-FROM quay.io/fedora/fedora-coreos:stable AS kernel-query
+FROM ${BASE_IMAGE} AS kernel-query
 RUN rpm -qa kernel --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}' | tee /kernel-version.txt
 
 # Using https://openzfs.github.io/openzfs-docs/Developer%20Resources/Custom%20Packages.html

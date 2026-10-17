@@ -5,9 +5,14 @@ metadata:
   name: {{ include "smbd.name" . }}
   labels:
     {{- include "smbd.labels" . | nindent 4 }}
-  {{- if .Values.service.loadBalancerIP }}
+  {{- if or .Values.service.loadBalancerIP .Values.service.annotations }}
   annotations:
+    {{- if .Values.service.loadBalancerIP }}
     lbipam.cilium.io/ips: {{ .Values.service.loadBalancerIP | quote }}
+    {{- end }}
+    {{- with .Values.service.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   {{- end }}
 spec:
   type: {{ .Values.service.type }}

@@ -1,4 +1,4 @@
-FROM ghcr.io/linuxserver/prowlarr:1.37.0.5076-ls124
+FROM ghcr.io/linuxserver/prowlarr:2.6.5.5623-ls163
 ENV ARR_APP_NAME=Prowlarr
 ENV ARR_DATA_DIR=/media/.config
 

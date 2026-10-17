@@ -1,4 +1,4 @@
-FROM ghcr.io/linuxserver/radarr:5.26.2.10099-ls280
+FROM ghcr.io/linuxserver/radarr:6.4.4.10685-ls321
 ENV ARR_APP_NAME=Radarr
 ENV ARR_DATA_DIR=/media/.config
 

@@ -31,7 +31,6 @@ TODO
 - [ ] Port Forwarding (NAT-PMP)
 - [ ] VPN over SOCKS Proxy
 - [X] Firewall prevent leaks from pod (gluetun)
-- [ ] istio compatibility (currently: side-car opt-out)
 - [ ] Network Policies on top of firewall (defense-in-depth).
 
 ## Support

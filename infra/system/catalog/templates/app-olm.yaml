@@ -18,12 +18,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: olm
-  labels:
-    istio-injection: disabled
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: operators
-  labels:
-    istio-injection: disabled

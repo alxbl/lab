@@ -1,14 +1,14 @@
-# istio
+# cilium
 apiVersion: v1
 kind: Secret
 metadata:
-  name: istio-helm
+  name: cilium-helm
   namespace: argocd
   labels:
     argocd.argoproj.io/secret-type: repository
 stringData:
-  name: istio.io
-  url: https://istio-release.storage.googleapis.com/charts
+  name: cilium.io
+  url: https://helm.cilium.io
   type: helm
 ---
 # hashicorp

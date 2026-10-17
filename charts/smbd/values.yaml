@@ -36,8 +36,14 @@ securityContext:
 
 service:
   create: true
+  # LoadBalancer exposes SMB on the LAN through Cilium LB-IPAM + L2 announcements.
   type: ClusterIP
+  # Pinned LB IP (must be inside the CiliumLoadBalancerIPPool). Only used with type LoadBalancer.
+  loadBalancerIP: ""
   port: 445
+
+# Sources allowed to reach SMB. Empty allows any source.
+allowedCIDRs: []
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

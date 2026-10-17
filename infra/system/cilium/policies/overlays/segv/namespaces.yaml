@@ -1,0 +1,43 @@
+# Per-namespace baseline: default-deny; allows intra-namespace and Gateway traffic.
+# Per-app NetworkPolicies add their own ports on top.
+# NOTE: The namespaces must exist.
+# FIXME: Can this be made into a single rule that allows same-namespace and gateway without having to know every namespace ahead of time?
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: baseline
+  namespace: home
+spec:
+  endpointSelector: {}
+  ingress:
+  - fromEndpoints:
+    - {}
+  - fromEntities:
+    - ingress
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: baseline
+  namespace: media
+spec:
+  endpointSelector: {}
+  ingress:
+  - fromEndpoints:
+    - {}
+  - fromEntities:
+    - ingress
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: baseline
+  namespace: satisfactory
+spec:
+  endpointSelector: {}
+  ingress:
+  - fromEndpoints:
+    - {}
+  - fromEntities:
+    - ingress

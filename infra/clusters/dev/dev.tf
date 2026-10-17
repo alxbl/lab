@@ -23,7 +23,7 @@ terraform {
 }
 
 module "dev" {
-  source = "git::https://github.com/alxbl/typhoon//bare-metal/fedora-coreos/kubernetes?ref=u/alxbl/cilium-1.20.2"
+  source = "git::https://github.com/poseidon/typhoon//bare-metal/fedora-coreos/kubernetes?ref=97ee4103eb27777c0d2411ef1a5c761f3d3ee462"
 
   # bare-metal
   cluster_name            = "dev"
@@ -42,6 +42,11 @@ module "dev" {
   pod_cidr = "10.22.0.0/16"
   service_cidr = "10.33.0.0/16"
   networking = "cilium"
+
+  # Cilium is installed separately to control its version outside of typhoon and configure it for service mesh.
+  components = {
+    cilium = { enable = false }
+  }
 
   controllers = [
     {

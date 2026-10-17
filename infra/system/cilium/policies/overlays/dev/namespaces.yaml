@@ -1,0 +1,16 @@
+# Per-namespace baseline: default-deny; allows intra-namespace and Gateway traffic.
+# Per-app NetworkPolicies add their own ports on top.
+# NOTE: The namespaces must exist.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: baseline
+  namespace: demo
+spec:
+  endpointSelector: {}
+  ingress:
+  - fromEndpoints:
+    - {}
+  - fromEntities:
+    - ingress

@@ -1,0 +1,16 @@
+# Patches the app catalog to use dev cluster overlays.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../../system/argocd
+patches:
+- target:
+    kind: Application
+    name: root|system-catalog
+  patch: |-
+    - op: add
+      path: /spec/source/helm
+      value:
+        parameters:
+        - name: cluster
+          value: dev

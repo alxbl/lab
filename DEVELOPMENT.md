@@ -38,10 +38,12 @@ Every run is a full clean start and takes about 4-5 minutes. It:
 5. wipes the stale terraform state and `dev.conf`
 6. destroys and recreates the VMs (`dev/vm.sh`)
 7. runs `terraform apply` in `infra/clusters/dev`
-8. once `qemu0` has its address, restarts dnsmasq (it can only bind after a VM
+8. installs the Gateway API CRDs and Cilium with Helm (`infra/system/cilium`, values from `values.yaml` + `values-dev.yaml`);
+   Typhoon is configured with `components.cilium.enable = false`, so the nodes have no CNI until this step
+9. once `qemu0` has its address, restarts dnsmasq (it can only bind after a VM
    attaches to the bridge) and resets the VMs once matchbox has profiles for
    them, so they restart their PXE boot
-9. waits (`READY_TIMEOUT`, default 900s) until both nodes are Ready
+10. waits (`READY_TIMEOUT`, default 900s) until both nodes are Ready
 
 matchbox and dnsmasq are left running because rebooting nodes need PXE.
 
@@ -56,8 +58,9 @@ dev/down.sh --destroy  # also delete the VMs
 
 ```sh
 K="kubectl --kubeconfig infra/clusters/dev/dev.conf"
-$K apply --server-side --force-conflicts -k infra/system/argocd
-$K apply --server-side --force-conflicts -k infra/system/argocd   # second pass, see below
+# infra/clusters/dev/argocd is infra/system/argocd with the catalogs set to render the dev overlays (cluster=dev)
+$K apply --server-side --force-conflicts -k infra/clusters/dev/argocd
+$K apply --server-side --force-conflicts -k infra/clusters/dev/argocd   # second pass, see below
 ```
 
 The first pass installs the CRDs but fails on the `AppProject`/`Application`
@@ -145,3 +148,24 @@ or `$K apply -k <kustomize dir>`. Only push once it works in dev.
 Keep node MACs and IPs in sync across `dev/vm.sh`, `dev/dnsmasq.conf`,
 `infra/clusters/dev/dev.tf` and `infra/clusters/dev/butane/hosts.yaml`.
 
+
+### Networking (Cilium)
+
+Cilium provides the CNI, kube-proxy replacement, host firewall, WireGuard encryption and the Gateway API
+(`GatewayClass cilium`). LoadBalancer IPs come from `CiliumLoadBalancerIPPool` `lan` (10.2.0.200-209 in dev) and are
+announced over ARP. To try the gateway with a test app:
+
+```sh
+K="kubectl --kubeconfig infra/clusters/dev/dev.conf"
+$K apply -f dev/manifests/httpbin.yaml                      # creates the demo namespace
+$K apply -k infra/system/cilium/policies/overlays/dev
+$K apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.4/cert-manager.yaml
+$K -n cert-manager rollout status deploy/cert-manager-webhook
+$K create ns argocd                                         # or install ArgoCD first; the argocd route needs the namespace
+$K apply -k infra/k8s/gateway/overlays/dev                  # dev self-signed issuer, Gateway at 10.2.0.200 (retry once if the cert-manager webhook is not reachable yet)
+curl -k --resolve httpbin.segfault.me:443:10.2.0.200 https://httpbin.segfault.me/get
+```
+
+Host policies default-deny node ingress. Before changing them, put the host endpoint in audit mode so nothing locks you out:
+`kubectl -n kube-system exec ds/cilium -- cilium-dbg endpoint config <host endpoint id> PolicyAuditMode=Enabled`
+(`cilium-dbg endpoint list` shows the id of the `reserved:host` endpoint).

@@ -41,3 +41,4 @@ tsconfig.tsbuildinfo
 !setup.js
 **/kube.conf
 **/kube.conf*
+infra/clusters/dev/dev.conf

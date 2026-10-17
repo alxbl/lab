@@ -1,0 +1,43 @@
+# Lab Repo Rules
+
+Homelab infra-as-code (Kubernetes clusters, GitOps) plus Ansible and bootstrap scripts for Arch Linux workstations.
+Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When they disagree, trust the scripts and manifests, and tell the user about the drift.
+
+## Safety
+- `infra/clusters/segv` is the real cluster. `infra/clusters/dev` is the throwaway KVM test cluster. **NEVER** run `terraform apply`/`destroy` or `scripts/bootstrap.sh` (stops DNS, edits iptables, applies segv) without explicit consent.
+- Nodes wipe their root FS on reprovision (`infra/clusters/butane/wipe-root.yaml`). Treat any node reprovision as destructive.
+- `scripts/pacstrap.sh` partitions and wipes disks. Never run it. Never run `scripts/vm.sh destroy` outside the dev cluster.
+- Never commit secrets, kubeconfigs (`*.conf`, `kube.conf`), terraform state, or private PKI. Only the root CA is committed under `pki/`. `infra/examples/secrets` holds placeholders only.
+- The secrets drive (`LAB_SECRETS_PARTUUID`) is mounted at `/mnt` by the scripts. Don't touch it.
+
+## Environment
+- Source `.env` first (zsh). It sets `LAB_ROOT`, `PATH` (including `scripts/bin`) and `KUBECONFIG`. Scripts assume it.
+- Pinned tool versions live in `scripts/get-tools.sh`.
+- Large boot binaries (`*.efi`, `*.kpxe`, `*.elf`) are Git LFS.
+
+## Dev cluster
+- Full procedure is in `DEVELOPMENT.md`. Prerequisites: libvirt/KVM and the `qemu0` bridge (provisioned by the Ansible `hypervisor` role).
+- Dev uses `build/bootstrap/devnet.yml` and `devnet.conf` (DHCP and PXE on `qemu0`, 10.2.0.0/24). Prod uses `docker-compose.yml` and `dnsmasq.conf` (proxy DHCP). Keep node MACs and IPs in sync across `scripts/vm.sh`, `devnet.conf`, `dev.tf` and `dev/butane/hosts.yaml`.
+- `scripts/vm.sh` needs root. `dnsmasq@qemu0` on the host must be stopped while the devnet containers run.
+- The dev kubeconfig (`dev.conf`) is gitignored.
+
+## Clusters
+- Both clusters wrap my Typhoon fork (`alxbl/typhoon`) via a pinned git ref and a matchbox provider authenticated with `pki/` client certs. Bump the ref and `os_version` deliberately; they differ between segv and dev.
+- The fork exists to work around a Cilium bug on current Linux kernels that upstream Typhoon still ships. Don't repoint to upstream or "update" the ref without asking; the fork should be dropped once upstream fixes it.
+- Cluster-level changes go in the `.tf` files. Per-node OS tweaks go in butane snippets.
+
+## GitOps
+- ArgoCD app-of-apps. `infra/system/argocd` installs ArgoCD and the `root` app. `infra/system/catalog` and `infra/k8s/catalog` are meta-charts whose templates are the `Application`s. A new workload needs a catalog template plus its manifests (kustomize dir, upstream chart, or a chart in `charts/`).
+- Apps track `HEAD` of `github.com/alxbl/lab`. Changes only take effect once pushed.
+- `charts/` holds my own charts. They may contain lab-specific hardcoded values.
+
+## Ansible and workstations
+- Targets Arch Linux (pacman). Role files: `ansible/roles/<name>/` or per-host `ansible/roles/<hostname>.yml`. Inventory is `ansible/hosts`.
+- Per-host disk and bootloader setup is in `scripts/pacstrap.d/<hostname>.sh`. Copy `_template.sh` for a new host.
+- `pacstrap.sh` downloads its host script from `main` on GitHub, so changes to it or `pacstrap.d/` take effect only after merging to `main`.
+
+## Images (`build/`)
+- Each Dockerfile directory is built and signed by a matching `.github/workflows/build-*.yaml`. `build/bootstrap` is local-only tooling, not a CI image.
+
+## Validation
+- Run `terraform fmt`/`validate`, `kubectl kustomize`, `helm lint`/`template`, and `ansible-playbook --syntax-check` as relevant. These don't touch live systems.

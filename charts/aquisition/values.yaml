@@ -8,7 +8,7 @@ imagePullSecrets:
 # Override the image version for various components
 # leave empty to pull latest
 images:
-  sonarr: ""
+  sonarr: "4.0.20.3014"
   radarr: ""
   prowlarr: ""
   lidarr: ""

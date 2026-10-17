@@ -29,6 +29,16 @@ Currently, my homelab cluster is made up of the following nodes:
 
 The high level diagram [can be found here](#TODO)
 
+### Network Requirements
+
+The LAN must route the service CIDR (`10.3.0.0/16`) to the cluster nodes.
+Without that route on the router, none of these services are reachable from outside the cluster. 
+
+`10.3.0.2` is shared by the Gateway on 80/443 and media server (`smbd`) on 445)
+LAN clients can also reach ClusterIPs directly (e.g. AdGuard on `10.3.0.53`).
+
+> **NOTE:** The dev cluster uses `10.33.0.0/16` and announces its LoadBalancer IPs over L2.
+
 ## Cluster Bootstrapping
 
 To iterate on the bootstrapping process without hardware, see [DEVELOPMENT.md](DEVELOPMENT.md).

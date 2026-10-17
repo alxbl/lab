@@ -15,8 +15,11 @@ spec:
       valuesObject:
         service:
           type: LoadBalancer
-          # PLACEHOLDER: the user picks the LAN IP at cutover (must be inside the CiliumLoadBalancerIPPool).
-          loadBalancerIP: 10.0.0.81
+          # Shared with cilium gateway.
+          loadBalancerIP: 10.3.0.2
+          annotations:
+            lbipam.cilium.io/sharing-key: gateway-vip
+            lbipam.cilium.io/sharing-cross-namespace: gateway
         allowedCIDRs:
           - 10.0.0.0/8
           - 192.168.2.0/24

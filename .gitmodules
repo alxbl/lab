@@ -1,4 +1,0 @@
-[submodule "infra/terraform/typhoon"]
-	path = infra/terraform/typhoon
-	url = https://github.com/alxbl/typhoon
-	branch = alxbl/aarch64

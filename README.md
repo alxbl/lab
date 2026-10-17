@@ -12,14 +12,14 @@ Workstations running ArchLinux (btw) are provisioned via
 ```sh
 # After booting into ArchLinux Live USB
 # https://raw.githubusercontent.com/alxbl/lab/main/scripts/pacstrap.sh
-curl -sSfL https://bit.ly/pacstrap | HOST=hostname sh`
+curl -sSfL https://bit.ly/pacstrap | HOST=hostname sh
 ```
 
 ## Cluster Overview
 
 Each node is running Fedora Core OS with an additional layer (via
 `rpm-ostree rebase`) which includes ZFS drivers and userland utilities
-as well as my fork of Typhoon.
+as well as my fork of [Typhoon](https://github.com/alxbl/typhoon).
 
 Currently, my homelab cluster is made up of the following nodes:
 
@@ -30,6 +30,8 @@ Currently, my homelab cluster is made up of the following nodes:
 The high level diagram [can be found here](#TODO)
 
 ## Cluster Bootstrapping
+
+To iterate on the bootstrapping process without hardware, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 For a visual overview of the bootstrapping process, [see this diagram](#TODO)
 
@@ -53,6 +55,8 @@ The following tools must be available on the OS:
 - jq
 - ip
 - sudo
+- terraform
+- openssl
 
 Additionally, the user running the bootstrap script must be a `sudoer` (without password for maximum automation)
 
@@ -89,9 +93,9 @@ lsblk -o NAME,UUID /dev/sda1
 terraform will report that it is waiting for provisioning as such:
 
 ```plain
-segv  module.typhoon-module.null_resource.copy-controller-secrets[0]: 
+segv  module.segv.null_resource.copy-controller-secrets[0]: 
 Provisioning with 'file'...
-segv  module.typhoon-module.null_resource.copy-controller-secrets[0]: Still creating... [10s elapsed]
+segv  module.segv.null_resource.copy-controller-secrets[0]: Still creating... [10s elapsed]
 ```
 
 Bootstrapping must provision at least one controller node. The cluster

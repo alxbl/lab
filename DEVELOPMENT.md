@@ -8,8 +8,17 @@
 
 * Hypervisor setup with QEMU and KVM
 * `qemu0` bridge exists
-* Host is runing a recent enough version of Linux with all required
-  tools intalled
+* The following tools must be installed:
+  * `terraform`
+  * `kubectl`
+  * `docker`
+  * `docker-compose`
+  * `virt-install`
+  * `virsh`
+  * `openssl`
+  * `jq`
+* Development environment is avaible in `dev/`
+* The local matchbox configuration for bootstrapping a production cluster from scratch is in `build/bootstrap`
 
 ## Development Cluster
 
@@ -26,20 +35,25 @@ cluster from scratch:
 ```sh
 pwd # $HOME/Code/github.com/alxbl/lab
 source .env
-cd scripts/
+
+# Generate the bootstrap PKI used by matchbox (first time only)
+scripts/bootstrap-pki
 
 # Stop qemu0 bridge DNSmasq if it's running
 sudo systemctl stop dnsmasq@qemu0
 
 # Download FCOS images if necessary
+scripts/get-fedora-coreos
+
 # Start PXE server and matchbox
-docker-compose -f ../build/bootstrap/devnet.yml up -d
+docker-compose -f dev/docker-compose.yml up -d
 
 # Cycle the disks and VMs
-sudo ./vm.sh destroy && ./vm.sh create
+sudo dev/vm.sh destroy && sudo dev/vm.sh create
 
 # Bootstrap the cluster using terraform
-cd ../infra/clusters/dev
+cd infra/clusters/dev
+terraform init
 terraform apply
 
 # This might be necessary if nothing else is running on qemu0 since 
@@ -55,8 +69,8 @@ cluster provisioning, but this might not scale.
 ```sh
 REPO_ROOT=$HOME/Code/github.com/alxbl/lab
 cd $REPO_ROOT
-export KUBECONFIG=$REPO_ROOT/infra/clusters/dev/kube.conf
-kubectl apply -k $REPO_ROOT/infra/k8s/argocd
+export KUBECONFIG=$REPO_ROOT/infra/clusters/dev/dev.conf
+kubectl apply -k infra/system/argocd
 ```
 
 This will deploy ArgoCD and the `root` application, which follows the

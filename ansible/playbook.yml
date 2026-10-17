@@ -23,9 +23,9 @@
   hosts: pull_config
   vars:
     ansible_pull_dir: '/var/tmp/ansible'
-    ansible_pull_url: 'https://github.com/alxbl/config'
-    ansible_pull_hosts: 'hosts'
-    ansible_pull_playbook: 'playbook.yml'
+    ansible_pull_url: 'https://github.com/alxbl/lab'
+    ansible_pull_hosts: 'ansible/hosts'
+    ansible_pull_playbook: 'ansible/playbook.yml'
     ansible_pull_log_file: '/var/tmp/ansible/lastrun.log'
   tasks:
     - name: Install ansible service

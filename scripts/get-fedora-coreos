@@ -6,7 +6,7 @@
 set -eou pipefail
 
 STREAM=${1:-"stable"}
-DEST_DIR=${3:-"$PWD/../build/bootstrap/matchbox/assets"}
+DEST_DIR=${3:-"$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/build/bootstrap/matchbox/assets"}
 DEST=$DEST_DIR/fedora-coreos
 ARCH=${4:-"x86_64"}
 

@@ -6,18 +6,18 @@ services:
       - 8081:8081
     command: ['-address=0.0.0.0:8080', '-rpc-address=0.0.0.0:8081', '-log-level=trace', '-assets-path=/var/lib/matchbox/assets']
     volumes:
-      - ./matchbox:/var/lib/matchbox
-      - ./../../pki/server.key:/etc/matchbox/server.key:Z
-      - ./../../pki/server.crt:/etc/matchbox/server.crt:Z
-      - ./../../pki/ca.crt:/etc/matchbox/ca.crt:Z
-      - ./../../pki/client.crt:/etc/matchbox/client.crt:Z
+      - ../build/bootstrap/matchbox:/var/lib/matchbox
+      - ../pki/server.key:/etc/matchbox/server.key:Z
+      - ../pki/server.crt:/etc/matchbox/server.crt:Z
+      - ../pki/ca.crt:/etc/matchbox/ca.crt:Z
+      - ../pki/client.crt:/etc/matchbox/client.crt:Z
 
   proxydhcp:
     image: docker.io/dockurr/dnsmasq
     cap_add:
       - NET_ADMIN
     volumes:
-      - ./devnet.conf:/etc/dnsmasq.conf:Z
-      - ./tftp/:/var/lib/tftpboot:Z
+      - ./dnsmasq.conf:/etc/dnsmasq.conf:Z
+      - ../build/bootstrap/tftp/:/var/lib/tftpboot:Z
     # Required to bind to host interfaces for answering DHCP on the physical network.
     network_mode: host

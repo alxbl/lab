@@ -4,7 +4,6 @@
 attic/
 
 # binaries/scripts
-scripts/bin
 
 build/bootstrap/tftp/*
 build/bootstrap/matchbox/ignition/*

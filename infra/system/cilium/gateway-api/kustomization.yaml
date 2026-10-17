@@ -1,0 +1,8 @@
+# Gateway API CRDs required by the Cilium gateway controller (Cilium 1.18 targets v1.3.0).
+# Must be applied before cilium-operator starts.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.3.0/standard-install.yaml
+- https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.3.0/config/crd/experimental/gateway.networking.k8s.io_tlsroutes.yaml

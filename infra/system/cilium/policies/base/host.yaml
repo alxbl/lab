@@ -1,0 +1,15 @@
+# Host firewall
+# Applying any host policy denies all other ingress to the node by default, so always roll out in audit mode first:
+#   cilium-dbg endpoint config <host endpoint id> PolicyAuditMode=Enabled
+# NOTE: Host egress is not currently restricted.
+apiVersion: cilium.io/v2
+kind: CiliumClusterwideNetworkPolicy
+metadata:
+  name: host-allow-cluster
+spec:
+  description: Cluster-internal traffic to the node (kubelet, apiserver, etcd, VXLAN, WireGuard, health).
+  nodeSelector: {}
+  ingress:
+  - fromEntities:
+    - cluster
+    - health

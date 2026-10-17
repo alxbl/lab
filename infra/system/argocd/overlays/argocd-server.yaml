@@ -1,5 +1,5 @@
 # env was added because of https://github.com/argoproj/argo-cd/issues/3572 error
-# ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/#istio
+# ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/ingress/
 ---
 apiVersion: apps/v1
 kind: Deployment

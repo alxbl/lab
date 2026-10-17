@@ -1,3 +1,5 @@
+# Per-cluster overlays. The dev/up.sh overrides it.
+cluster: segv
 spec:
   destination:
     server: https://kubernetes.default.svc

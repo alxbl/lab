@@ -25,7 +25,8 @@ spec:
           existingVolume: ''
         configuration:
           trusted_proxies:
-            - 10.3.0.2/32
+            # Cilium gateway  connects from node cilium_host address in the pod CIDR. (TODO: verify)
+            - 10.2.0.0/16
         addons:
           codeserver:
             enabled: true

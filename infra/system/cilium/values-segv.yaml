@@ -1,0 +1,6 @@
+# Must match k8s_domain_name in segv.tf (the apiserver certificate has no IP SAN for the node).
+k8sServiceHost: tachyon.lan
+ipam:
+  operator:
+    clusterPoolIPv4PodCIDRList: ["10.2.0.0/16"]
+devices: ["eno1"]

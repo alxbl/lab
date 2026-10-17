@@ -25,8 +25,10 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - The dev kubeconfig (`dev.conf`) is gitignored.
 
 ## Clusters
-- Both clusters wrap my Typhoon fork (`alxbl/typhoon`) via a pinned git ref and a matchbox provider authenticated with `pki/` client certs. Bump the ref and `os_version` deliberately; they differ between segv and dev.
-- The fork exists to work around a Cilium bug on current Linux kernels that upstream Typhoon still ships. Don't repoint to upstream or "update" the ref without asking; the fork should be dropped once upstream fixes it.
+- Both clusters wrap Typhoon via a pinned git ref and a matchbox provider authenticated with `pki/` client certs. Bump the ref and `os_version` deliberately; they differ between segv and dev.
+- dev uses upstream `poseidon/typhoon` with `components.cilium.enable = false`. segv still uses the fork (`alxbl/typhoon`, Calico) until the Cilium cutover; don't repoint or bump it without asking.
+- Typhoon installs no CNI on dev. Cilium and the Gateway API CRDs are installed with Helm by `dev/up.sh` (`infra/system/cilium`), then adopted by ArgoCD. The chart version lives in `infra/system/catalog/templates/app-cilium.yaml` and is pinned at 1.18.14 (kernel bug); don't bump it without asking.
+- Fresh FCOS nodes can be rebooted once by Zincati shortly after install, which wipes root. Scripts that talk to the API during bring-up must wait and retry.
 - Cluster-level changes go in the `.tf` files. Per-node OS tweaks go in butane snippets.
 
 ## Raspberry Pi 4 netboot
@@ -37,6 +39,13 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - A disk that already holds a bootable OS beats netboot. To reinstall, clear `EFI\BOOT` from the UEFI shell (F1 at the EDK2 prompt, over UART); deleting a directory there crashes the shell.
 - `RPI_EFI.fd` is built by `scripts/build-rpi4-uefi`, not edited by hand. `config.txt`'s device tree address must match the firmware release.
 - UART from another Pi: `picocom` drops on resets and truncates its log; capture with `stty ... clocal` and `cat >>` instead, and keep serial-getty off that port.
+
+## Networking
+- Cilium is the only CNI and service layer: kube-proxy replacement, host firewall, WireGuard, Gateway API (`GatewayClass cilium`), and LB-IPAM with L2 announcements. Istio and Calico are gone; don't reintroduce either.
+- Per-cluster values and overlays are selected by the catalog `cluster` value (`segv` default, `dev` set by `infra/clusters/dev/argocd`): `infra/system/cilium/values-<cluster>.yaml`, `policies/overlays/<cluster>`, `infra/k8s/gateway/overlays/<cluster>`.
+- Host policies default-deny node ingress. Put the host endpoint in `PolicyAuditMode` and check verdicts before enforcing; a mistake locks out SSH and the API (see `DEVELOPMENT.md`).
+- Namespaces with a `baseline` CiliumNetworkPolicy are ingress default-deny. New workloads add their own ports with a NetworkPolicy.
+- `kubectl apply` of cert-manager resources right after its install can fail transiently on the webhook; retry.
 
 ## GitOps
 - ArgoCD app-of-apps. `infra/system/argocd` installs ArgoCD and the `root` app. `infra/system/catalog` and `infra/k8s/catalog` are meta-charts whose templates are the `Application`s. A new workload needs a catalog template plus its manifests (kustomize dir, upstream chart, or a chart in `charts/`).

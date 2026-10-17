@@ -20,13 +20,9 @@ images:
 nameOverride: ""
 fullnameOverride: ""
 
-podAnnotations:
-  # Do not proxy shadowSOCKS traffic.
-  traffic.sidecar.istio.io/excludeInboundPorts: "8388"
-  
-podLabels:
-  # Disable istio-proxy in this pod
-  sidecar.istio.io/inject: "false"
+podAnnotations: {}
+
+podLabels: {}
 
 
 # No fsGroup: on a local PV kubelet would recursively chown the whole volume. All containers run as 1000:1000.

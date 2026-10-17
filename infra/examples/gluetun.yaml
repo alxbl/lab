@@ -19,10 +19,8 @@ spec:
     metadata:
       labels:
         app: gluetun
-        # istio-proxy messes with VPN, so this is not part of the mesh.
         # TODO: Network policy so this pod is not allowed to talk with anything other than the VPN tunnel.
         # https://github.com/qdm12/gluetun-wiki/pull/7
-        sidecar.istio.io/inject: "false"
     spec:
       containers:
         - name: gluetun

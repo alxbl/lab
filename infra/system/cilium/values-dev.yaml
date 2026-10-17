@@ -1,0 +1,6 @@
+# Must match k8s_domain_name (the apiserver certificate has no IP SAN for the node). Resolved through /etc/hosts on the node.
+k8sServiceHost: node1
+ipam:
+  operator:
+    clusterPoolIPv4PodCIDRList: ["10.22.0.0/16"]
+devices: ["enp1s0"]

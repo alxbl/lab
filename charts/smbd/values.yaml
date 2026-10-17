@@ -40,6 +40,7 @@ service:
   type: ClusterIP
   # Pinned LB IP (must be inside the CiliumLoadBalancerIPPool). Only used with type LoadBalancer.
   loadBalancerIP: ""
+  annotations: {}
   port: 445
 
 # Sources allowed to reach SMB. Empty allows any source.
@@ -62,8 +63,8 @@ smb:
   # USER: netshareUser
   # PASS: netsharePassword
   credentialsSecretRef: smbd-credentials
-  
-  # The default SMB configuration. 
+
+  # The default SMB configuration.
   # `/storage` is where the PersistentVolume will be mounted and should not be changed.
   config: |-
     [global]

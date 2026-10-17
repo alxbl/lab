@@ -14,6 +14,7 @@ patches:
       path: /spec/infrastructure
       value:
         annotations:
-          # PLACEHOLDER: the user picks the LAN IP at cutover (must be inside the CiliumLoadBalancerIPPool).
-          # FIXME: How will this work with BGP?
-          lbipam.cilium.io/ips: 10.0.0.80
+          # Inside the service CIDR, which the LAN routes to the node.
+          lbipam.cilium.io/ips: 10.3.0.2
+          lbipam.cilium.io/sharing-key: gateway-vip
+          lbipam.cilium.io/sharing-cross-namespace: media

@@ -132,7 +132,7 @@ END
 
 echo "[+] Add authorized_keys"
 mkdir -p "/home/$USER/.ssh" && chmod 700 "/home/$USER/.ssh"
-curl -sSf "$BASE/../files/common/authorized_keys" --output "/home/$USER/.ssh/authorized_keys" && chmod 600 "/home/$USER/.ssh/authorized_keys"
+curl -sSf "$BASE/../ansible/files/common/authorized_keys" --output "/home/$USER/.ssh/authorized_keys" && chmod 600 "/home/$USER/.ssh/authorized_keys"
 chown -R "$USER:$USER" /home/$USER/.ssh
 
 
@@ -154,7 +154,7 @@ while : ; do
 done
 
 echo "[+] Pulling ansible repository."
-ANSIBLE_USER="$USER" ansible-pull -U "$REPO" -d /tmp/ansible -i hosts playbook.yml
+ANSIBLE_USER="$USER" ansible-pull -U "$REPO" -d /tmp/ansible -i ansible/hosts ansible/playbook.yml
 echo "[+] ==> Success. Cleaning up."
 rm ~/.zlogin
 rm ~/.ansible-init

@@ -6,19 +6,19 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 ## Safety
 - `infra/clusters/segv` is the real cluster. `infra/clusters/dev` is the throwaway KVM test cluster. **NEVER** run `terraform apply`/`destroy` or `scripts/bootstrap.sh` (stops DNS, edits iptables, applies segv) without explicit consent.
 - Nodes wipe their root FS on reprovision (`infra/clusters/butane/wipe-root.yaml`). Treat any node reprovision as destructive.
-- `scripts/pacstrap.sh` partitions and wipes disks. Never run it. Never run `scripts/vm.sh destroy` outside the dev cluster.
+- `scripts/pacstrap.sh` partitions and wipes disks. Never run it. Never run `dev/vm.sh destroy` outside the dev cluster.
 - Never commit secrets, kubeconfigs (`*.conf`, `kube.conf`), terraform state, or private PKI. Only the root CA is committed under `pki/`. `infra/examples/secrets` holds placeholders only.
 - The secrets drive (`LAB_SECRETS_PARTUUID`) is mounted at `/mnt` by the scripts. Don't touch it.
 
 ## Environment
-- Source `.env` first (zsh). It sets `LAB_ROOT`, `PATH` (including `scripts/bin`) and `KUBECONFIG`. Scripts assume it.
-- Pinned tool versions live in `scripts/get-tools.sh`.
+- Source `.env` first (zsh). It sets `LAB_ROOT` and `KUBECONFIG`. Scripts assume it.
+- Tools (`terraform`, `kubectl`, `helm`, ...) are installed on the host, not by the repo.
 - Large boot binaries (`*.efi`, `*.kpxe`, `*.elf`) are Git LFS.
 
 ## Dev cluster
 - Full procedure is in `DEVELOPMENT.md`. Prerequisites: libvirt/KVM and the `qemu0` bridge (provisioned by the Ansible `hypervisor` role).
-- Dev uses `build/bootstrap/devnet.yml` and `devnet.conf` (DHCP and PXE on `qemu0`, 10.2.0.0/24). Prod uses `docker-compose.yml` and `dnsmasq.conf` (proxy DHCP). Keep node MACs and IPs in sync across `scripts/vm.sh`, `devnet.conf`, `dev.tf` and `dev/butane/hosts.yaml`.
-- `scripts/vm.sh` needs root. `dnsmasq@qemu0` on the host must be stopped while the devnet containers run.
+- Everything dev-only lives in `dev/`: `docker-compose.yml` and `dnsmasq.conf` (DHCP and PXE on `qemu0`, 10.2.0.0/24) and `vm.sh`. Prod uses `build/bootstrap/docker-compose.yml` and `dnsmasq.conf` (proxy DHCP). Both share the matchbox and TFTP trees in `build/bootstrap/`. Keep node MACs and IPs in sync across `dev/vm.sh`, `dev/dnsmasq.conf`, `infra/clusters/dev/dev.tf` and `infra/clusters/dev/butane/hosts.yaml`.
+- `dev/vm.sh` needs root. `dnsmasq@qemu0` on the host must be stopped while the devnet containers run.
 - The dev kubeconfig (`dev.conf`) is gitignored.
 
 ## Clusters
@@ -34,6 +34,7 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 ## Ansible and workstations
 - Targets Arch Linux (pacman). Role files: `ansible/roles/<name>/` or per-host `ansible/roles/<hostname>.yml`. Inventory is `ansible/hosts`.
 - Per-host disk and bootloader setup is in `scripts/pacstrap.d/<hostname>.sh`. Copy `_template.sh` for a new host.
+- `scripts/pacstrap.sh` **MUST NOT** move or be renamed: a bit.ly short link points at it.
 - `pacstrap.sh` downloads its host script from `main` on GitHub, so changes to it or `pacstrap.d/` take effect only after merging to `main`.
 
 ## Images (`build/`)

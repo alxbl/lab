@@ -4,9 +4,9 @@ Homelab infra-as-code (Kubernetes clusters, GitOps) plus Ansible and bootstrap s
 Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When they disagree, trust the scripts and manifests, and tell the user about the drift.
 
 ## Safety
-- `infra/clusters/segv` is the real cluster. `infra/clusters/dev` is the throwaway KVM test cluster. **NEVER** run `terraform apply`/`destroy` or `scripts/bootstrap.sh` (stops DNS, edits iptables, applies segv) without explicit consent.
+- `infra/clusters/segv` is the real cluster. `infra/clusters/dev` is the throwaway KVM test cluster. **NEVER** run `terraform apply`/`destroy` against segv, or `scripts/bootstrap.sh` (stops DNS, edits iptables, applies segv), without explicit consent. `terraform apply` in `infra/clusters/dev` is fine.
 - Nodes wipe their root FS on reprovision (`infra/clusters/butane/wipe-root.yaml`). Treat any node reprovision as destructive.
-- `scripts/pacstrap.sh` partitions and wipes disks. Never run it. Never run `dev/vm.sh destroy` outside the dev cluster.
+- `scripts/pacstrap.sh` partitions and wipes disks. Never run it.
 - Never commit secrets, kubeconfigs (`*.conf`, `kube.conf`), terraform state, or private PKI. Only the root CA is committed under `pki/`. `infra/examples/secrets` holds placeholders only.
 - The secrets drive (`LAB_SECRETS_PARTUUID`) is mounted at `/mnt` by the scripts. Don't touch it.
 
@@ -16,9 +16,12 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - Large boot binaries (`*.efi`, `*.kpxe`, `*.elf`) are Git LFS.
 
 ## Dev cluster
-- Full procedure is in `DEVELOPMENT.md`. Prerequisites: libvirt/KVM and the `qemu0` bridge (provisioned by the Ansible `hypervisor` role).
+- `DEVELOPMENT.md` is the guide for developing and testing against dev. Read it before dev work. Prerequisites: libvirt/KVM and the `qemu0` bridge (provisioned by the Ansible `hypervisor` role).
 - Everything dev-only lives in `dev/`: `docker-compose.yml` and `dnsmasq.conf` (DHCP and PXE on `qemu0`, 10.2.0.0/24) and `vm.sh`. Prod uses `build/bootstrap/docker-compose.yml` and `dnsmasq.conf` (proxy DHCP). Both share the matchbox and TFTP trees in `build/bootstrap/`. Keep node MACs and IPs in sync across `dev/vm.sh`, `dev/dnsmasq.conf`, `infra/clusters/dev/dev.tf` and `infra/clusters/dev/butane/hosts.yaml`.
-- `dev/vm.sh` needs root. `dnsmasq@qemu0` on the host must be stopped while the devnet containers run.
+- `dev/up.sh` is the sanctioned clean start (`dev/down.sh` stops it): the VMs netboot, pull FCOS from matchbox and rebuild themselves into a cluster. Safe to run without asking, as are `dev/vm.sh destroy`/`create` and `terraform apply` in `infra/clusters/dev`.
+- Reprovision (`dev/up.sh`) only for node-level changes: Kubernetes/OS/Typhoon versions, CNI or CIDRs, butane, node-to-MAC pairing, matchbox or PXE config. For charts, manifests, kustomize apps and ArgoCD, just `kubectl apply`/`helm upgrade` into the running cluster. Nodes wipe root on boot, so rebooting a VM rebuilds the cluster and drops everything in it.
+- ALWAYS pass `--kubeconfig infra/clusters/dev/dev.conf` explicitly. `.env` exports `KUBECONFIG` for segv.
+- `dev/vm.sh` needs root. `dnsmasq@qemu0` on the host must be stopped while the dev compose stack runs (`dev/up.sh` handles it).
 - The dev kubeconfig (`dev.conf`) is gitignored.
 
 ## Clusters

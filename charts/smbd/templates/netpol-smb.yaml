@@ -4,7 +4,13 @@ metadata:
   name: allow-smb
 spec:
   ingress:
-  - from:
+  - {{- with .Values.allowedCIDRs }}
+    from:
+    {{- range . }}
+    - ipBlock:
+        cidr: {{ . }}
+    {{- end }}
+    {{- end }}
     ports:
       - port: 445
         protocol: TCP

@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- ../../base
+- ../../routes
+- routes.yaml
+patches:
+- target:
+    kind: Gateway
+    name: https-in-gw
+  patch: |-
+    - op: add
+      path: /spec/infrastructure
+      value:
+        annotations:
+          # PLACEHOLDER: the user picks the LAN IP at cutover (must be inside the CiliumLoadBalancerIPPool).
+          # FIXME: How will this work with BGP?
+          lbipam.cilium.io/ips: 10.0.0.80

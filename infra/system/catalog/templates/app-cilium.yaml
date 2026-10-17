@@ -1,0 +1,28 @@
+# Cilium is installed once with Helm at cluster bootstrap (dev/up.sh), then adopted by this Application.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cilium
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: kube-system
+  project: system
+  sources:
+  - repoURL: https://helm.cilium.io
+    chart: cilium
+    targetRevision: 1.18.14
+    helm:
+      releaseName: cilium
+      valueFiles:
+      - $values/infra/system/cilium/values.yaml
+      - $values/infra/system/cilium/values-{{ .Values.cluster }}.yaml
+  - repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}
+    ref: values
+  syncPolicy:
+    syncOptions:
+    - ServerSideApply=true

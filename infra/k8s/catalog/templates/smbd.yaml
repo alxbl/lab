@@ -13,6 +13,13 @@ spec:
   source:
     helm:
       valuesObject:
+        service:
+          type: LoadBalancer
+          # PLACEHOLDER: the user picks the LAN IP at cutover (must be inside the CiliumLoadBalancerIPPool).
+          loadBalancerIP: 10.0.0.81
+        allowedCIDRs:
+          - 10.0.0.0/8
+          - 192.168.2.0/24
         storage:
           create: true
           size: 1Ti

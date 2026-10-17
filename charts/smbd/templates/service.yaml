@@ -5,8 +5,12 @@ metadata:
   name: {{ include "smbd.name" . }}
   labels:
     {{- include "smbd.labels" . | nindent 4 }}
+  {{- if .Values.service.loadBalancerIP }}
+  annotations:
+    lbipam.cilium.io/ips: {{ .Values.service.loadBalancerIP | quote }}
+  {{- end }}
 spec:
-  type: ClusterIP
+  type: {{ .Values.service.type }}
   ports:
     - port: 445
       targetPort: 445

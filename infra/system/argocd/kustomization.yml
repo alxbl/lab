@@ -11,5 +11,3 @@ resources:
 - https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.2/manifests/install.yaml
 patches:
 - path: overlays/argocd-server.yaml
-# FIXME: Patch redis to not inject istio (usersecret-init) 
-#        Alternatively: (https://github.com/istio/istio/discussions/52841)

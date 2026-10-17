@@ -1,0 +1,18 @@
+# FIXME: LAN is setup with BGP. IPs 10.3.0.0/16 will route directly in the cluster pods.
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: lan
+spec:
+  blocks:
+  - start: 10.0.0.80
+    stop: 10.0.0.89
+---
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: lan
+spec:
+  interfaces:
+  - ^eno1$
+  loadBalancerIPs: true

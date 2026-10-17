@@ -1,4 +1,4 @@
-FROM ghcr.io/linuxserver/sonarr:latest
+FROM ghcr.io/linuxserver/sonarr:4.0.20.3014-ls329
 ENV ARR_APP_NAME=Sonarr
 ENV ARR_DATA_DIR=/media/.config
 

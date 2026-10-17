@@ -32,6 +32,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Upstream version of each app, taken from the pinned linuxserver tag
+      # (e.g. 4.0.20.3014-ls329 -> 4.0.20.3014).
+      - name: Resolve upstream versions
+        id: ver
+        run: |
+          for app in sonarr radarr lidarr prowlarr; do
+            tag=$(sed -nE "s#^FROM ghcr.io/linuxserver/${app}:([^ ]+).*#\1#p" "build/arr/${app}.Dockerfile")
+            [ -n "$tag" ] || { echo "no pinned tag for ${app}" >&2; exit 1; }
+            echo "${app}=${tag%-ls*}" >> "$GITHUB_OUTPUT"
+          done
+
       # TODO: Parallelize?
       - name: Build Sonarr
         uses: ./.github/actions/build-and-sign
@@ -40,6 +51,7 @@ jobs:
           image: ${{ github.actor }}/sonarr
           dockerfile: build/arr/sonarr.Dockerfile
           context: build/arr
+          version: ${{ steps.ver.outputs.sonarr }}
           
       - name: Build Radarr
         uses: ./.github/actions/build-and-sign
@@ -48,6 +60,7 @@ jobs:
           image: ${{ github.actor }}/radarr
           dockerfile: build/arr/radarr.Dockerfile
           context: build/arr
+          version: ${{ steps.ver.outputs.radarr }}
       
       - name: Build Lidarr
         uses: ./.github/actions/build-and-sign
@@ -56,6 +69,7 @@ jobs:
           image: ${{ github.actor }}/lidarr
           dockerfile: build/arr/lidarr.Dockerfile
           context: build/arr
+          version: ${{ steps.ver.outputs.lidarr }}
 
       - name: Build Prowlarr
         uses: ./.github/actions/build-and-sign
@@ -64,3 +78,4 @@ jobs:
           image: ${{ github.actor }}/prowlarr
           dockerfile: build/arr/prowlarr.Dockerfile
           context: build/arr
+          version: ${{ steps.ver.outputs.prowlarr }}

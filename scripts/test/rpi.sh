@@ -9,14 +9,15 @@ trap 'rm -rf "$TMP"' EXIT
 # rpi-tftp-links
 mkdir -p "$TMP/groups" "$TMP/tftp/rpi4"
 echo '{"selector":{"mac":"E4:5F:01:23:F0:8E"}}' >"$TMP/groups/rpi4-a.json"
-echo '{"selector":{"mac":"d8:3a:dd:63:11:e8"}}' >"$TMP/groups/rpi4-b.json"
+echo '{"selector":{"mac":"d8:3a:dd:63:11:e8"},"metadata":{"serial":"a26a5167"}}' >"$TMP/groups/rpi4-b.json"
 echo '{"selector":{}}' >"$TMP/groups/default-x64.json"
 "$HERE/../rpi-tftp-links" "$TMP/groups" "$TMP/tftp" >/dev/null
 "$HERE/../rpi-tftp-links" "$TMP/groups" "$TMP/tftp" >/dev/null # idempotent
 for d in e4-5f-01-23-f0-8e d8-3a-dd-63-11-e8; do
   [[ $(readlink "$TMP/tftp/$d") == rpi4 ]] || { echo "FAIL: missing link $d"; exit 1; }
 done
-[[ $(ls "$TMP/tftp" | wc -l) -eq 3 ]] || { echo "FAIL: unexpected entries"; exit 1; }
+[[ $(readlink "$TMP/tftp/a26a5167") == rpi4 ]] || { echo "FAIL: missing serial link"; exit 1; }
+[[ $(ls "$TMP/tftp" | wc -l) -eq 4 ]] || { echo "FAIL: unexpected entries"; exit 1; }
 
 echo '{"selector":{}}' >"$TMP/groups/rpi4-bad.json"
 if "$HERE/../rpi-tftp-links" "$TMP/groups" "$TMP/tftp" >/dev/null 2>&1; then

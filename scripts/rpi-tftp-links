@@ -4,6 +4,8 @@
 # Links tftp/<mac> to tftp/rpi4 for every rpi4-*.json matchbox group. With
 # TFTP_PREFIX=2 (see build/bootstrap/rpi4/boot.conf) a Pi 4 requests its files
 # from a directory named after its MAC address, lowercase and hyphenated.
+# A Pi whose EEPROM has not been updated yet still uses its serial number, so a
+# group with metadata.serial also gets a tftp/<serial> link.
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -16,4 +18,9 @@ for group in "$GROUPS_DIR"/rpi4-*.json; do
   link=$(tr 'A-F:' 'a-f-' <<<"$mac")
   ln -sfn rpi4 "$TFTP_DIR/$link"
   echo "$link -> rpi4"
+  serial=$(jq -r '.metadata.serial // empty' "$group")
+  if [[ -n $serial ]]; then
+    ln -sfn rpi4 "$TFTP_DIR/$serial"
+    echo "$serial -> rpi4"
+  fi
 done

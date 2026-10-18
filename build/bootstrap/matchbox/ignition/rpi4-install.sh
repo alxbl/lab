@@ -3,7 +3,7 @@
 # firmware onto its ESP so the Pi can boot from the disk without the network.
 set -euo pipefail
 
-MATCHBOX=http://th1nk.lan:8080
+MATCHBOX=http://matchbox.lan:8080
 DEV=/dev/sda
 FIRMWARE=(
   start4.elf

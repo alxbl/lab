@@ -67,7 +67,8 @@ an SD card, as long as they have an attached disk over USB
 ## Usage
 Run `scripts/rpi-tftp-links` (also done by `scripts/bootstrap.sh`) to create one
 directory link per `matchbox/groups/rpi4-*.json`, named after the Pi's MAC address
-(lowercase, hyphenated, as `TFTP_PREFIX=2` requests it).
+(lowercase, hyphenated, as `TFTP_PREFIX=2` requests it). A group with
+`metadata.serial` also gets a serial-named link, which Pis use until their EEPROM is updated.
 
 A factory Pi 4 does not netboot, so each Pi needs its EEPROM flashed once:
 

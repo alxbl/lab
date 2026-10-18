@@ -14,12 +14,15 @@ import json
 from time import sleep
 
 from requests import Session
+from requests.exceptions import RequestException
 from requests.auth import HTTPBasicAuth
 
 GLUETUN_CONFIG_PATH = os.environ.get('GLUETUN_CONFIG_PATH') or '/etc/gluetun.toml'
 GLUETUN_API_URL = os.environ.get('GLUETUN_API_URL') or 'http://localhost:8000'
 QBT_WEBUI_PASSWORD = os.environ.get('QBT_WEBUI_PASSWORD') or ''
 QBT_WEBUI_URL = os.environ.get('QBT_WEBUI_URL') or 'http://localhost:8080'
+# Delay before retrying when gluetun or qbt are unreachable (e.g. still starting up).
+RETRY_DELAY = float(os.environ.get('PMPD_RETRY_SECONDS') or 5)
 
 BAD_CREDS = False
 
@@ -50,43 +53,49 @@ GLUETUN = Session()
 print('[*] pmpd: Port forwarding monitoring started')
 
 while True:
-    # Get port exposed by natpmpc.
-    pmp_port = GLUETUN.get(f"{GLUETUN_API_URL}/v1/portforward", auth=gluetun_creds)
-    mapped = None 
     try:
-        mapped = json.loads(pmp_port.text)['port']
-    except:
-        print('[!] gluetun: Unable to get mapped port: ' + pmp_port.text)
+        # Get port exposed by natpmpc.
+        pmp_port = GLUETUN.get(f"{GLUETUN_API_URL}/v1/portforward", auth=gluetun_creds)
+        mapped = None 
+        try:
+            mapped = json.loads(pmp_port.text)['port']
+        except:
+            print('[!] gluetun: Unable to get mapped port: ' + pmp_port.text)
 
-    if BAD_CREDS:
-        print('[!] qbt: Invalid API credentials!')
+        if BAD_CREDS:
+            print('[!] qbt: Invalid API credentials!')
+            continue
+
+        # Always re-auth to ensure the session hasn't expired.
+        QBT = Session()
+
+        # ref: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#login
+        login = QBT.post(f"{QBT_WEBUI_URL}/api/v2/auth/login", data={'username': 'admin', 'password': QBT_WEBUI_PASSWORD})
+
+        if not login.ok or 'Fails' in login.text:  # For some reason subsequet failures return 200 OK?
+            print('[!] qbt: Invalid API credentials: ' + login.text)
+            BAD_CREDS = True  # Avoid retrying invalid creds and getting ip-banned.
+        else:
+            # Get the currently configured listening port
+            resp = QBT.get(f"{QBT_WEBUI_URL}/api/v2/app/preferences")
+            if not resp.ok:
+                print('[!] qbt: Failed to retrieve qbt preferences: ' + resp.text)
+            prefs = json.loads(resp.text)
+
+            configured = prefs['listen_port']
+
+            if configured != mapped and mapped not in [0, None]:
+                print(f"[*] gluetun: New mapped port detected. {configured} -> {mapped}")
+                data = json.dumps({'listen_port': mapped, 'upnp': False })
+                update = QBT.post(f"{QBT_WEBUI_URL}/api/v2/app/setPreferences", data={'json': data})
+                if not update.ok:
+                    print('[!] qbt: Failed to update listen port: ' + str(update.status_code))
+            # else:
+            #    print(f"[+] qbt: Listen port is up-to-date: {mapped}")
+
+    except RequestException as e:
+        print(f'[!] Unable to reach gluetun or qbt, retrying in {RETRY_DELAY}s: {type(e).__name__}')
+        sleep(RETRY_DELAY)
         continue
-
-    # Always re-auth to ensure the session hasn't expired.
-    QBT = Session()
-
-    # ref: https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#login
-    login = QBT.post(f"{QBT_WEBUI_URL}/api/v2/auth/login", data={'username': 'admin', 'password': QBT_WEBUI_PASSWORD})
-
-    if not login.ok or 'Fails' in login.text:  # For some reason subsequet failures return 200 OK?
-        print('[!] qbt: Invalid API credentials: ' + login.text)
-        BAD_CREDS = True  # Avoid retrying invalid creds and getting ip-banned.
-    else:
-        # Get the currently configured listening port
-        resp = QBT.get(f"{QBT_WEBUI_URL}/api/v2/app/preferences")
-        if not resp.ok:
-            print('[!] qbt: Failed to retrieve qbt preferences: ' + resp.text)
-        prefs = json.loads(resp.text)
-
-        configured = prefs['listen_port']
-
-        if configured != mapped and mapped not in [0, None]:
-            print(f"[*] gluetun: New mapped port detected. {configured} -> {mapped}")
-            data = json.dumps({'listen_port': mapped, 'upnp': False })
-            update = QBT.post(f"{QBT_WEBUI_URL}/api/v2/app/setPreferences", data={'json': data})
-            if not update.ok:
-                print('[!] qbt: Failed to update listen port: ' + str(update.status_code))
-        # else:
-        #    print(f"[+] qbt: Listen port is up-to-date: {mapped}")
 
     sleep(60)

@@ -1,0 +1,32 @@
+# Live-environment config for Pi 4 nodes. Compile with:
+#   butane --files-dir . --pretty --strict rpi4-install.yaml > rpi4-install.ign
+variant: fcos
+version: 1.5.0
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys:
+        - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO+M9LUT9LQWQFTxz7SR2jXhxyZs6rS5CLN2aFS6HMB5
+storage:
+  files:
+    - path: /usr/local/bin/rpi4-install
+      mode: 0755
+      contents:
+        local: rpi4-install.sh
+systemd:
+  units:
+    - name: rpi4-install.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Install Fedora CoreOS and Raspberry Pi 4 firmware
+        After=network-online.target
+        Wants=network-online.target
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/local/bin/rpi4-install
+        ExecStartPost=/usr/bin/systemctl --no-block reboot
+
+        [Install]
+        WantedBy=multi-user.target

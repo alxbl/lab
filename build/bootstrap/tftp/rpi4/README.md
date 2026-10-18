@@ -11,10 +11,10 @@ The flow is as follows:
 <RPI NET BOOT>
 - Firmware performs DHCP request for net boot as client_arch == 11
 - proxyDHCP replies that it supports net boot
-- Firmware requests pieeprom.sig; 
+- Firmware requests <mac>/pieeprom.sig (TFTP_PREFIX=2);
     if present, pieeprom.upd is downloaded, validated and installed.
     if valid and changed, firmware reboots after EEPROM update
-- Firmware requests rpi4/ files over TFTP
+- Firmware requests <mac>/ (a link to rpi4/) files over TFTP
     config.txt
     start4.elf
     ...
@@ -44,6 +44,11 @@ The flow is as follows:
   - SSH keys, users, additional packages, services, etc.
 - Reboot
 
+<Install (install-arm64 profile)>
+- The live Ignition config runs rpi4-install, which installs FCOS on /dev/sda,
+  then copies the Pi firmware and RPI_EFI.fd (served from this directory by
+  matchbox at /assets/rpi4/) onto the new ESP, and reboots
+
 <OS Boot>
 - RPI boots from newly provisioned OS on disk (USB)
 ```
@@ -60,14 +65,24 @@ an SD card, as long as they have an attached disk over USB
 
 
 ## Usage
-Create a symlink from the Pi's Serial Number (last 8 characters) to this
-directory.
+Run `scripts/rpi-tftp-links` (also done by `scripts/bootstrap.sh`) to create one
+directory link per `matchbox/groups/rpi4-*.json`, named after the Pi's MAC address
+(lowercase, hyphenated, as `TFTP_PREFIX=2` requests it).
 
-```sh
-ln -s rpi4 aabbccdd
-```
+A factory Pi 4 does not netboot, so each Pi needs its EEPROM flashed once:
 
-Update the EEPROM so that NET boot is enabled (TODO: instructions)
+1. Download `pieeprom-*.bin` and `recovery.bin` from a raspberrypi/rpi-eeprom release.
+2. `scripts/rpi-recovery-image pieeprom.bin recovery.bin rpi4-recovery.img`
+3. `dd` the image to a spare SD card or USB stick (the same media works for every Pi).
+4. Boot the Pi from it with no other media, wait for the green LED to stay on
+   (the screen turns green if one is attached), then remove it and rack the Pi.
+
+The Pi then netboots and installs without further handling. After that, run `scripts/rpi-eeprom-build pieeprom.bin` to put an updated
+`pieeprom.upd` and `pieeprom.sig` here; the Pi applies them on its next netboot.
+
+`RPI_EFI.fd` is built by `scripts/build-rpi4-uefi`, which compiles in the full RAM
+(no 3 GB limit) and device tree defaults. A netbooted Pi cannot save UEFI settings,
+so do not change them through the EDK2 menu.
 
 ## References
 - [Raspberry Pi Boot Order][boot-order]

@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# USAGE: ./scripts/rpi-recovery-image pieeprom.bin recovery.bin [out.img]
+#
+# Builds a FAT image that flashes build/bootstrap/rpi4/boot.conf into a Pi 4's
+# EEPROM when booted from SD or USB. Write it once with dd, then use the media
+# to prepare each Pi; afterwards the Pi netboots and needs no media.
+# Requires rpi-eeprom-config, mkfs.vfat and mcopy (mtools). pieeprom.bin and
+# recovery.bin come from a raspberrypi/rpi-eeprom release.
+set -euo pipefail
+
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
+if [[ $# -lt 2 || $# -gt 3 ]]; then
+  echo "usage: $0 pieeprom.bin recovery.bin [out.img]" >&2
+  exit 2
+fi
+BIN=$1
+RECOVERY=$2
+OUT=${3:-rpi4-recovery.img}
+
+for tool in mkfs.vfat mcopy; do
+  command -v "$tool" >/dev/null || { echo "$tool not found" >&2; exit 1; }
+done
+[[ -f $RECOVERY ]] || { echo "$RECOVERY not found" >&2; exit 1; }
+
+TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
+
+"$ROOT/rpi-eeprom-build" "$BIN" "$TMP" >/dev/null
+cp "$RECOVERY" "$TMP/recovery.bin"
+
+truncate -s 8M "$OUT"
+mkfs.vfat -F 32 "$OUT" >/dev/null
+mcopy -i "$OUT" "$TMP/recovery.bin" "$TMP/pieeprom.upd" "$TMP/pieeprom.sig" ::
+echo "Wrote $OUT: dd it to an SD card or USB stick, boot each Pi from it until the green LED stays on, then remove it."

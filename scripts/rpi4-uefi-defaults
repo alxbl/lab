@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# USAGE: ./scripts/rpi4-uefi-defaults RPi4.dsc
+#
+# Patches the EDK2 Raspberry Pi 4 platform file so the firmware defaults to
+# the full RAM (no 3 GB limit) and device tree system tables, which a netbooted
+# Pi cannot otherwise persist. Fails if the expected settings are not present.
+set -euo pipefail
+
+[[ $# -eq 1 && -f $1 ]] || { echo "usage: $0 RPi4.dsc" >&2; exit 2; }
+DSC=$1
+
+# Default is the last field: PcdRamLimitTo3GB 1 (limited) -> 0, PcdSystemTableMode 0 (ACPI) -> 2 (DT).
+sed -i -E \
+  -e '/PcdRamLimitTo3GB[|]/ s/[|]1([[:space:]]*)$/|0\1/' \
+  -e '/PcdSystemTableMode[|]/ s/[|]0([[:space:]]*)$/|2\1/' \
+  "$DSC"
+
+grep -Eq 'PcdRamLimitTo3GB[|].*[|]0[[:space:]]*$' "$DSC" || { echo "PcdRamLimitTo3GB default not patched" >&2; exit 1; }
+grep -Eq 'PcdSystemTableMode[|].*[|]2[[:space:]]*$' "$DSC" || { echo "PcdSystemTableMode default not patched" >&2; exit 1; }

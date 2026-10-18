@@ -10,6 +10,7 @@
 
 import os
 import re
+import sys
 import json
 from time import sleep
 
@@ -23,8 +24,6 @@ QBT_WEBUI_PASSWORD = os.environ.get('QBT_WEBUI_PASSWORD') or ''
 QBT_WEBUI_URL = os.environ.get('QBT_WEBUI_URL') or 'http://localhost:8080'
 # Delay before retrying when gluetun or qbt are unreachable (e.g. still starting up).
 RETRY_DELAY = float(os.environ.get('PMPD_RETRY_SECONDS') or 5)
-
-BAD_CREDS = False
 
 # Get gluetun API creds.
 gluetun_user = None
@@ -62,10 +61,6 @@ while True:
         except:
             print('[!] gluetun: Unable to get mapped port: ' + pmp_port.text)
 
-        if BAD_CREDS:
-            print('[!] qbt: Invalid API credentials!')
-            continue
-
         # Always re-auth to ensure the session hasn't expired.
         QBT = Session()
 
@@ -74,7 +69,7 @@ while True:
 
         if not login.ok or 'Fails' in login.text:  # For some reason subsequet failures return 200 OK?
             print('[!] qbt: Invalid API credentials: ' + login.text)
-            BAD_CREDS = True  # Avoid retrying invalid creds and getting ip-banned.
+            sys.exit(1)  # Fail the container so the pod reports unhealthy.
         else:
             # Get the currently configured listening port
             resp = QBT.get(f"{QBT_WEBUI_URL}/api/v2/app/preferences")

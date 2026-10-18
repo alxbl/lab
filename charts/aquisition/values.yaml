@@ -9,8 +9,8 @@ imagePullSecrets:
 # leave empty to pull latest
 images:
   sonarr: "4.0.20.3014"
-  radarr: ""
-  prowlarr: ""
+  radarr: "6.4.4.10685"
+  prowlarr: "2.6.5.5623"
   lidarr: ""
   gluetun: ""
   qbt: ""

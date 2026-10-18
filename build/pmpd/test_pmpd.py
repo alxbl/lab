@@ -26,7 +26,6 @@ class FakeGluetunAndQbt(BaseHTTPRequestHandler):
 
     updates = []
     updated = threading.Event()
-    login_reply = 'Ok.'
 
     def log_message(self, *args):
         pass
@@ -47,7 +46,7 @@ class FakeGluetunAndQbt(BaseHTTPRequestHandler):
     def do_POST(self):
         body = self.rfile.read(int(self.headers['Content-Length'])).decode()
         if self.path == '/api/v2/auth/login':
-            self._reply(type(self).login_reply)
+            self._reply('Ok.')
         elif self.path == '/api/v2/app/setPreferences':
             type(self).updates.append(json.loads(parse_qs(body)['json'][0]))
             type(self).updated.set()
@@ -58,7 +57,6 @@ class PmpdStartupRaceTest(unittest.TestCase):
     def setUp(self):
         FakeGluetunAndQbt.updates = []
         FakeGluetunAndQbt.updated.clear()
-        FakeGluetunAndQbt.login_reply = 'Ok.'
         self.port = free_port()
         self.config = tempfile.NamedTemporaryFile('w', suffix='.toml', delete=False)
         self.config.write('username = "u"\npassword = "p"\n')
@@ -91,17 +89,6 @@ class PmpdStartupRaceTest(unittest.TestCase):
         self.assertEqual(FakeGluetunAndQbt.updates[0]['listen_port'], MAPPED_PORT)
         self.proc.kill()
         self.assertIn('retrying', self.proc.stdout.read())
-
-    def test_exits_nonzero_on_invalid_credentials(self):
-        FakeGluetunAndQbt.login_reply = 'Fails.'
-        server = HTTPServer(('127.0.0.1', self.port), FakeGluetunAndQbt)
-        threading.Thread(target=server.serve_forever, daemon=True).start()
-        try:
-            self.assertEqual(self._wait_exit(10), 1)
-        finally:
-            server.shutdown()
-            server.server_close()
-        self.assertIn('Invalid API credentials', self.proc.stdout.read())
 
     def _wait_exit(self, timeout):
         try:

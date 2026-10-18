@@ -1,0 +1,66 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "enabledManagers": [
+    "dockerfile",
+    "custom.regex"
+  ],
+  "schedule": [
+    "before 6am on monday"
+  ],
+  "customManagers": [
+    {
+      "description": "Image tags of our own arr builds pinned in the aquisition chart",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^charts/aquisition/values\\.yaml$/"
+      ],
+      "matchStrings": [
+        "\\s(?<depName>sonarr|radarr|prowlarr|lidarr): \"(?<currentValue>\\d[^\"]*)\""
+      ],
+      "datasourceTemplate": "docker",
+      "packageNameTemplate": "ghcr.io/alxbl/{{depName}}"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "linuxserver tags look like 4.0.20.3014-ls329 (upstream version, then image revision)",
+      "matchPackageNames": [
+        "/^ghcr\\.io/linuxserver/(sonarr|radarr|prowlarr|lidarr)$/"
+      ],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)-ls(?<revision>\\d+)$"
+    },
+    {
+      "description": "Our own builds are tagged with the bare upstream version; the 4-part form excludes latest and the YYYYMMDD schedule tags",
+      "matchPackageNames": [
+        "/^ghcr\\.io/alxbl/(sonarr|radarr|prowlarr|lidarr)$/"
+      ],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)$"
+    },
+    {
+      "description": "Major arr releases need manual review (database migrations, removed features)",
+      "matchPackageNames": [
+        "/^ghcr\\.io/linuxserver/(sonarr|radarr|prowlarr|lidarr)$/"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "dependencyDashboardApproval": true,
+      "labels": [
+        "arr-major"
+      ]
+    },
+    {
+      "matchPackageNames": [
+        "/^ghcr\\.io/linuxserver/(sonarr|radarr|prowlarr|lidarr)$/"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "arr base images"
+    }
+  ]
+}

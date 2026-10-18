@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# USAGE: ./scripts/arr-backup [dest]
+# USAGE: ./scripts/arr-backup [--keep N] [dest]
 #
 # Runs the built-in Backup command of Sonarr, Radarr and Prowlarr inside the
 # aquisition pod, copies the resulting zips to dest (default ./arr-backups) and
-# verifies each one. Uses the segv kubeconfig (KUBECONFIG, as set by .env). Stops on any failure.
+# verifies each one. With --keep N, then deletes all but the N newest manual
+# backups in the pod (the new one counts). Uses the segv kubeconfig (KUBECONFIG, as set by .env). Stops on any failure.
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -12,6 +13,12 @@ export KUBECONFIG=${KUBECONFIG:-$ROOT/infra/clusters/segv/kube.conf}
 
 NS=${NS:-media}
 SELECTOR=app.kubernetes.io/name=aquisition
+KEEP=
+if [[ ${1:-} == --keep ]]; then
+  KEEP=${2:-}
+  [[ $KEEP =~ ^[1-9][0-9]*$ ]] || { echo "--keep needs a positive integer" >&2; exit 1; }
+  shift 2
+fi
 DEST=${1:-./arr-backups}
 APPS=(sonarr:Sonarr:v3 radarr:Radarr:v3 prowlarr:Prowlarr:v1)
 
@@ -65,4 +72,9 @@ for entry in "${APPS[@]}"; do
   done
   rm -rf "$tmp"
   echo "    $local_zip ok"
+
+  if [[ -n $KEEP ]]; then
+    kubectl exec -n "$NS" "$POD" -c "$container" -- sh -c \
+      'ls -t "$(dirname "$1")"/*.zip | tail -n +$(($2 + 1)) | xargs -r rm -v' sh "$remote_zip" "$KEEP"
+  fi
 done

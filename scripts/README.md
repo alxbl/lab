@@ -17,7 +17,8 @@ everything down. See the top-level README for requirements.
 Runs the Backup command of Sonarr, Radarr and Prowlarr in the `aquisition`
 pod on segv, copies the zips to a local directory (default `./arr-backups`)
 and checks each database with `sqlite3`. Run it before arr major bumps.
-Backups left in `/media/.config/<App>/Backups/manual/` are not pruned.
+With `--keep N`, manual backups in the pod beyond the N newest (the new
+one included) are deleted after the new one verifies; otherwise none are pruned.
 
 ## bootstrap-pki
 

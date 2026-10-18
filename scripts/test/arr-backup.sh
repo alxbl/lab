@@ -17,7 +17,8 @@ case "\$1" in
   auth) [[ "\${FAIL_STEP:-}" == auth ]] && exit 1; echo yes ;;
   get) echo aquisition-pod ;;
   exec)
-    if [[ "\$*" == *" cat "* ]]; then cat "$TMP/backup.zip"
+    if [[ "\$*" == *"rm -v"* ]]; then echo "\$*" >>"$TMP/prune.log"
+    elif [[ "\$*" == *" cat "* ]]; then cat "$TMP/backup.zip"
     else [[ "\${FAIL_STEP:-}" == backup ]] && { echo "backup command failed" >&2; exit 1; }
          echo /media/.config/X/Backups/manual/backup.zip; fi ;;
 esac
@@ -33,4 +34,10 @@ for step in auth backup; do
     echo "FAIL: $step failure was not fatal"; exit 1
   fi
 done
+"$HERE/../arr-backup" --keep 2 "$TMP/out3" >/dev/null
+[[ $(wc -l <"$TMP/prune.log") -eq 3 ]] || { echo "FAIL: --keep did not prune each app"; exit 1; }
+[[ $(grep -c ' 2$' "$TMP/prune.log") -eq 3 ]] || { echo "FAIL: --keep N not passed"; exit 1; }
+if "$HERE/../arr-backup" --keep 0 "$TMP/out4" >/dev/null 2>&1; then
+  echo "FAIL: --keep 0 accepted"; exit 1
+fi
 echo "ok"

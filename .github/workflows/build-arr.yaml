@@ -4,10 +4,10 @@ on:
   schedule:
     # Mondays 02:00 UTC, an hour after the FCOS build
     - cron: '00 02 * * 1'
-  # push:
-  #   branches: [ "main" ]
-  #   paths:
-  #     - 'build/arr/**'
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'build/arr/**'
   workflow_dispatch:
 
 env:

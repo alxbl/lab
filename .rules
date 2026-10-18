@@ -33,6 +33,9 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - ArgoCD app-of-apps. `infra/system/argocd` installs ArgoCD and the `root` app. `infra/system/catalog` and `infra/k8s/catalog` are meta-charts whose templates are the `Application`s. A new workload needs a catalog template plus its manifests (kustomize dir, upstream chart, or a chart in `charts/`).
 - Apps track `HEAD` of `github.com/alxbl/lab`. Changes only take effect once pushed.
 - `charts/` holds my own charts. They may contain lab-specific hardcoded values.
+- `charts/aquisition` pins our `alxbl/*` image tags and has no ArgoCD auto-sync; sync by patching the Application. It is one Deployment with six containers, so any change restarts all of them.
+- Arr major bumps migrate databases one-way. Back up first with each app's Backup API command (containers have no `sqlite3`; don't copy live DBs).
+- Default branch is `main`. Agents work through branch + PR; I merge and sync.
 
 ## Ansible and workstations
 - Targets Arch Linux (pacman). Role files: `ansible/roles/<name>/` or per-host `ansible/roles/<hostname>.yml`. Inventory is `ansible/hosts`.
@@ -42,6 +45,10 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 
 ## Images (`build/`)
 - Each Dockerfile directory is built and signed by a matching `.github/workflows/build-*.yaml`. `build/bootstrap` is local-only tooling, not a CI image.
+- Arr Dockerfiles pin linuxserver tags (Renovate bumps them). A build on `main` moves `latest`; build candidates such as major bumps from a branch.
+- `build-fcos-zfs`: `BUILDER_VERSION` must match CoreOS stable and is set by the workflow. Never bump it on its own.
+- `pmpd`: the `BAD_CREDS` latch is deliberate (avoids qBittorrent's IP ban). Don't make it exit or retry.
+- GitHub disables scheduled workflows after 60 days of repo inactivity.
 
 ## Validation
 - Run `terraform fmt`/`validate`, `kubectl kustomize`, `helm lint`/`template`, and `ansible-playbook --syntax-check` as relevant. These don't touch live systems.

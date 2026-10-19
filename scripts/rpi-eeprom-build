@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# USAGE: ./scripts/rpi-eeprom-build pieeprom.bin [out-dir]
+#
+# Builds pieeprom.upd and pieeprom.sig from build/bootstrap/rpi4/boot.conf
+# to allow RPI 4s to update their own EEPROM when netbooting.
+# `rpi-eeprom-config` must be installed.
+set -euo pipefail
+
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+CONF=${RPI_BOOT_CONF:-$ROOT/build/bootstrap/rpi4/boot.conf}
+
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+  echo "usage: $0 pieeprom.bin [out-dir]" >&2
+  exit 2
+fi
+BIN=$1
+OUT=${2:-$ROOT/build/bootstrap/tftp/rpi4}
+
+command -v rpi-eeprom-config >/dev/null || { echo "rpi-eeprom-config not found" >&2; exit 1; }
+[[ -f $BIN ]] || { echo "$BIN not found" >&2; exit 1; }
+
+mkdir -p "$OUT"
+rpi-eeprom-config --config "$CONF" --out "$OUT/pieeprom.upd" "$BIN"
+
+# The bootloader skips an update unless ts is newer than the installed EEPROM's.
+{ sha256sum "$OUT/pieeprom.upd" | cut -d' ' -f1; echo "ts: $(date +%s)"; } >"$OUT/pieeprom.sig"
+echo "Wrote $OUT/pieeprom.upd and pieeprom.sig"

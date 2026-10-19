@@ -41,3 +41,26 @@ if "$HERE/../arr-backup" --keep 0 "$TMP/out4" >/dev/null 2>&1; then
   echo "FAIL: --keep 0 accepted"; exit 1
 fi
 echo "ok"
+
+# The API lives under the app's configured UrlBase (Sonarr redirects bare /api requests, which curl does not follow for POST).
+mkdir -p "$TMP/cfg/Sonarr" "$TMP/cfg/Radarr" "$TMP/curlbin"
+printf '<Config><ApiKey>k</ApiKey><Port>8989</Port><UrlBase>sonarr</UrlBase></Config>' >"$TMP/cfg/Sonarr/config.xml"
+printf '<Config><ApiKey>k</ApiKey><Port>7878</Port><UrlBase></UrlBase></Config>' >"$TMP/cfg/Radarr/config.xml"
+mkdir -p "$TMP/cfg/Sonarr/Backups/manual" "$TMP/cfg/Radarr/Backups/manual"
+touch "$TMP/cfg/Sonarr/Backups/manual/b.zip" "$TMP/cfg/Radarr/Backups/manual/b.zip"
+cat >"$TMP/curlbin/curl" <<STUB
+#!/usr/bin/env bash
+echo "\${@: -1}" >>"$TMP/urls.log"
+case "\${@: -1}" in
+  */command) echo '{"id": 7}' ;;
+  */command/7) echo '{"status": "completed"}' ;;
+esac
+STUB
+chmod +x "$TMP/curlbin/curl"
+sed -n "/^REMOTE='/,/^'\$/p" "$HERE/../arr-backup" | sed '1s/^REMOTE=.//;$d' >"$TMP/remote.sh"
+for entry in Sonarr:v3:8989:/sonarr Radarr:v3:7878:""; do
+  IFS=: read -r app ver port ub <<<"$entry"
+  PATH="$TMP/curlbin:$PATH" ARR_CONFIG_ROOT="$TMP/cfg" sh "$TMP/remote.sh" "$app" "$ver" >/dev/null
+  grep -qx "http://localhost:$port$ub/api/$ver/command" "$TMP/urls.log" || { echo "FAIL: $app did not use its UrlBase (got: $(cat "$TMP/urls.log" | tr '\n' ' '))"; exit 1; }
+done
+echo "arr-backup: ok"

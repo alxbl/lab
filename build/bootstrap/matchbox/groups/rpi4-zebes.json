@@ -7,6 +7,7 @@
   },
   "metadata": {
     "hostname": "K8SCTLZEBES",
-    "etcd_name": "zebes"
+    "etcd_name": "zebes",
+    "serial": "a26a5167"
   }
 }

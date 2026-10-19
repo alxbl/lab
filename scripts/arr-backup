@@ -35,10 +35,11 @@ POD=$(kubectl get pod -n "$NS" -l "$SELECTOR" -o jsonpath='{.items[0].metadata.n
 REMOTE='
 set -eu
 app=$1 ver=$2
-dir=/media/.config/$app
+dir=${ARR_CONFIG_ROOT:-/media/.config}/$app
 key=$(sed -n "s|.*<ApiKey>\(.*\)</ApiKey>.*|\1|p" "$dir/config.xml")
 port=$(sed -n "s|.*<Port>\(.*\)</Port>.*|\1|p" "$dir/config.xml")
-base=http://localhost:${port:-0}/api/$ver
+urlbase=$(sed -n "s|.*<UrlBase>\(.*\)</UrlBase>.*|\1|p" "$dir/config.xml")
+base=http://localhost:${port:-0}${urlbase:+/${urlbase#/}}/api/$ver
 curl_api() { curl -fsS -H "X-Api-Key: $key" "$@"; }
 id=$(curl_api -H "Content-Type: application/json" -d "{\"name\":\"Backup\"}" "$base/command" \
   | sed -n "s|.*\"id\": *\([0-9]*\).*|\1|p" | head -n1)

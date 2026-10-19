@@ -1,4 +1,4 @@
-{{- if .Values.storage.create -}}
+{{- if and .Values.storage.create (not .Values.storage.hostPath) -}}
 {{- with .Values.storage -}}
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -6,6 +6,9 @@ metadata:
   name: {{ .name | quote }}
 spec:
   storageClassName: {{ .storageClass | default "" | quote }}
+  {{- with .volumeName }}
+  volumeName: {{ . | quote }}
+  {{- end }}
   accessModes:
     - {{ .accessMode | default "ReadWriteMany" | quote }}
   resources:

@@ -1,0 +1,35 @@
+{
+  "ignition": {
+    "version": "3.4.0"
+  },
+  "passwd": {
+    "users": [
+      {
+        "name": "core",
+        "sshAuthorizedKeys": [
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO+M9LUT9LQWQFTxz7SR2jXhxyZs6rS5CLN2aFS6HMB5"
+        ]
+      }
+    ]
+  },
+  "storage": {
+    "files": [
+      {
+        "path": "/usr/local/bin/rpi4-install",
+        "mode": 493,
+        "contents": {
+          "source": "data:,%23%21%2Fusr%2Fbin%2Fbash%0A%23%20Installs%20Fedora%20CoreOS%20on%20the%20first%20USB%20disk%20and%20copies%20the%20Raspberry%20Pi%204%0A%23%20firmware%20onto%20its%20ESP%20so%20the%20Pi%20can%20boot%20from%20the%20disk%20without%20the%20network.%0Aset%20-euo%20pipefail%0A%0AMATCHBOX%3Dhttp%3A%2F%2Fmatchbox.lan%3A8080%0ADEV%3D%2Fdev%2Fsda%0AFIRMWARE%3D%28%0A%20%20start4.elf%0A%20%20fixup4.dat%0A%20%20bcm2711-rpi-4-b.dtb%0A%20%20config.txt%0A%20%20RPI_EFI.fd%0A%20%20overlays%2Fdisable-bt.dtbo%0A%20%20overlays%2Fupstream-pi4.dtbo%0A%29%0A%0A%23%20coreos-installer%20refuses%20plain-HTTP%20--ignition-url%20without%20a%20hash.%0Aign%3D%24%28mktemp%29%0Acurl%20-fsS%20-o%20%22%24ign%22%20%22%24MATCHBOX%2Fassets%2Fnode-arm64.ign%22%0A%23%20vc4%20retries%20probing%20forever%20on%20this%20kernel%2C%20which%20keeps%20udev%20from%20settling.%0Acoreos-installer%20install%20%22%24DEV%22%20--ignition-file%20%22%24ign%22%20--append-karg%20modprobe.blacklist%3Dvc4%0Audevadm%20settle%0A%0Aesp%3D%24%28mktemp%20-d%29%0Amount%20%2Fdev%2Fdisk%2Fby-partlabel%2FEFI-SYSTEM%20%22%24esp%22%0Afor%20f%20in%20%22%24%7BFIRMWARE%5B%40%5D%7D%22%3B%20do%0A%20%20curl%20-fsS%20--create-dirs%20-o%20%22%24esp%2F%24f%22%20%22%24MATCHBOX%2Fassets%2Frpi4%2F%24f%22%0Adone%0Aumount%20%22%24esp%22%0A"
+        }
+      }
+    ]
+  },
+  "systemd": {
+    "units": [
+      {
+        "name": "rpi4-install.service",
+        "enabled": true,
+        "contents": "[Unit]\nDescription=Install Fedora CoreOS and Raspberry Pi 4 firmware\nAfter=network-online.target\nWants=network-online.target\n\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/rpi4-install\nExecStartPost=/usr/bin/systemctl --no-block reboot\n\n[Install]\nWantedBy=multi-user.target\n"
+      }
+    ]
+  }
+}

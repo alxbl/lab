@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# USAGE: ./scripts/build-rpi4-uefi [pftf-tag] [out-file]
+#
+# Builds the pftf/RPi4 EDK2 UEFI firmware in a container, with the defaults from
+# scripts/rpi4-uefi-defaults (full RAM, device tree). Needs docker or podman and
+# network access. Secure Boot is not enabled. out-file defaults to the TFTP
+# firmware at build/bootstrap/tftp/rpi4/RPI_EFI.fd.
+set -euo pipefail
+
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+TAG=${1:-v1.53}
+OUT=$(realpath -m "${2:-$ROOT/build/bootstrap/tftp/rpi4/RPI_EFI.fd}")
+IMAGE=${RPI4_UEFI_BUILD_IMAGE:-docker.io/library/debian:bookworm}
+
+ENGINE=$(command -v docker || command -v podman) || { echo "docker or podman required" >&2; exit 1; }
+mkdir -p "$(dirname "$OUT")"
+
+"$ENGINE" run --rm \
+  -v "$ROOT/scripts/rpi4-uefi-defaults:/usr/local/bin/rpi4-uefi-defaults:ro" \
+  -v "$(dirname "$OUT"):/out" \
+  -e TAG="$TAG" -e OUT_NAME="$(basename "$OUT")" -e OUT_UID="$(id -u)" -e OUT_GID="$(id -g)" \
+  "$IMAGE" bash -euo pipefail -c '
+    apt-get update -qq
+    apt-get install -y -qq git make gcc g++ python3 acpica-tools gcc-aarch64-linux-gnu uuid-dev >/dev/null
+    git clone -q --depth 1 --branch "$TAG" --recurse-submodules --shallow-submodules https://github.com/pftf/RPi4.git /src
+    cd /src
+    make -C edk2/BaseTools >/dev/null
+    rpi4-uefi-defaults edk2-platforms/Platform/RaspberryPi/RPi4/RPi4.dsc
+    export WORKSPACE=$PWD
+    export PACKAGES_PATH=$WORKSPACE/edk2:$WORKSPACE/edk2-platforms:$WORKSPACE/edk2-non-osi
+    export GCC_AARCH64_PREFIX=aarch64-linux-gnu-
+    # edksetup.sh reads unset variables.
+    set +u
+    source edk2/edksetup.sh
+    set -u
+    # Same flags as the upstream release build, minus Secure Boot.
+    build -a AARCH64 -t GCC -b RELEASE -p edk2-platforms/Platform/RaspberryPi/RPi4/RPi4.dsc \
+      --pcd gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVendor=L"https://github.com/pftf/RPi4" \
+      --pcd gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVersionString=L"UEFI Firmware $TAG (lab defaults)" \
+      -D INCLUDE_TFTP_COMMAND=TRUE -D NETWORK_ISCSI_ENABLE=TRUE -D SMC_PCI_SUPPORT=1
+    cp Build/RPi4/RELEASE_GCC/FV/RPI_EFI.fd "/out/$OUT_NAME"
+    chown "$OUT_UID:$OUT_GID" "/out/$OUT_NAME"
+  '
+echo "Wrote $OUT (pftf/RPi4 $TAG)"

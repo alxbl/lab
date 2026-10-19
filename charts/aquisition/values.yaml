@@ -25,8 +25,12 @@ podAnnotations: {}
 podLabels: {}
 
 
+# No fsGroup: on a local PV kubelet would recursively chown the whole volume. All containers run as 1000:1000.
+# level s0: every pod sharing the media volume uses the same SELinux level, otherwise the runtime relabels the volume
+# per pod (random MCS) and the other pods lose access. Must match the volume (container_file_t:s0).
 podSecurityContext:
-  fsGroup: 1000
+  seLinuxOptions:
+    level: "s0"
 
 # securityContext for all containers other than gluetun.
 securityContext: {}
@@ -125,6 +129,11 @@ storage:
   # can run on different nodes.
   storageClass: "zfs-rwx"
   accessMode: ReadWriteMany
+  # Bind the claim to this pre-created PV (static local volume). Empty for dynamically provisioned volumes.
+  volumeName: ""
+  # Mount this host directory instead of a claim. hostPath volumes are never SELinux-relabeled by the runtime,
+  # which matters for datasets mounted with a fixed `context=` label on containerd < 1.7.
+  hostPath: ""
 
 # Standard Helm Boilerplate.
 serviceAccount:

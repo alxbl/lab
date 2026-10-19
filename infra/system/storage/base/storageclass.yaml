@@ -1,0 +1,9 @@
+# Static local volumes on ZFS datasets under /var/data/k8s (see README in docs/ and the cutover plan).
+# There is no provisioner: PVs are declared in this directory and bound by claimRef/volumeName.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-zfs
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain

@@ -38,8 +38,10 @@ storage:
       target: /usr/lib/systemd/system/zfs-import-scan.service
   files:
     # The kubelet runs in a podman container that only sees a fixed set of host paths; local PVs live under /var/data.
+    # rslave: ZFS mounts made later on the host show up in the container; container-side mounts do not leak back (rshared would).
+    # Applies to every podman container created afterwards; restart only the kubelet (systemctl restart kubelet), not the node.
     - path: /etc/containers/containers.conf.d/10-data.conf
       contents:
         inline: |
           [containers]
-          volumes = ["/var/data:/var/data:rshared"]
+          volumes = ["/var/data:/var/data:rslave"]

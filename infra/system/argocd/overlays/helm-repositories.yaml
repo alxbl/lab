@@ -24,32 +24,6 @@ stringData:
   url: https://helm.releases.hashicorp.com
   type: helm
 ---
-# OpenEBS
-apiVersion: v1
-kind: Secret
-metadata:
-  name: openebs-helm
-  namespace: argocd
-  labels:
-    argocd.argoproj.io/secret-type: repository
-stringData:
-  name: openebs.io
-  url: https://openebs.github.io/charts
-  type: helm
----
-# OpenEBS-nfs (Beta)
-apiVersion: v1
-kind: Secret
-metadata:
-  name: openebs-nfs-helm
-  namespace: argocd
-  labels:
-    argocd.argoproj.io/secret-type: repository
-stringData:
-  name: openebs.io/nfs
-  url: https://openebs.github.io/dynamic-nfs-provisioner
-  type: helm
----
 # Grafana OSS
 apiVersion: v1
 kind: Secret

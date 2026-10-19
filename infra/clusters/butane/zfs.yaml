@@ -25,11 +25,21 @@ systemd:
 
         [Install]
         WantedBy=multi-user.target
-    - name: zfs-import-scan.service
-      enabled: true
     - name: zfs-import.target
       enabled: true
     - name: zfs-mount.service
       enabled: true
     - name: zfs.target
       enabled: true
+storage:
+  links:
+    # The image's preset disables zfs-import-scan, and the preset applied by the rebase wins over Ignition's `enabled`.
+    - path: /etc/systemd/system/zfs-import.target.wants/zfs-import-scan.service
+      target: /usr/lib/systemd/system/zfs-import-scan.service
+  files:
+    # The kubelet runs in a podman container that only sees a fixed set of host paths; local PVs live under /var/data.
+    - path: /etc/containers/containers.conf.d/10-data.conf
+      contents:
+        inline: |
+          [containers]
+          volumes = ["/var/data:/var/data:rshared"]

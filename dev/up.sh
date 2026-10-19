@@ -5,6 +5,7 @@
 #
 # Env: READY_TIMEOUT (seconds to wait for Ready nodes, default 900)
 #      DEV_ZFS=1 (opt-in) rebases node2 onto the ZFS image and attaches DEV_ZFS_DISKS (default 4) data disks to it.
+#      DEV_CONSOLE=ttyS0 (opt-in) adds console=tty0 console=<port>,115200n8 (installer; node2 OS only with DEV_ZFS=1).
 #      DEV_ZFS_IMAGE overrides the image reference (default ghcr.io/alxbl/lab/fcos:latest).
 
 set -e
@@ -28,6 +29,9 @@ if [[ ${DEV_ZFS:-0} == 1 ]]; then
 else
   unset TF_VAR_zfs_image VM_DATA_DISKS
 fi
+
+# DEV_CONSOLE=ttyS0 (opt-in) adds a serial console to the PXE installer and, with DEV_ZFS=1, to node2's installed OS.
+export TF_VAR_console=${DEV_CONSOLE:-}
 
 CLUSTER_DIR="$REPO_ROOT/infra/clusters/dev"
 KUBECONF="$CLUSTER_DIR/dev.conf"

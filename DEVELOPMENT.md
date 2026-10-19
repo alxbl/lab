@@ -67,6 +67,20 @@ by itself, without `-f`. `dev/vm.sh destroy` (and so `dev/up.sh`) deletes the da
 
 `scripts/test/zfs-butane.sh` checks the snippet.
 
+### Serial console (opt-in)
+
+```sh
+DEV_CONSOLE=ttyS0 DEV_ZFS=1 dev/up.sh     # Terraform variable `console`
+```
+
+Adds `console=tty0 console=<port>,115200n8` to the PXE installer (Typhoon `kernel_args`; the installer does not copy it to
+the installed OS) and, with `DEV_ZFS=1`, to node2's installed OS: `zfs-rebase.service` runs
+`rpm-ostree kargs --append-if-missing=...` after the rebase and before its reboot, so there is no extra reboot (butane
+`kernel_arguments` would add one). Watch it with `sudo virsh -c qemu:///system console node2`. The installer, the
+rebased boot and everything after it are on the serial console; the first boot of the installed OS (Ignition and the rebase,
+about 40 s) is not, because the kernel argument only takes effect after the rebase's reboot. Without ZFS the installed OS gets no
+serial console from this variable.
+
 ### Stop
 
 ```sh

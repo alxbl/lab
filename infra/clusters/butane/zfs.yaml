@@ -1,0 +1,35 @@
+# ZFS support for stock Fedora CoreOS: rebases onto the ZFS image once, before sshd starts, then imports pools.
+# The image reference is the literal @ZFS_IMAGE@ (a pinned digest): replace it before rendering, e.g. with
+# Terraform replace(file("../butane/zfs.yaml"), "@ZFS_IMAGE@", var.zfs_image).
+variant: fcos
+version: 1.5.0
+systemd:
+  units:
+    - name: zincati.service
+      mask: true
+    - name: zfs-rebase.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Rebase onto the ZFS image
+        ConditionPathExists=!/var/lib/zfs-rebased
+        Wants=network-online.target
+        After=network-online.target
+        Before=sshd.service
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/rpm-ostree rebase ostree-unverified-registry:@ZFS_IMAGE@
+        ExecStart=/usr/bin/touch /var/lib/zfs-rebased
+        ExecStart=/usr/bin/systemctl reboot
+
+        [Install]
+        WantedBy=multi-user.target
+    - name: zfs-import-scan.service
+      enabled: true
+    - name: zfs-import.target
+      enabled: true
+    - name: zfs-mount.service
+      enabled: true
+    - name: zfs.target
+      enabled: true

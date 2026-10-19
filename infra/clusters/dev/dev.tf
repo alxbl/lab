@@ -22,6 +22,12 @@ terraform {
   }
 }
 
+# Opt-in: when set, node2 rebases onto this ZFS image (infra/clusters/butane/zfs.yaml). Set by dev/up.sh with DEV_ZFS=1.
+variable "zfs_image" {
+  type    = string
+  default = ""
+}
+
 module "dev" {
   source = "git::https://github.com/poseidon/typhoon//bare-metal/fedora-coreos/kubernetes?ref=97ee4103eb27777c0d2411ef1a5c761f3d3ee462"
 
@@ -68,7 +74,10 @@ module "dev" {
   # Setup static DNS in /etc/hosts so that routing works properly.
   snippets = {
     "node1" = [ file("../butane/wipe-root.yaml"), file("./butane/hosts.yaml") ]
-    "node2" = [ file("../butane/wipe-root.yaml"), file("./butane/hosts.yaml") ]
+    "node2" = concat(
+      [ file("../butane/wipe-root.yaml"), file("./butane/hosts.yaml") ],
+      var.zfs_image == "" ? [] : [ replace(file("../butane/zfs.yaml"), "@ZFS_IMAGE@", var.zfs_image) ]
+    )
   }
 }
 

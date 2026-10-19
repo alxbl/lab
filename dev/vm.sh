@@ -9,6 +9,9 @@ VM_MEMORY=${VM_MEMORY:-3048}
 VM_DISK=${VM_DISK:-10}
 VM_BRIDGE=qemu0
 VM_POOL=disks
+# Extra virtio disks for node2 (ZFS rehearsal, see DEVELOPMENT.md). 0 means none.
+VM_DATA_DISKS=${VM_DATA_DISKS:-0}
+VM_DATA_DISK_GB=${VM_DATA_DISK_GB:-2}
 
 if [ "$EUID" -ne 0 ]
   then echo "Please run as root"
@@ -23,6 +26,7 @@ function main {
     "shutdown") shutdown;;
     "poweroff") poweroff;;
     "destroy") destroy;;
+    "reinstall") reinstall "$2";;
     *)
       usage
       exit 2
@@ -38,7 +42,9 @@ function usage {
   echo -e "\treboot\t\treboot the QEMU/KVM nodes"
   echo -e "\tshutdown\tshutdown the QEMU/KVM nodes"
   echo -e "\tpoweroff\tpoweroff the QEMU/KVM nodes"
-  echo -e "\tdestroy\t\tdestroy the QEMU/KVM nodes"
+  echo -e "\tdestroy\t\tdestroy the QEMU/KVM nodes (and their data disks)"
+  echo -e "\treinstall node2\trecreate node2 with an empty root disk, keeping its data disks, so it PXE installs again"
+  echo -e "Env: VM_DATA_DISKS=N attaches N extra disks (VM_DATA_DISK_GB GB each) to node2"
 }
 
 # --install=no_install=yes is a workaround for a virt-manager 4.1.0 regression
@@ -54,9 +60,23 @@ NODE2_MAC=52:54:00:b2:2f:86
 NODE3_NAME=node3
 NODE3_MAC=52:54:00:c3:61:77
 
+# Prints the --disk arguments of node2's data disks, creating missing volumes.
+function data_disk_opts {
+  local i
+  for ((i = 1; i <= VM_DATA_DISKS; i++)); do
+    virsh vol-info --pool $VM_POOL $NODE2_NAME-data$i.qcow2 >/dev/null 2>&1 ||
+      virsh vol-create-as $VM_POOL $NODE2_NAME-data$i.qcow2 ${VM_DATA_DISK_GB}G --format qcow2 >&2
+    echo -n "--disk vol=$VM_POOL/$NODE2_NAME-data$i.qcow2,bus=virtio,serial=zfsdata$i "
+  done
+}
+
+function create_node2 {
+  virt-install --name $NODE2_NAME --network=bridge:$VM_BRIDGE,mac=$NODE2_MAC $COMMON_VIRT_OPTS $(data_disk_opts) --boot=hd,network
+}
+
 function create_docker {
   virt-install --name $NODE1_NAME --network=bridge:$VM_BRIDGE,mac=$NODE1_MAC $COMMON_VIRT_OPTS --boot=hd,network
-  virt-install --name $NODE2_NAME --network=bridge:$VM_BRIDGE,mac=$NODE2_MAC $COMMON_VIRT_OPTS --boot=hd,network
+  create_node2
   # virt-install --name $NODE3_NAME --network=bridge:$VM_BRIDGE,mac=$NODE3_MAC $COMMON_VIRT_OPTS --boot=hd,network
 }
 
@@ -97,6 +117,24 @@ function destroy {
   for node in ${nodes[@]}; do
     virsh vol-delete --pool $VM_POOL $node.qcow2
   done
+  # Data disks go too: destroy is the clean-start path.
+  for vol in $(virsh vol-list --pool $VM_POOL | awk '$1 ~ /^node[0-9]+-data[0-9]+\.qcow2$/ {print $1}'); do
+    virsh vol-delete --pool $VM_POOL $vol
+  done
+}
+
+# Recreates node2 with an empty root disk and the data disks it already has.
+function reinstall {
+  if [ "$1" != "$NODE2_NAME" ]; then
+    echo "reinstall only supports $NODE2_NAME" >&2
+    exit 2
+  fi
+  VM_DATA_DISKS=$(virsh vol-list --pool $VM_POOL | grep -c " $NODE2_NAME-data[0-9]*\.qcow2")
+  virsh destroy $NODE2_NAME 2>/dev/null
+  virsh undefine $NODE2_NAME
+  virsh pool-refresh $VM_POOL
+  virsh vol-delete --pool $VM_POOL $NODE2_NAME.qcow2
+  create_node2
 }
 
 main $@

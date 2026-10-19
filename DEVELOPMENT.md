@@ -20,8 +20,9 @@ A throwaway two-node (node1 controller + node2 worker) Typhoon cluster running i
 KVM VMs on `qemu0`. It lets you iterate on bootstrapping and cluster features
 without hardware. See `infra/clusters/dev`.
 
-> **NOTE**: The dev cluster does not add ZFS support or rebase to
-> `ghcr.io/alxbl/lab/fcos`; that is not necessary for development.
+> **NOTE**: By default the dev cluster does not add ZFS support or rebase to
+> `ghcr.io/alxbl/lab/fcos`; that is not necessary for development. See
+> "ZFS rehearsal" below to opt in.
 
 ### Start (or reset) the cluster
 
@@ -46,6 +47,22 @@ Every run is a full clean start and takes about 4-5 minutes. It:
 10. waits (`READY_TIMEOUT`, default 900s) until both nodes are Ready
 
 matchbox and dnsmasq are left running because rebooting nodes need PXE.
+
+### ZFS rehearsal (opt-in)
+
+```sh
+DEV_ZFS=1 dev/up.sh
+```
+
+Adds `infra/clusters/butane/zfs.yaml` to node2 only (Terraform variable `zfs_image`, set from `DEV_ZFS_IMAGE`,
+default `ghcr.io/alxbl/lab/fcos:latest`; pin a digest to mirror production) and attaches `DEV_ZFS_DISKS`
+(default 4) 2G virtio data disks (serials `zfsdata1..N`, `/dev/disk/by-id/virtio-zfsdataN`). On first boot node2 rebases onto the
+image, reboots (sshd and the Typhoon bootstrap only start after that), then imports pools by scanning.
+
+`sudo dev/vm.sh reinstall node2` recreates node2 with an empty root disk and keeps the data disks, so it PXE installs a
+fresh OS (use after `zpool export`, with matchbox running). `dev/vm.sh destroy` (and so `dev/up.sh`) deletes the data disks.
+
+`scripts/test/zfs-butane.sh` checks the snippet.
 
 ### Stop
 

@@ -29,11 +29,12 @@ variable "zfs_image" {
   default = "ghcr.io/alxbl/lab/fcos@sha256:c3f66a675424002b2c980891a13b820f4ce5500c4c0f407995b4870bc17616e1"
 }
 
-# Serial console for the PXE installer and the installed OS, e.g. "ttyS1" (TF_VAR_console). The DL380p iLO serial port
-# has to be confirmed first; empty disables it.
+# Serial console for the PXE installer and the installed OS (TF_VAR_console overrides, empty disables it).
+# ttyS1 (COM2) is the DL380p iLO virtual serial port: verified by writing to both UARTs while attached to Serial-over-LAN
+# (only ttyS1 arrived). iLO's SOL speed is 115.2 kbps. The BIOS itself does not redirect its console (ACPI SPCR is empty).
 variable "console" {
   type    = string
-  default = ""
+  default = "ttyS1"
 }
 
 locals {

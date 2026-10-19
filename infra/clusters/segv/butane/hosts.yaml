@@ -1,0 +1,13 @@
+# The API server name must resolve on the node itself (Cilium and the kubelet use it) without depending on DNS.
+variant: fcos
+version: 1.5.0
+storage:
+  files:
+    - path: /etc/hosts
+      overwrite: true
+      contents:
+        inline: |
+          127.0.0.1   localhost localhost.localdomain
+          ::1         localhost localhost.localdomain
+          10.0.0.6    tachyon.lan tachyon
+      mode: 0644

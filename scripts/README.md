@@ -6,7 +6,15 @@ Scripts used only for the development cluster live in `dev/`, see
 [DEVELOPMENT.md](../DEVELOPMENT.md). Tools such as `terraform`, `kubectl`
 and `helm` are expected to be installed on the host.
 
+## install-cilium.sh
+
+`install-cilium.sh [--nodes N] <kubeconfig> <cluster>` installs the Gateway API CRDs and Cilium
+(chart version from the system catalog, values from `infra/system/cilium`) on a cluster whose nodes
+have no CNI yet. Used by `dev/up.sh` and the segv bootstrap; ArgoCD adopts the Helm release.
+
 ## bootstrap.sh
+
+**Legacy**: not used for segv any more (see README.md "Usage"). It stops DNS services and edits iptables.
 
 Bootstraps the production cluster: starts matchbox and the proxyDHCP
 server, runs `terraform apply` for `infra/clusters/segv`, then tears

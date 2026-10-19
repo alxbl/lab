@@ -127,7 +127,7 @@ storage:
   size: 1G
   # The storage class to use. "" for default. Recommended RWX volume so that media server and aquisition
   # can run on different nodes.
-  storageClass: "zfs-rwx"
+  storageClass: "local-zfs"
   accessMode: ReadWriteMany
   # Bind the claim to this pre-created PV (static local volume). Empty for dynamically provisioned volumes.
   volumeName: ""

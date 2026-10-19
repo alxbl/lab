@@ -16,7 +16,8 @@ spec:
         storage:
           create: true
           size: 5Gi
-          storageClass: 'zfs-rwo'
+          storageClass: 'local-zfs'
+          volumeName: adguard
           accessMode: ReadWriteOnce
     path: charts/adguard
     repoURL: {{ .Values.spec.source.repoURL }}

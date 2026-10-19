@@ -27,7 +27,10 @@ serviceAccount:
 
 podAnnotations: {}
 podLabels: {}
-podSecurityContext: {}
+podSecurityContext:
+  # level s0: pods that share a volume must use one SELinux level (see charts/aquisition).
+  seLinuxOptions:
+    level: "s0"
 
 securityContext:
   # FIXME: Configurable users without having to run privileged (init?)
@@ -90,9 +93,11 @@ smb:
 storage:
   create: true
   name: smbd-data
-  storageClass: "zfs-rwo"
+  storageClass: "local-zfs"
   size: 1Gi
   accessMode: ReadWriteOnce
+  # Bind the claim to this pre-created PV (infra/system/storage).
+  volumeName: ""
 
 nodeSelector: {}
 tolerations: []

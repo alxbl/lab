@@ -18,3 +18,7 @@ spec:
       valuesObject:
         podAnnotations:
           backup.velero.io/backup-volumes: satisfactory-data
+        storage:
+          storageClass: local-zfs
+          volumeName: satisfactory
+          size: 28Gi

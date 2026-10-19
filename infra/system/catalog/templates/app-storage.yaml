@@ -1,0 +1,16 @@
+# Static local volumes on the ZFS datasets under /var/data/k8s (see infra/system/storage).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: storage
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: {{ .Values.spec.destination.server }}
+  project: system
+  source:
+    path: infra/system/storage
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}

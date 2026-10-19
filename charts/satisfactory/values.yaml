@@ -63,9 +63,11 @@ service:
 storage:
   create: true
   name: satisfactory-data
-  storageClass: "zfs-rwo"
+  storageClass: "local-zfs"
   size: 30G
   accessMode: ReadWriteOnce
+  # Bind the claim to this pre-created PV (infra/system/storage).
+  volumeName: ""
 
 nodeSelector: {}
 

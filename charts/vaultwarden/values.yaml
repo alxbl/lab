@@ -26,6 +26,7 @@ podLabels: {}
 
 podSecurityContext:
   fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
 
 securityContext:
   capabilities:
@@ -66,9 +67,11 @@ vaultwarden:
 storage:
   create: true
   name: vaultwarden-data
-  storageClass: "zfs-rwo"
+  storageClass: "local-zfs"
   size: 5Gi
   accessMode: ReadWriteOnce
+  # Bind the claim to this pre-created PV (infra/system/storage).
+  volumeName: ""
 
 resources: {}
 nodeSelector: {}

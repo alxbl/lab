@@ -8,6 +8,7 @@
     ],
     "args": [
       "initrd=main",
+      "modprobe.blacklist=vc4",
       "coreos.live.rootfs_url=http://matchbox.lan:8080/assets/fedora-coreos/fedora-coreos-44.20260928.3.1-live-rootfs.aarch64.img",
       "systemd.journald.max_level_console=debug",
       "ignition.firstboot",

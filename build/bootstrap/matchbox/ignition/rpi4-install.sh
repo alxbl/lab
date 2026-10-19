@@ -15,7 +15,11 @@ FIRMWARE=(
   overlays/upstream-pi4.dtbo
 )
 
-coreos-installer install "$DEV" --ignition-url "$MATCHBOX/assets/node-arm64.ign"
+# coreos-installer refuses plain-HTTP --ignition-url without a hash.
+ign=$(mktemp)
+curl -fsS -o "$ign" "$MATCHBOX/assets/node-arm64.ign"
+# vc4 retries probing forever on this kernel, which keeps udev from settling.
+coreos-installer install "$DEV" --ignition-file "$ign" --append-karg modprobe.blacklist=vc4
 udevadm settle
 
 esp=$(mktemp -d)

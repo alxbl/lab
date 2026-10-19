@@ -25,7 +25,11 @@ podAnnotations: {}
 podLabels: {}
 
 # No fsGroup: on a local PV kubelet would recursively chown the whole volume. Jellyfin runs as 1000.
-podSecurityContext: {}
+# level s0: every pod sharing the media volume uses the same SELinux level, otherwise the runtime relabels the volume
+# per pod (random MCS) and the other pods lose access. Must match the volume (container_file_t:s0).
+podSecurityContext:
+  seLinuxOptions:
+    level: "s0"
 
 securityContext:
   #capabilities:

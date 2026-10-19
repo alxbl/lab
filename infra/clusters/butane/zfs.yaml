@@ -35,6 +35,10 @@ systemd:
     - name: zfs.target
       enabled: true
 storage:
+  directories:
+    # The kubelet container bind-mounts /var/data (below): podman refuses to start it if the path is missing, e.g. on a node
+    # whose pool is not imported (yet). An existing empty directory does not get in the way of the ZFS mount.
+    - path: /var/data
   links:
     # The image's preset disables zfs-import-scan, and the preset applied by the rebase wins over Ignition's `enabled`.
     - path: /etc/systemd/system/zfs-import.target.wants/zfs-import-scan.service

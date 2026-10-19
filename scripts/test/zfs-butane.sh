@@ -26,6 +26,7 @@ for u in zfs-import.target zfs-mount.service zfs.target zfs-rebase.service; do
 done
 [[ $(jq -r '.storage.links[] | select(.target == "/usr/lib/systemd/system/zfs-import-scan.service") | .path' <<<"$ign") == /etc/systemd/system/zfs-import.target.wants/zfs-import-scan.service ]] || fail "zfs-import-scan not enabled"
 jq -e '.storage.files[] | select(.path == "/etc/containers/containers.conf.d/10-data.conf")' <<<"$ign" >/dev/null || fail "kubelet /var/data volume missing"
+jq -e '.storage.directories[] | select(.path == "/var/data")' <<<"$ign" >/dev/null || fail "/var/data is not created for the kubelet volume"
 grep -qF 'volumes = ["/var/data:/var/data:rslave"]' "$SNIPPET" || fail "kubelet /var/data volume is not rslave"
 rebase=$(unit zfs-rebase.service .contents)
 grep -qx 'Before=sshd.service' <<<"$rebase" || fail "rebase not ordered before sshd"

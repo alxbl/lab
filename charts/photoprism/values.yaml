@@ -33,6 +33,11 @@ podAnnotations: {}
 podLabels: {}
 podSecurityContext:
   fsGroup: 1000
+  # The photos volume (smbd-data) is large: only chown when the volume root does not already match.
+  fsGroupChangePolicy: OnRootMismatch
+  # level s0: pods that share a volume must use one SELinux level (see charts/aquisition).
+  seLinuxOptions:
+    level: "s0"
 
 securityContext:
   privileged: false
@@ -51,16 +56,20 @@ storage:
   photos:
     create: true
     name: photoprism-data
-    storageClass: "zfs-rwo"
+    storageClass: "local-zfs"
     size: 1Gi
     accessMode: ReadWriteOnce
+    # Bind the claim to this pre-created PV (infra/system/storage).
+    volumeName: ""
   # Volume on which the database will be stored.
   database:
     create: true
     name: photoprism-cache
-    storageClass: "zfs-rwo"
+    storageClass: "local-zfs"
     size: 1Gi
     accessMode: ReadWriteOnce
+    # Bind the claim to this pre-created PV (infra/system/storage).
+    volumeName: ""
 
 # A reference to a secret which contains the secret bits of configuration options.
 

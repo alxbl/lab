@@ -1,0 +1,26 @@
+# Dataset data/k8s/home-assistant, claimed by home/home-assistant-home-assistant-0.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: home-assistant
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-zfs
+  volumeMode: Filesystem
+  local:
+    path: /var/data/k8s/home-assistant
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - tachyon.lan
+  claimRef:
+    namespace: home
+    name: home-assistant-home-assistant-0

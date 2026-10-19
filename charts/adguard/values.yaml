@@ -38,9 +38,11 @@ service:
 storage:
   create: true
   name: adguard-data
-  storageClass: "zfs-rwo"
+  storageClass: "local-zfs"
   size: 5Gi
   accessMode: ReadWriteOnce
+  # Bind the claim to this pre-created PV (infra/system/storage).
+  volumeName: ""
 
 resources:
   limits:

@@ -4,3 +4,9 @@ kind: Kustomization
 resources:
 - storageclass.yaml
 - pv-media.yaml
+- pv-adguard.yaml
+- pv-home-assistant.yaml
+- pv-vaultwarden.yaml
+- pv-photoprism-db.yaml
+- pv-satisfactory.yaml
+- pv-smbd.yaml

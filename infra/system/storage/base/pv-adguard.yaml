@@ -1,0 +1,26 @@
+# Dataset data/k8s/adguard, claimed by home/adguard-data.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: adguard
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-zfs
+  volumeMode: Filesystem
+  local:
+    path: /var/data/k8s/adguard
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - tachyon.lan
+  claimRef:
+    namespace: home
+    name: adguard-data

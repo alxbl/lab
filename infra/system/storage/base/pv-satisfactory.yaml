@@ -1,0 +1,26 @@
+# Dataset data/k8s/satisfactory, claimed by satisfactory/satisfactory-data.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: satisfactory
+spec:
+  capacity:
+    storage: 28Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-zfs
+  volumeMode: Filesystem
+  local:
+    path: /var/data/k8s/satisfactory
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - tachyon.lan
+  claimRef:
+    namespace: satisfactory
+    name: satisfactory-data

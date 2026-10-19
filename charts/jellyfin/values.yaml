@@ -51,7 +51,7 @@ storage:
   name: media-server-pvc
   create: false
   size: 1Gi
-  storageClass: "zfs-rwx"
+  storageClass: "local-zfs"
   accessMode: ReadWriteMany
   # Bind the claim to this pre-created PV (static local volume). Empty for dynamically provisioned volumes.
   volumeName: ""

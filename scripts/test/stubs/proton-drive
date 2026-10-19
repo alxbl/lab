@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Test stub for the proton-drive CLI: remote paths map to $FAKE_REMOTE, calls are appended to $FAKE_LOG.
+set -euo pipefail
+echo "proton-drive $*" >>"$FAKE_LOG"
+[[ $1 == filesystem ]] || exit 2
+shift
+op=$1; shift
+args=()
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -f|-d|--file-conflict-strategy|--folder-conflict-strategy) shift 2 ;;
+    -t) shift ;;
+    *) args+=("$1"); shift ;;
+  esac
+done
+case $op in
+  info) [[ -e $FAKE_REMOTE${args[0]} ]] ;;
+  create-folder) [[ -d $FAKE_REMOTE${args[0]} ]] && mkdir -p "$FAKE_REMOTE${args[0]}/${args[1]}" ;;
+  upload)
+    parent=${args[-1]}
+    [[ -d $FAKE_REMOTE$parent ]] || { echo "no such remote folder: $parent" >&2; exit 1; }
+    for src in "${args[@]:0:${#args[@]}-1}"; do
+      mkdir -p "$FAKE_REMOTE$parent/$(basename "$src")"
+      cp -r "$src/." "$FAKE_REMOTE$parent/$(basename "$src")/"
+    done ;;
+  download)
+    dest=${args[-1]}
+    for src in "${args[@]:0:${#args[@]}-1}"; do
+      [[ -e $FAKE_REMOTE$src ]] || { echo "no such remote path: $src" >&2; exit 1; }
+      cp -r "$FAKE_REMOTE$src" "$dest/"
+    done ;;
+  *) exit 2 ;;
+esac

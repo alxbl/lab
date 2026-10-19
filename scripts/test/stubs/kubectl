@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Test stub for kubectl. Cluster state: $FAKE_CLUSTER/<ns>/<name>.json (secrets), $FAKE_CLUSTER/<ns>/ (namespaces).
+# Mutating calls are appended to $FAKE_LOG.
+set -euo pipefail
+[[ $1 == --kubeconfig ]] && shift 2
+ns=
+[[ ${1:-} == -n ]] && { ns=$2; shift 2; }
+case $1 in
+  get)
+    case $2 in
+      secret) [[ -f $FAKE_CLUSTER/$ns/$3.json ]] && cat "$FAKE_CLUSTER/$ns/$3.json" || { echo "NotFound" >&2; exit 1; } ;;
+      namespace) [[ -d $FAKE_CLUSTER/$3 ]] ;;
+    esac ;;
+  create)
+    if [[ $2 == namespace ]]; then mkdir -p "$FAKE_CLUSTER/$3"; echo "kubectl create namespace $3" >>"$FAKE_LOG"
+    else python3 -I -c 'import sys, json, yaml; print(yaml.safe_dump(json.load(sys.stdin)), end="")'; fi ;;
+  apply) echo "kubectl $*" >>"$FAKE_LOG" ;;
+  config) echo "https://fake.example:6443" ;;
+  *) exit 2 ;;
+esac

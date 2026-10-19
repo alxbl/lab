@@ -30,15 +30,24 @@ for talking to matchbox during bootstrapping.
 Downloads the Fedora CoreOS PXE assets into the matchbox assets
 directory (`build/bootstrap/matchbox/assets`).
 
+## export-secrets / import-secrets
+
+**Require `proton-drive`, logged in**
+
+`export-secrets <kubeconfig>` copies the Secrets listed in `scripts/secrets.list`
+from a cluster to Proton Drive (`/my-files/Documents/Homelab/_secrets/<cluster>/manifests`),
+stripping cluster-specific metadata. `import-secrets [--dry-run] <kubeconfig> [namespace...]`
+applies them to a cluster, creating missing namespaces.
+
 ## import-certs
 
-**Requires secrets drive**
+**Requires `proton-drive`, logged in**
 
-This copies the relevant public certificates into `/pki` of the repository and
-is required for some of the bootstrapping code that uses certificates.
+This copies the relevant public certificates from Proton Drive into `/pki` of the
+repository and is required for some of the bootstrapping code that uses certificates.
 
-For privacy reasons, only my root level CA is committed, the rest of the PKI is
-stored offline
+For privacy reasons, only my root level CA is committed.
+
 
 ## pacstrap.sh
 

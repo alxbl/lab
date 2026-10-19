@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# USAGE: ./scripts/rpi-tftp-links [groups-dir] [tftp-dir]
+#
+# Creates MAC address symlinks for known RPI4 profiles so that they can pull
+# their firmwares and netboot successfully.
+set -euo pipefail
+
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+GROUPS_DIR=${1:-$ROOT/build/bootstrap/matchbox/groups}
+TFTP_DIR=${2:-$ROOT/build/bootstrap/tftp}
+
+for group in "$GROUPS_DIR"/rpi4-*.json; do
+  [[ -e $group ]] || continue
+  mac=$(jq -er '.selector.mac' "$group")
+  link=$(tr 'A-F:' 'a-f-' <<<"$mac")
+  ln -sfn rpi4 "$TFTP_DIR/$link"
+  echo "$link -> rpi4"
+  serial=$(jq -r '.metadata.serial // empty' "$group")
+  if [[ -n $serial ]]; then
+    ln -sfn rpi4 "$TFTP_DIR/$serial"
+    echo "$serial -> rpi4"
+  fi
+done

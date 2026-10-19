@@ -71,8 +71,8 @@ docker-compose -f "$REPO_ROOT/build/bootstrap/docker-compose.yml" up -d
 function do_bootstrap {
 
   #############################################################################################
-  # echo "Creating symlinks for RPI4 nodes"
-  # TODO
+  echo "[*] Creating TFTP directories for RPI4 nodes"
+  "$REPO_ROOT/scripts/rpi-tftp-links"
 
   #############################################################################################
   echo "[*] Bootstrapping cluster..."

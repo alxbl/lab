@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# USAGE: ./scripts/rpi-recovery-image pieeprom.bin recovery.bin [out.img]
+#
+# Builds an image to flash an RPI4 firmware to support netboot.
+# `dd` the image to an SD card to quickly flash RPI4s.
+set -euo pipefail
+
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
+if [[ $# -lt 2 || $# -gt 3 ]]; then
+  echo "usage: $0 pieeprom.bin recovery.bin [out.img]" >&2
+  exit 2
+fi
+BIN=$1
+RECOVERY=$2
+OUT=${3:-rpi4-recovery.img}
+
+for tool in mkfs.vfat mcopy; do
+  command -v "$tool" >/dev/null || { echo "$tool not found" >&2; exit 1; }
+done
+[[ -f $RECOVERY ]] || { echo "$RECOVERY not found" >&2; exit 1; }
+
+TMP=$(mktemp -d)
+trap 'rm -rf "$TMP"' EXIT
+
+"$ROOT/rpi-eeprom-build" "$BIN" "$TMP" >/dev/null
+cp "$RECOVERY" "$TMP/recovery.bin"
+
+truncate -s 8M "$OUT"
+mkfs.vfat -F 32 "$OUT" >/dev/null
+mcopy -i "$OUT" "$TMP/recovery.bin" "$TMP/pieeprom.upd" "$TMP/pieeprom.sig" ::
+echo "Wrote $OUT"

@@ -1,7 +1,7 @@
 {
   "id": "rpi4-ceres",
   "name": "Ceres",
-  "profile": "k8s-ctl-arm64",
+  "profile": "fcos-live-arm64",
   "selector": {
     "mac": "e4:5f:01:23:f0:8e"
   },

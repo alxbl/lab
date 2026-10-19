@@ -11,6 +11,9 @@ build/bootstrap/matchbox/profiles/*
 build/bootstrap/matchbox/groups/*
 build/bootstrap/matchbox/assets/fedora-coreos/*
 !build/bootstrap/matchbox/assets/fedora-coreos/.keep
+# Mount points that docker creates for the Pi assets in build/bootstrap/docker-compose.yml
+build/bootstrap/matchbox/assets/rpi4
+build/bootstrap/matchbox/assets/node-arm64.ign
 
 # chart dependencies
 *.tgz

@@ -28,7 +28,32 @@ for talking to matchbox during bootstrapping.
 ## get-fedora-coreos
 
 Downloads the Fedora CoreOS PXE assets into the matchbox assets
-directory (`build/bootstrap/matchbox/assets`).
+directory (`build/bootstrap/matchbox/assets`). Pass the architecture as the
+fourth argument, e.g. `get-fedora-coreos stable "" "" aarch64` for the Pi 4.
+
+## rpi-eeprom-build
+
+Builds `pieeprom.upd` and `pieeprom.sig` from `build/bootstrap/rpi4/boot.conf`
+and a stock `pieeprom.bin`, into the TFTP directory served to Raspberry Pi 4
+nodes. Requires `rpi-eeprom-config`.
+
+## rpi-recovery-image
+
+Builds a FAT image that flashes the Pi 4 EEPROM config (`rpi-eeprom-build`
+output plus `recovery.bin`). Run it once, `dd` the image to an SD card or USB
+stick, and use that media to prepare each Pi before it is racked. Requires
+`mkfs.vfat` and `mcopy`.
+
+## build-rpi4-uefi
+
+Builds the pftf/RPi4 EDK2 firmware (`RPI_EFI.fd`) in a container, with full RAM
+and device tree as defaults (`rpi4-uefi-defaults`). Netbooted Pis cannot save UEFI
+settings, so the defaults must be compiled in. Needs docker or podman.
+
+## rpi-tftp-links
+
+Links `build/bootstrap/tftp/<mac>` to `tftp/rpi4` for every `rpi4-*.json`
+matchbox group. Run by `bootstrap.sh`.
 
 ## import-certs
 

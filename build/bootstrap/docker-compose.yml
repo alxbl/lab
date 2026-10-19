@@ -6,13 +6,15 @@ services:
   #    -v ./matchbox/groups/fedora-coreos:/var/lib/matchbox/groups:Z \
   #    quay.io/poseidon/matchbox:latest -address=0.0.0.0:8080 -log-level=debug
   matchbox:
-    image: quay.io/poseidon/matchbox:latest
+    image: quay.io/poseidon/matchbox:v0.11.0
     ports:
       - 8080:8080
       - 8081:8081
     command: ['-address=0.0.0.0:8080', '-rpc-address=0.0.0.0:8081', '-log-level=trace', '-assets-path=/var/lib/matchbox/assets']
     volumes:
       - ./matchbox:/var/lib/matchbox
+      - ./tftp/rpi4:/var/lib/matchbox/assets/rpi4:ro,Z
+      - ./matchbox/ignition/node-arm64.ign:/var/lib/matchbox/assets/node-arm64.ign:ro,Z
       - ./../../pki/server.key:/etc/matchbox/server.key:Z
       - ./../../pki/server.crt:/etc/matchbox/server.crt:Z
       - ./../../pki/ca.crt:/etc/matchbox/ca.crt:Z

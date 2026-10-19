@@ -91,10 +91,21 @@ segv/
 
 ### Usage
 
-- Ensure requirements are met
-- Run `scripts/bootstrap.sh`
-- When prompted, power on the machines so that they network boot
-- Grab a coffee and wait
+`scripts/bootstrap.sh` is no longer used: it stops DNS services and edits iptables. Run the steps by hand
+(this reinstalls the node, wiping its root disk; the ZFS pool on the other disks is untouched):
+
+1. Ensure requirements are met, `proton-drive` is logged in, and `matchbox.lan` resolves (UDM DNS) to this host.
+2. `scripts/bootstrap-pki` if `pki/` has no certificates, and `scripts/get-fedora-coreos stable <os_version>`
+   for the `os_version` in `infra/clusters/segv/segv.tf` if the assets are missing.
+3. Export the pool first if it is imported: `systemctl stop kubelet` on the node, then `zpool export data`.
+4. Start the netboot stack: `docker compose -f build/bootstrap/docker-compose.yml up -d`. Open the PXE ports in the
+   firewall if needed (TCP 8080; UDP 67, 69, 4011) and close them again afterwards. Keep any Raspberry Pi powered off.
+5. `terraform init && terraform apply` in `infra/clusters/segv`. Power on (or one-time PXE boot) the node. Use
+   `TF_VAR_console=ttyS1` for a serial console and `TF_VAR_zfs_image=...` to change the pinned ZFS image.
+6. When the node is up: `docker compose -f build/bootstrap/docker-compose.yml down`, import the pool if needed
+   (`zpool import data`), then `scripts/install-cilium.sh infra/clusters/segv/kube.conf segv`.
+7. Install ArgoCD (`kubectl apply --server-side --force-conflicts -k infra/system/argocd`, twice), then
+   `scripts/import-secrets <kubeconfig>` and sync the catalogs.
 
 terraform will report that it is waiting for provisioning as such:
 

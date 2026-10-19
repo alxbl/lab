@@ -1,5 +1,7 @@
 #!/bin/env zsh
 
+# LEGACY, not used for segv: it stops DNS services and edits iptables. The manual procedure is in README.md ("Usage").
+
 # Exit on first error to make script simpler
 set -e
 

@@ -37,8 +37,9 @@ chmod +x "$TMP/bin/rpi-eeprom-config"
 echo bootloader >"$TMP/pieeprom.bin"
 PATH="$TMP/bin:$PATH" "$HERE/../rpi-eeprom-build" "$TMP/pieeprom.bin" "$TMP/out" >/dev/null
 grep -q '^TFTP_PREFIX=2$' "$TMP/out/pieeprom.upd" || { echo "FAIL: boot.conf not applied"; exit 1; }
-[[ $(<"$TMP/out/pieeprom.sig") == "$(sha256sum "$TMP/out/pieeprom.upd" | cut -d' ' -f1)" ]] \
-  || { echo "FAIL: bad pieeprom.sig"; exit 1; }
+[[ $(head -1 "$TMP/out/pieeprom.sig") == "$(sha256sum "$TMP/out/pieeprom.upd" | cut -d' ' -f1)" ]] \
+  || { echo "FAIL: bad pieeprom.sig digest"; exit 1; }
+grep -Eq '^ts: [0-9]+$' "$TMP/out/pieeprom.sig" || { echo "FAIL: pieeprom.sig has no timestamp"; exit 1; }
 if "$HERE/../rpi-eeprom-build" >/dev/null 2>&1; then echo "FAIL: missing arg accepted"; exit 1; fi
 if PATH="$TMP/bin:$PATH" "$HERE/../rpi-eeprom-build" "$TMP/missing.bin" "$TMP/out" >/dev/null 2>&1; then
   echo "FAIL: missing input accepted"; exit 1

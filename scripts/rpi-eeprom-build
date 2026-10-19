@@ -22,5 +22,6 @@ command -v rpi-eeprom-config >/dev/null || { echo "rpi-eeprom-config not found" 
 
 mkdir -p "$OUT"
 rpi-eeprom-config --config "$CONF" --out "$OUT/pieeprom.upd" "$BIN"
-sha256sum "$OUT/pieeprom.upd" | cut -d' ' -f1 >"$OUT/pieeprom.sig"
+# The bootloader skips an update unless ts is newer than the installed EEPROM's.
+{ sha256sum "$OUT/pieeprom.upd" | cut -d' ' -f1; echo "ts: $(date +%s)"; } >"$OUT/pieeprom.sig"
 echo "Wrote $OUT/pieeprom.upd and pieeprom.sig"

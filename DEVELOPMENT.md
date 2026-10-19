@@ -60,7 +60,10 @@ default `ghcr.io/alxbl/lab/fcos:latest`; pin a digest to mirror production) and 
 image, reboots (sshd and the Typhoon bootstrap only start after that), then imports pools by scanning.
 
 `sudo dev/vm.sh reinstall node2` recreates node2 with an empty root disk and keeps the data disks, so it PXE installs a
-fresh OS (use after `zpool export`, with matchbox running). `dev/vm.sh destroy` (and so `dev/up.sh`) deletes the data disks.
+fresh OS (use after `zpool export`, with matchbox running; `zpool export` needs `systemctl stop kubelet` first, because the
+kubelet container holds the mounts). After it boots (install, rebase, one reboot) run `terraform apply -replace='module.dev.module.workers[0].null_resource.copy-worker-secrets'`
+in `infra/clusters/dev` (with `TF_VAR_zfs_image` set as `dev/up.sh` does) so node2 gets its kubelet secrets and rejoins. The pool imports
+by itself, without `-f`. `dev/vm.sh destroy` (and so `dev/up.sh`) deletes the data disks.
 
 `scripts/test/zfs-butane.sh` checks the snippet.
 

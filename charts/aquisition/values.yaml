@@ -29,8 +29,8 @@ podLabels:
   sidecar.istio.io/inject: "false"
 
 
-podSecurityContext:
-  fsGroup: 1000
+# No fsGroup: on a local PV kubelet would recursively chown the whole volume. All containers run as 1000:1000.
+podSecurityContext: {}
 
 # securityContext for all containers other than gluetun.
 securityContext: {}
@@ -129,6 +129,8 @@ storage:
   # can run on different nodes.
   storageClass: "zfs-rwx"
   accessMode: ReadWriteMany
+  # Bind the claim to this pre-created PV (static local volume). Empty for dynamically provisioned volumes.
+  volumeName: ""
 
 # Standard Helm Boilerplate.
 serviceAccount:

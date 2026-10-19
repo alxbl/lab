@@ -1,0 +1,15 @@
+# Media pilot on the old cluster: the existing PVC media-server-pvc (OpenEBS NFS) stays untouched,
+# so the static volume is claimed by a second PVC. Not used for the cutover.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- ../../base
+patches:
+- target:
+    kind: PersistentVolume
+    name: media
+  patch: |-
+    - op: replace
+      path: /spec/claimRef/name
+      value: media-local

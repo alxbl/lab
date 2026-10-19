@@ -24,8 +24,8 @@ serviceAccount:
 podAnnotations: {}
 podLabels: {}
 
-podSecurityContext:
-  fsGroup: 1000
+# No fsGroup: on a local PV kubelet would recursively chown the whole volume. Jellyfin runs as 1000.
+podSecurityContext: {}
 
 securityContext:
   #capabilities:
@@ -49,6 +49,8 @@ storage:
   size: 1Gi
   storageClass: "zfs-rwx"
   accessMode: ReadWriteMany
+  # Bind the claim to this pre-created PV (static local volume). Empty for dynamically provisioned volumes.
+  volumeName: ""
 
 resources: {}
   # limits:

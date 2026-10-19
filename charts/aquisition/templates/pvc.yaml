@@ -1,4 +1,4 @@
-{{- if .Values.storage.create -}}
+{{- if and .Values.storage.create (not .Values.storage.hostPath) -}}
 {{- with .Values.storage -}}
 kind: PersistentVolumeClaim
 apiVersion: v1

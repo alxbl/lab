@@ -58,8 +58,14 @@ spec:
               mountPath: /cache
       volumes:
         - name: media
+          {{- if .Values.storage.hostPath }}
+          hostPath:
+            path: {{ .Values.storage.hostPath | quote }}
+            type: Directory
+          {{- else }}
           persistentVolumeClaim:
             claimName: {{ .Values.storage.name | quote }}
+          {{- end }}
         - name: cache
           emptyDir:
       {{- with .Values.nodeSelector }}

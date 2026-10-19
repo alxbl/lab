@@ -51,6 +51,9 @@ storage:
   accessMode: ReadWriteMany
   # Bind the claim to this pre-created PV (static local volume). Empty for dynamically provisioned volumes.
   volumeName: ""
+  # Mount this host directory instead of a claim. hostPath volumes are never SELinux-relabeled by the runtime,
+  # which matters for datasets mounted with a fixed `context=` label on containerd < 1.7.
+  hostPath: ""
 
 resources: {}
   # limits:

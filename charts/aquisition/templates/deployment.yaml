@@ -186,8 +186,14 @@ spec:
         - name: scratch
           emptyDir:
         - name: media
+          {{- if .Values.storage.hostPath }}
+          hostPath:
+            path: {{ .Values.storage.hostPath | quote }}
+            type: Directory
+          {{- else }}
           persistentVolumeClaim:
             claimName: {{ .Values.storage.name | quote }}
+          {{- end }}
         - name: firewall-rules
           configMap:
             name: vpn-firewall

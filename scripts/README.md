@@ -12,6 +12,14 @@ Bootstraps the production cluster: starts matchbox and the proxyDHCP
 server, runs `terraform apply` for `infra/clusters/segv`, then tears
 everything down. See the top-level README for requirements.
 
+## arr-backup
+
+Runs the Backup command of Sonarr, Radarr and Prowlarr in the `aquisition`
+pod on segv, copies the zips to a local directory (default `./arr-backups`)
+and checks each database with `sqlite3`. Run it before arr major bumps.
+With `--keep N`, manual backups in the pod beyond the N newest (the new
+one included) are deleted after the new one verifies; otherwise none are pruned.
+
 ## bootstrap-pki
 
 Generates a throwaway CA, server and client certificates under `/pki`

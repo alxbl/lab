@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# USAGE: ./scripts/arr-backup [--keep N] [dest]
+#
+# Runs the built-in Backup command of Sonarr, Radarr and Prowlarr inside the
+# aquisition pod, copies the resulting zips to dest (default ./arr-backups) and
+# verifies each one. With --keep N, then deletes all but the N newest manual
+# backups in the pod (the new one counts). Uses the segv kubeconfig (KUBECONFIG, as set by .env). Stops on any failure.
+set -euo pipefail
+
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+# Same cluster as .env, which is zsh-only.
+export KUBECONFIG=${KUBECONFIG:-$ROOT/infra/clusters/segv/kube.conf}
+
+NS=${NS:-media}
+SELECTOR=app.kubernetes.io/name=aquisition
+KEEP=
+if [[ ${1:-} == --keep ]]; then
+  KEEP=${2:-}
+  [[ $KEEP =~ ^[1-9][0-9]*$ ]] || { echo "--keep needs a positive integer" >&2; exit 1; }
+  shift 2
+fi
+DEST=${1:-./arr-backups}
+APPS=(sonarr:Sonarr:v3 radarr:Radarr:v3 prowlarr:Prowlarr:v1)
+
+kubectl auth can-i create pods/exec -n "$NS" >/dev/null || {
+  echo "not allowed to exec into pods in $NS" >&2
+  exit 1
+}
+
+POD=$(kubectl get pod -n "$NS" -l "$SELECTOR" -o jsonpath='{.items[0].metadata.name}')
+[[ -n "$POD" ]] || { echo "no pod matches $SELECTOR in $NS" >&2; exit 1; }
+
+# Runs inside the container: triggers the backup, waits for it, prints the zip path.
+# The API key is read here and never leaves the container.
+REMOTE='
+set -eu
+app=$1 ver=$2
+dir=/media/.config/$app
+key=$(sed -n "s|.*<ApiKey>\(.*\)</ApiKey>.*|\1|p" "$dir/config.xml")
+port=$(sed -n "s|.*<Port>\(.*\)</Port>.*|\1|p" "$dir/config.xml")
+base=http://localhost:${port:-0}/api/$ver
+curl_api() { curl -fsS -H "X-Api-Key: $key" "$@"; }
+id=$(curl_api -H "Content-Type: application/json" -d "{\"name\":\"Backup\"}" "$base/command" \
+  | sed -n "s|.*\"id\": *\([0-9]*\).*|\1|p" | head -n1)
+[ -n "$id" ] || { echo "no command id returned" >&2; exit 1; }
+for _ in $(seq 120); do
+  status=$(curl_api "$base/command/$id" | sed -n "s|.*\"status\": *\"\([a-z]*\)\".*|\1|p" | head -n1)
+  case $status in
+    completed) ls -t "$dir"/Backups/manual/*.zip | head -n1; exit 0 ;;
+    failed) echo "$app backup command failed" >&2; exit 1 ;;
+  esac
+  sleep 2
+done
+echo "$app backup timed out" >&2
+exit 1
+'
+
+mkdir -p "$DEST"
+for entry in "${APPS[@]}"; do
+  IFS=: read -r container app ver <<<"$entry"
+  echo "==> $app"
+  remote_zip=$(kubectl exec -n "$NS" "$POD" -c "$container" -- sh -c "$REMOTE" sh "$app" "$ver")
+  local_zip=$DEST/$app-$(basename "$remote_zip")
+  kubectl exec -n "$NS" "$POD" -c "$container" -- cat "$remote_zip" >"$local_zip"
+
+  unzip -l "$local_zip" >/dev/null
+  tmp=$(mktemp -d)
+  unzip -q "$local_zip" '*.db' -d "$tmp"
+  for db in "$tmp"/*.db; do
+    result=$(sqlite3 "$db" 'PRAGMA integrity_check')
+    [[ "$result" == ok ]] || { echo "$app: integrity_check failed: $result" >&2; exit 1; }
+  done
+  rm -rf "$tmp"
+  echo "    $local_zip ok"
+
+  if [[ -n $KEEP ]]; then
+    kubectl exec -n "$NS" "$POD" -c "$container" -- sh -c \
+      'ls -t "$(dirname "$1")"/*.zip | tail -n +$(($2 + 1)) | xargs -r rm -v' sh "$remote_zip" "$KEEP"
+  fi
+done

@@ -70,32 +70,28 @@ The following tools must be available on the OS:
 
 Additionally, the user running the bootstrap script must be a `sudoer` (without password for maximum automation)
 
-Lastly, a removable media containing secrets must be plugged in the computer.
-`bootstrap.sh` will take care of mounting it and unmounting it as needed.
+Lastly, `proton-drive` must be installed and logged in: the cluster secrets and the PKI live in Proton Drive.
 
-### Secrets Drive Structure
+### Secrets (Proton Drive)
 
-> **NOTE**: Currently, the secrets drive is not encrypted. This is a future improvement.
-
-In the interest of reproducibility, here is the overall structure that the secrets drive must have:
+Secrets are stored end-to-end encrypted in Proton Drive.
+The path on the drive is configured with (`LAB_SECRETS_REMOTE`) and defaults to `/my-files/Documents/Homelab/_secrets`.
 
 ```plain
-TODO
+segv/
+  manifests/<namespace>/<secret-name>.yaml   Kubernetes Secrets (names listed in scripts/secrets.list)
+  pki/                                       easy-rsa PKI: ca.crt, issued/, private/ (CA keys are encrypted)
+  pki-tooling/                               setup.sh and vars used to build that PKI
+  pre-cutover/                               etcd snapshot, /etc tarball, terraform state (taken before reprovisioning) (FIXME: Remove after cutover)
 ```
 
-Additionally, set `LAB_SECRETS_PARTUUID` in `/.env` to the partition UUID of the secrets drive for automounting
-to work as expected:
-
-```sh
-lsblk -o NAME,UUID /dev/sda1
-# NAME      UUID
-# sda1 AB1C-999D
-```
+- `scripts/export-secrets <kubeconfig>` copies the listed Secrets from the cluster to `manifests/`.
+- `scripts/import-secrets [--dry-run] <kubeconfig> [namespace...]` applies them to the cluster.
+- `scripts/import-certs` copies public certificates into the repository's `pki/`.
 
 ### Usage
 
-- Ensure the requirements are met
-- Plug the secrets removable media in a port
+- Ensure requirements are met
 - Run `scripts/bootstrap.sh`
 - When prompted, power on the machines so that they network boot
 - Grab a coffee and wait

@@ -8,7 +8,7 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - Nodes wipe their root FS on reprovision (`infra/clusters/butane/wipe-root.yaml`). Treat any node reprovision as destructive.
 - `scripts/pacstrap.sh` partitions and wipes disks. Never run it.
 - Never commit secrets, kubeconfigs (`*.conf`, `kube.conf`), terraform state, or private PKI. Only the root CA is committed under `pki/`. `infra/examples/secrets` holds placeholders only.
-- The secrets drive (`LAB_SECRETS_PARTUUID`) is mounted at `/mnt` by the scripts. Don't touch it.
+- Secrets and the real PKI live in Proton Drive at `/my-files/Documents/Homelab/_secrets` (layout in `README.md`). Use `scripts/export-secrets` and `scripts/import-secrets`; never copy their contents into the repo, logs or chat.
 
 ## Environment
 - Source `.env` first (zsh). It sets `LAB_ROOT` and `KUBECONFIG`. Scripts assume it.

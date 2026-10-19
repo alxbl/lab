@@ -18,16 +18,6 @@ source "$REPO_ROOT/.env"
 
 # SETUP
 #############################################################################################
-if [[ ! -v BOOTSTRAP_NOSECRETS ]]; then
-  echo "[*] Mounting secrets drive..."
-  if [[ ! -e "/dev/disk/by-partuuid/$LAB_SECRETS_PARTUUID" ]]; then
-    echo "ERROR: secrets drive not detected. Make sure it is plugged before running this script"
-    exit 1
-  fi
-  sudo mount "/dev/disk/by-partuuid/$LAB_SECRETS_PARTUUID" /mnt
-fi
-
-#############################################################################################
 echo "[*] Stopping DNS services..."
 DNS_RESTORE=()
 for svc in $DNS_SERVICES; do
@@ -108,12 +98,6 @@ sudo iptables -D UDP -m udp -p udp --dport 67 -j ACCEPT
 sudo iptables -D UDP -m udp -p udp --dport 69 -j ACCEPT
 sudo iptables -D UDP -m udp -p udp --dport 4011 -j ACCEPT
 sudo iptables -D TCP -m tcp -p tcp --dport 8080 -j ACCEPT
-
-#############################################################################################
-if [[ ! -v BOOTSTRAP_NOSECRETS ]]; then
-  echo "[*] Unmounting secrets drive"
-  sudo umount /mnt
-fi
 
 #############################################################################################
 if [[ $fail -ne 0 ]]; then

@@ -152,34 +152,7 @@ wait $KICK_PID 2>/dev/null || true
 
 #############################################################################################
 # Typhoon installs no CNI (components.cilium.enable = false), so nodes stay NotReady until Cilium is up.
-# Gateway API CRDs must exist before cilium-operator starts.
-CILIUM_DIR="$REPO_ROOT/infra/system/cilium"
-CILIUM_VERSION=$(sed -n 's/^ *targetRevision: *\(1\.[0-9.]*\) *$/\1/p' "$REPO_ROOT/infra/system/catalog/templates/app-cilium.yaml" | head -1)
-if [[ -z $CILIUM_VERSION ]]; then
-  echo "[!] ERROR: could not parse the Cilium chart version from the system catalog"
-  exit 1
-fi
-# Zincati may reboot a node once shortly after install (the root is wiped and the node re-registers), so
-# wait for the nodes to register and retry the installs.
-function retry {
-  local n=0
-  until "$@"; do
-    (( ++n >= 10 )) && return 1
-    echo "  failed, retrying ($n/10)..."
-    sleep 15
-  done
-}
-echo -n "[*] Waiting for the nodes to register... "
-until (( $(kubectl --kubeconfig "$KUBECONF" get nodes --no-headers 2>/dev/null | wc -l) >= $#NODES )); do sleep 5; done
-echo "ok"
-echo "[*] Installing Gateway API CRDs..."
-retry kubectl --kubeconfig "$KUBECONF" apply --server-side --force-conflicts -k "$CILIUM_DIR/gateway-api" >/dev/null
-echo "[*] Installing Cilium $CILIUM_VERSION..."
-# No --wait: the hubble cert job is a post-install hook, which Helm only runs after --wait succeeds, and hubble-relay needs its certs.
-# Isolated repo state so a broken ~/.config/helm does not affect the dev bring-up.
-export HELM_REPOSITORY_CONFIG="$STATE_DIR/helm-repositories.yaml" HELM_REPOSITORY_CACHE="$STATE_DIR/helm-cache"
-retry helm --kubeconfig "$KUBECONF" upgrade --install cilium cilium --repo https://helm.cilium.io --version "$CILIUM_VERSION" \
-  -n kube-system -f "$CILIUM_DIR/values.yaml" -f "$CILIUM_DIR/values-dev.yaml" >/dev/null
+"$REPO_ROOT/scripts/install-cilium.sh" --nodes $#NODES "$KUBECONF" dev
 
 #############################################################################################
 echo "[*] Waiting for nodes to be Ready (timeout ${READY_TIMEOUT}s)..."

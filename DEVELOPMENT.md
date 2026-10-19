@@ -39,7 +39,7 @@ Every run is a full clean start and takes about 4-5 minutes. It:
 5. wipes the stale terraform state and `dev.conf`
 6. destroys and recreates the VMs (`dev/vm.sh`)
 7. runs `terraform apply` in `infra/clusters/dev`
-8. installs the Gateway API CRDs and Cilium with Helm (`infra/system/cilium`, values from `values.yaml` + `values-dev.yaml`);
+8. installs the Gateway API CRDs and Cilium with Helm (`scripts/install-cilium.sh`, `infra/system/cilium` values from `values.yaml` + `values-dev.yaml`);
    Typhoon is configured with `components.cilium.enable = false`, so the nodes have no CNI until this step
 9. once `qemu0` has its address, restarts dnsmasq (it can only bind after a VM
    attaches to the bridge) and resets the VMs once matchbox has profiles for

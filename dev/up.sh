@@ -4,6 +4,8 @@
 # Leaves matchbox and dnsmasq running so rebooting nodes can still PXE. Use dev/down.sh to stop them.
 #
 # Env: READY_TIMEOUT (seconds to wait for Ready nodes, default 900)
+#      DEV_ZFS=1 (opt-in) rebases node2 onto the ZFS image and attaches DEV_ZFS_DISKS (default 4) data disks to it.
+#      DEV_ZFS_IMAGE overrides the image reference (default ghcr.io/alxbl/lab/fcos:latest).
 
 set -e
 
@@ -19,6 +21,13 @@ REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
 source "$REPO_ROOT/.env"
 # .env points KUBECONFIG at the real cluster. Never let it leak into dev.
 unset KUBECONFIG
+
+if [[ ${DEV_ZFS:-0} == 1 ]]; then
+  export TF_VAR_zfs_image=${DEV_ZFS_IMAGE:-ghcr.io/alxbl/lab/fcos:latest}
+  export VM_DATA_DISKS=${DEV_ZFS_DISKS:-4}
+else
+  unset TF_VAR_zfs_image VM_DATA_DISKS
+fi
 
 CLUSTER_DIR="$REPO_ROOT/infra/clusters/dev"
 KUBECONF="$CLUSTER_DIR/dev.conf"
@@ -104,7 +113,7 @@ popd >/dev/null
 #############################################################################################
 echo "[*] Recreating VMs..."
 sudo "$REPO_ROOT/dev/vm.sh" destroy >/dev/null 2>&1 || true
-sudo "$REPO_ROOT/dev/vm.sh" create >/dev/null
+sudo --preserve-env=VM_DATA_DISKS "$REPO_ROOT/dev/vm.sh" create >/dev/null
 
 # Nodes cache old host keys; fresh installs generate new ones.
 for ip in 10.2.0.101 10.2.0.102; do ssh-keygen -R $ip >/dev/null 2>&1 || true; done

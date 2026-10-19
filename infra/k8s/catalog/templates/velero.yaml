@@ -13,6 +13,13 @@ spec:
     helm:
       valuesObject:
         # https://github.com/vmware-tanzu/helm-charts/blob/main/charts/velero/values.yaml
+        # The CRD upgrade hook defaults to bitnami/kubectl:<cluster minor>, which no longer exists. The hook copies sh and
+        # kubectl into the velero image, so the replacement must be a glibc image with a shell (not alpine or distroless).
+        kubectl:
+          image:
+            repository: docker.io/bitnamilegacy/kubectl
+            tag: "1.33"
+
         initContainers:
           - name: velero-plugin-for-microsoft-azure
             image: velero/velero-plugin-for-microsoft-azure:v1.9.2

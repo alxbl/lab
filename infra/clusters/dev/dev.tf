@@ -28,6 +28,18 @@ variable "zfs_image" {
   default = ""
 }
 
+# Opt-in serial console, e.g. "ttyS0": adds console=tty0 console=<port>,115200n8 to the PXE installer (kernel_args) and,
+# with zfs_image set, to the installed OS (appended by zfs-rebase before its reboot). Set by dev/up.sh with DEV_CONSOLE.
+variable "console" {
+  type    = string
+  default = ""
+}
+
+locals {
+  console_args  = var.console == "" ? [] : ["console=tty0", "console=${var.console},115200n8"]
+  console_kargs = var.console == "" ? "" : "ExecStart=/usr/bin/rpm-ostree kargs ${join(" ", [for a in local.console_args : "--append-if-missing=${a}"])}"
+}
+
 module "dev" {
   source = "git::https://github.com/poseidon/typhoon//bare-metal/fedora-coreos/kubernetes?ref=97ee4103eb27777c0d2411ef1a5c761f3d3ee462"
 
@@ -42,6 +54,7 @@ module "dev" {
   ssh_authorized_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO+M9LUT9LQWQFTxz7SR2jXhxyZs6rS5CLN2aFS6HMB5"
 
   install_disk = "/dev/vda"
+  kernel_args  = local.console_args
   cached_install = true
 
   # Avoid clashing with qemu0 stuff.
@@ -76,7 +89,7 @@ module "dev" {
     "node1" = [ file("../butane/wipe-root.yaml"), file("./butane/hosts.yaml") ]
     "node2" = concat(
       [ file("../butane/wipe-root.yaml"), file("./butane/hosts.yaml") ],
-      var.zfs_image == "" ? [] : [ replace(file("../butane/zfs.yaml"), "@ZFS_IMAGE@", var.zfs_image) ]
+      var.zfs_image == "" ? [] : [ replace(replace(file("../butane/zfs.yaml"), "@ZFS_IMAGE@", var.zfs_image), "@CONSOLE_KARGS@", local.console_kargs) ]
     )
   }
 }

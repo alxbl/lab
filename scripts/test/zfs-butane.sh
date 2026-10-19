@@ -10,7 +10,12 @@ if command -v butane >/dev/null; then butane=(butane)
 elif command -v podman >/dev/null; then butane=(podman run --rm -i quay.io/coreos/butane:release)
 else echo "SKIP: butane not available"; exit 0; fi
 
-ign=$(sed "s|@ZFS_IMAGE@|$IMAGE|" "$SNIPPET" | "${butane[@]}" --strict)
+KARGS="ExecStart=/usr/bin/rpm-ostree kargs --append-if-missing=console=tty0 --append-if-missing=console=ttyS1,115200n8"
+
+# render [console kargs line]: the placeholder is replaced by the line, or by nothing.
+render() { sed "s|@ZFS_IMAGE@|$IMAGE|; s|@CONSOLE_KARGS@|${1:-}|" "$SNIPPET" | "${butane[@]}" --strict; }
+
+ign=$(render)
 
 unit() { jq -r --arg n "$1" '.systemd.units[] | select(.name == $n) | '"$2" <<<"$ign"; }
 fail() { echo "FAIL: $*"; exit 1; }
@@ -27,4 +32,13 @@ grep -qx 'Before=sshd.service' <<<"$rebase" || fail "rebase not ordered before s
 grep -qx 'ConditionPathExists=!/var/lib/zfs-rebased' <<<"$rebase" || fail "rebase has no marker condition"
 grep -qx "ExecStart=/usr/bin/rpm-ostree rebase ostree-unverified-registry:$IMAGE" <<<"$rebase" || fail "image reference not substituted"
 [[ $(grep -n '^ExecStart=' <<<"$rebase" | sed 's/^[0-9]*:ExecStart=\/usr\/bin\///; s/ .*//' | paste -sd,) == rpm-ostree,touch,systemctl ]] || fail "rebase, marker, reboot out of order"
+
+# Opt-in serial console: appended after the rebase and before the reboot, so no extra reboot is needed.
+ign=$(render "$KARGS")
+rebase=$(unit zfs-rebase.service .contents)
+[[ $(grep -n '^ExecStart=' <<<"$rebase" | sed 's/^[0-9]*:ExecStart=\/usr\/bin\///; s/ .*//' | paste -sd,) == rpm-ostree,rpm-ostree,touch,systemctl ]] || fail "kargs not between rebase and marker"
+grep -qx "$KARGS" <<<"$rebase" || fail "console kargs line missing"
+[[ $(grep -c '^ExecStart=/usr/bin/rpm-ostree kargs' <<<"$rebase") == 1 ]] || fail "kargs must appear once"
+! jq -e ".kernelArguments" <<<"$ign" >/dev/null || fail "butane kernel_arguments would cause an extra reboot"
+grep -qF 'kernel_args  = local.console_args' "$HERE/../../infra/clusters/dev/dev.tf" || fail "dev.tf does not pass the console to the PXE installer"
 echo "ok"

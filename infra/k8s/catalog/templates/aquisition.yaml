@@ -28,6 +28,8 @@ spec:
           extra:
             PORT_FORWARD_ONLY: "on"
             VPN_PORT_FORWARDING: "on"
+            # Probe by IP: the startup healthcheck races gluetun's DNS server and restarts the VPN in a loop.
+            HEALTH_TARGET_ADDRESSES: "1.1.1.1:443,8.8.8.8:443"
     path: charts/aquisition
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}

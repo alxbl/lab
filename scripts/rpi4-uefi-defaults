@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # USAGE: ./scripts/rpi4-uefi-defaults RPi4.dsc
 #
-# Patches the EDK2 Raspberry Pi 4 platform file so the firmware defaults to
-# the full RAM (no 3 GB limit) and device tree system tables, which a netbooted
-# Pi cannot otherwise persist. Fails if the expected settings are not present.
+# Patches the EDK2 platform file to default the firmware to
+# full RAM (remove 3 GB limit) and use device tree system tables.
+#
+# This is necessary because Netbooted RPIs cannot persist EDK2 settings.
 set -euo pipefail
 
 [[ $# -eq 1 && -f $1 ]] || { echo "usage: $0 RPi4.dsc" >&2; exit 2; }

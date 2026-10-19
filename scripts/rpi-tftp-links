@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
 # USAGE: ./scripts/rpi-tftp-links [groups-dir] [tftp-dir]
 #
-# Links tftp/<mac> to tftp/rpi4 for every rpi4-*.json matchbox group. With
-# TFTP_PREFIX=2 (see build/bootstrap/rpi4/boot.conf) a Pi 4 requests its files
-# from a directory named after its MAC address, lowercase and hyphenated.
-# A Pi whose EEPROM has not been updated yet still uses its serial number, so a
-# group with metadata.serial also gets a tftp/<serial> link.
+# Creates MAC address symlinks for known RPI4 profiles so that they can pull
+# their firmwares and netboot successfully.
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)

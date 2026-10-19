@@ -1,6 +1,6 @@
 # Raspberry Pi 4 Network Boot Assets
 
-This directory conains the EDK2 UEFI firmware and Raspberry Pi 4 (Model B) files to
+This directory contains the EDK2 UEFI firmware and Raspberry Pi 4 (Model B) files to
 network boot into iPXE and Matchbox.
 
 The flow is as follows:
@@ -65,29 +65,37 @@ an SD card, as long as they have an attached disk over USB
 
 
 ## Usage
+> This works best with PoE HATs or built-in PoE.
+
 Run `scripts/rpi-tftp-links` (also done by `scripts/bootstrap.sh`) to create one
 directory link per `matchbox/groups/rpi4-*.json`, named after the Pi's MAC address
 (lowercase, hyphenated, as `TFTP_PREFIX=2` requests it). A group with
 `metadata.serial` also gets a serial-named link, which Pis use until their EEPROM is updated.
 
-A factory Pi 4 does not netboot, so each Pi needs its EEPROM flashed once:
+A factory Pi 4 does not netboot out of the box, so the EEPROM must be flashed manually.
+Setup an SD card to flash new Pis is simple:
 
 1. Download `pieeprom-*.bin` and `recovery.bin` from a raspberrypi/rpi-eeprom release.
 2. `scripts/rpi-recovery-image pieeprom.bin recovery.bin rpi4-recovery.img`
-3. `dd` the image to a spare SD card or USB stick (the same media works for every Pi).
-4. Boot the Pi from it with no other media, wait for the green LED to stay on
-   (the screen turns green if one is attached), then remove it and rack the Pi.
+3. `dd` the image to a spare SD card or USB stick.
+4. Boot the Pi from SD with no other media. 
+5. Wait for the green LED to stay on (screen turns green if a monitor is connected)
+6. Shut-down the PI, Remove SD card, and rack it.
 
-The Pi then netboots and installs without further handling. After that, run `scripts/rpi-eeprom-build pieeprom.bin` to put an updated
-`pieeprom.upd` and `pieeprom.sig` here; the Pi applies them on its next netboot.
+Flashed RPIs will netboot and install without further handling. 
 
-`RPI_EFI.fd` is built by `scripts/build-rpi4-uefi`, which compiles in the full RAM
-(no 3 GB limit) and device tree defaults. A netbooted Pi cannot save UEFI settings,
-so do not change them through the EDK2 menu.
+Once flashed, the EEPROM can be updated on next boot by running
+`scripts/rpi-eeprom-build pieeprom.bin` to download an updated `pieeprom.upd`
+and `pieeprom.sig` RPIs will update the firmware on their next reboot
+
+The EFI firmware (`RPI_EFI.fd`) is built with `scripts/build-rpi4-uefi`. 
+This compiles in the full RAM (without 3 GB limit) and device tree defaults. 
+> **NOTE:** A netbooted RPI cannot save UEFI settings. Do not change them through the EDK2 menu.
 `config.txt` must load the device tree where the firmware release expects it
 (`device_tree_address` equals `PcdFdtBaseAddress`, 0x3e0000 for v1.53), or it overwrites the firmware.
 
 ## References
+
 - [Raspberry Pi Boot Order][boot-order]
 - [Raspberry Pi Boot Sequence][boot-seq]
 

@@ -84,6 +84,8 @@ The Pi then netboots and installs without further handling. After that, run `scr
 `RPI_EFI.fd` is built by `scripts/build-rpi4-uefi`, which compiles in the full RAM
 (no 3 GB limit) and device tree defaults. A netbooted Pi cannot save UEFI settings,
 so do not change them through the EDK2 menu.
+`config.txt` must load the device tree where the firmware release expects it
+(`device_tree_address` equals `PcdFdtBaseAddress`, 0x3e0000 for v1.53), or it overwrites the firmware.
 
 ## References
 - [Raspberry Pi Boot Order][boot-order]

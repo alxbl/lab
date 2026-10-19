@@ -12,6 +12,7 @@ FIRMWARE=(
   config.txt
   RPI_EFI.fd
   overlays/disable-bt.dtbo
+  overlays/upstream-pi4.dtbo
 )
 
 coreos-installer install "$DEV" --ignition-url "$MATCHBOX/assets/node-arm64.ign"

@@ -16,9 +16,11 @@ unit() { jq -r --arg n "$1" '.systemd.units[] | select(.name == $n) | '"$2" <<<"
 fail() { echo "FAIL: $*"; exit 1; }
 
 [[ $(unit zincati.service .mask) == true ]] || fail "zincati not masked"
-for u in zfs-import-scan.service zfs-import.target zfs-mount.service zfs.target zfs-rebase.service; do
+for u in zfs-import.target zfs-mount.service zfs.target zfs-rebase.service; do
   [[ $(unit $u .enabled) == true ]] || fail "$u not enabled"
 done
+[[ $(jq -r '.storage.links[] | select(.target == "/usr/lib/systemd/system/zfs-import-scan.service") | .path' <<<"$ign") == /etc/systemd/system/zfs-import.target.wants/zfs-import-scan.service ]] || fail "zfs-import-scan not enabled"
+jq -e '.storage.files[] | select(.path == "/etc/containers/containers.conf.d/10-data.conf")' <<<"$ign" >/dev/null || fail "kubelet /var/data volume missing"
 rebase=$(unit zfs-rebase.service .contents)
 grep -qx 'Before=sshd.service' <<<"$rebase" || fail "rebase not ordered before sshd"
 grep -qx 'ConditionPathExists=!/var/lib/zfs-rebased' <<<"$rebase" || fail "rebase has no marker condition"

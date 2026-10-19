@@ -29,6 +29,15 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - The fork exists to work around a Cilium bug on current Linux kernels that upstream Typhoon still ships. Don't repoint to upstream or "update" the ref without asking; the fork should be dropped once upstream fixes it.
 - Cluster-level changes go in the `.tf` files. Per-node OS tweaks go in butane snippets.
 
+## Raspberry Pi 4 netboot
+- Procedure and flow: `build/bootstrap/tftp/rpi4/README.md`. Run the netboot stack with `docker compose -f build/bootstrap/docker-compose.yml`, never `scripts/bootstrap.sh`. Tear down any firewall rules you open.
+- Nodes reach matchbox as `matchbox.lan` (UDM DNS record). It must resolve from the Pi's DHCP-provided DNS, not only from the workstation.
+- A factory Pi 4 does not netboot. Its EEPROM needs a one-time flash (`scripts/rpi-recovery-image`); updates after that arrive over TFTP.
+- `rpi4-*` matchbox groups default to the live profile. Pointing one at `install-arm64` makes that node wipe its USB disk on its next netboot, so only do it on request.
+- A disk that already holds a bootable OS beats netboot. To reinstall, clear `EFI\BOOT` from the UEFI shell (F1 at the EDK2 prompt, over UART); deleting a directory there crashes the shell.
+- `RPI_EFI.fd` is built by `scripts/build-rpi4-uefi`, not edited by hand. `config.txt`'s device tree address must match the firmware release.
+- UART from another Pi: `picocom` drops on resets and truncates its log; capture with `stty ... clocal` and `cat >>` instead, and keep serial-getty off that port.
+
 ## GitOps
 - ArgoCD app-of-apps. `infra/system/argocd` installs ArgoCD and the `root` app. `infra/system/catalog` and `infra/k8s/catalog` are meta-charts whose templates are the `Application`s. A new workload needs a catalog template plus its manifests (kustomize dir, upstream chart, or a chart in `charts/`).
 - Apps track `HEAD` of `github.com/alxbl/lab`. Changes only take effect once pushed.

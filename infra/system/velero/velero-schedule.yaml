@@ -9,14 +9,12 @@ spec:
   schedule: 0 3 * * *
   useOwnerReferencesInBackup: false
   template:
-    csiSnapshotTimeout: 10m
     resourcePolicy:
       kind: configmap
       name: backup-policy-zfs
     includedNamespaces:
       - 'home'
       - 'media'
-      - 'openebs'
       - 'satisfactory'
     includedResources: []
     excludedResources:
@@ -28,7 +26,6 @@ spec:
     volumeSnapshotLocations: []
     ttl: 720h # 30 days
     defaultVolumesToFsBackup: false
-    snapshotMoveData: true
-    datamover: velero
+    snapshotMoveData: false
     uploaderConfig:
         parallelFilesUpload: 10

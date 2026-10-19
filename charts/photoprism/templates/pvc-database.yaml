@@ -6,6 +6,9 @@ metadata:
   name: {{ .name | quote }}
 spec:
   storageClassName: {{ .storageClass | default "" | quote }}
+  {{- with .volumeName }}
+  volumeName: {{ . | quote }}
+  {{- end }}
   accessModes:
     - {{ .accessMode | default "ReadWriteOnce" | quote }}
   resources:

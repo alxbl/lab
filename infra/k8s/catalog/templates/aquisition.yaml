@@ -20,6 +20,8 @@ spec:
         storage:
           create: 'true'
           size: 1Ti
+          storageClass: local-zfs
+          volumeName: media
         vpn:
           mode: "wireguard"
           provider: "protonvpn"

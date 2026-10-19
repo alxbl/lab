@@ -8,7 +8,8 @@ spec:
   instances: 1
   storage:
     size: 10Gi
-    storageClass: zfs-rwo
+    # Immich is not deployed (no catalog Application). Before re-enabling it, add a PV for this claim to infra/system/storage.
+    storageClass: local-zfs
 
   imageName: ghcr.io/tensorchord/cloudnative-vectorchord:18
   postgresql:

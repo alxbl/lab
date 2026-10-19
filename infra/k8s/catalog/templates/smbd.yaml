@@ -13,6 +13,9 @@ spec:
   source:
     helm:
       valuesObject:
+        podAnnotations:
+          # kopia backs up this volume from the pod (it was only annotated on the live NFS server pod before).
+          backup.velero.io/backup-volumes: storage
         service:
           type: LoadBalancer
           # Shared with cilium gateway.
@@ -26,7 +29,8 @@ spec:
         storage:
           create: true
           size: 1Ti
-          storageClass: 'zfs-rwx'
+          storageClass: 'local-zfs'
+          volumeName: smbd
           accessMode: ReadWriteMany
     path: charts/smbd
     repoURL: {{ .Values.spec.source.repoURL }}

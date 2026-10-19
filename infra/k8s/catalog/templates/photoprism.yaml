@@ -20,6 +20,8 @@ spec:
           database:
             create: true
             size: 50Gi
+            storageClass: local-zfs
+            volumeName: photoprism-db
         settings:
           DatabaseDriver: 'mysql'
           SiteUrl: "https://lab.segfault.me/photos"

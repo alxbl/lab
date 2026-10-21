@@ -23,10 +23,6 @@ spec:
           size: 5Gi
           storageClass: 'local-zfs'
           existingVolume: ''
-        configuration:
-          trusted_proxies:
-            # Cilium gateway  connects from node cilium_host address in the pod CIDR. (TODO: verify)
-            - 10.2.0.0/16
         addons:
           codeserver:
             enabled: true

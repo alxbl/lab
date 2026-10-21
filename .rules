@@ -26,10 +26,11 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 
 ## Clusters
 - Both clusters wrap Typhoon via a pinned git ref and a matchbox provider authenticated with `pki/` client certs. Bump the ref and `os_version` deliberately; they differ between segv and dev.
-- dev uses upstream `poseidon/typhoon` with `components.cilium.enable = false`. segv still uses the fork (`alxbl/typhoon`, Calico) until the Cilium cutover; don't repoint or bump it without asking.
-- Typhoon installs no CNI on dev. Cilium and the Gateway API CRDs are installed with Helm by `dev/up.sh` (`infra/system/cilium`), then adopted by ArgoCD. The chart version lives in `infra/system/catalog/templates/app-cilium.yaml` and is pinned at 1.18.14 (kernel bug); don't bump it without asking.
+- dev and segv both use upstream `poseidon/typhoon` with `components.cilium.enable = false`. Don't repoint or bump the ref without asking.
+- Typhoon installs no CNI. Cilium and the Gateway API CRDs are installed with Helm by `scripts/install-cilium.sh` (`infra/system/cilium`; `dev/up.sh` runs it on dev, on segv run it once the node has registered), then adopted by ArgoCD. The chart version lives in `infra/system/catalog/templates/app-cilium.yaml` and is pinned at 1.18.14 (kernel bug); don't bump it without asking.
 - Fresh FCOS nodes can be rebooted once by Zincati shortly after install, which wipes root. Scripts that talk to the API during bring-up must wait and retry.
 - Cluster-level changes go in the `.tf` files. Per-node OS tweaks go in butane snippets.
+- segv is a single node and Typhoon registers its controller `NoSchedule`. Until #61 is fixed, remove the taint (`node-role.kubernetes.io/controller`) after any (re)install, or the Cilium operator cannot schedule and the install deadlocks.
 
 ## Raspberry Pi 4 netboot
 - Procedure and flow: `build/bootstrap/tftp/rpi4/README.md`. Run the netboot stack with `docker compose -f build/bootstrap/docker-compose.yml`, never `scripts/bootstrap.sh`. Tear down any firewall rules you open.
@@ -46,6 +47,14 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - Host policies default-deny node ingress. Put the host endpoint in `PolicyAuditMode` and check verdicts before enforcing; a mistake locks out SSH and the API (see `DEVELOPMENT.md`).
 - Namespaces with a `baseline` CiliumNetworkPolicy are ingress default-deny. New workloads add their own ports with a NetworkPolicy.
 - `kubectl apply` of cert-manager resources right after its install can fail transiently on the webhook; retry.
+
+## Storage
+- Workload volumes are static `local-zfs` PVs (`Retain`, pre-bound to their claim) on datasets `data/k8s/<name>` of the ZFS pool `data` (`infra/system/storage`). OpenEBS is gone; don't reintroduce it.
+- The parent `data/k8s` carries `context=container_file_t:s0`. Child datasets set `context=none` explicitly, except the shared media dataset, which uses the fixed context.
+- Never `zpool upgrade` (it removes the rollback path), never `zfs destroy`, and never delete a PV or PVC that is bound to a dataset.
+- The kubelet container needs `/var/data` to exist even when the pool failed to import (it is a podman volume in the butane config).
+- Velero's BackupStorageLocation, `backup-policy-zfs` and the `backup-pv-daily` schedule (`infra/system/velero`) are applied by hand until #62 is fixed; a rebuild must apply them.
+- Home Assistant keeps its HTTP settings (including `trusted_proxies`) in `/config/.storage/http`; the `http:` block in `configuration.yaml` is ignored after its one-time migration (#64).
 
 ## GitOps
 - ArgoCD app-of-apps. `infra/system/argocd` installs ArgoCD and the `root` app. `infra/system/catalog` and `infra/k8s/catalog` are meta-charts whose templates are the `Application`s. A new workload needs a catalog template plus its manifests (kustomize dir, upstream chart, or a chart in `charts/`).

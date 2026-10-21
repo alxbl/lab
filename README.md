@@ -19,7 +19,7 @@ curl -sSfL https://bit.ly/pacstrap | HOST=hostname sh
 
 Each node is running Fedora Core OS with an additional layer (via
 `rpm-ostree rebase`) which includes ZFS drivers and userland utilities
-as well as my fork of [Typhoon](https://github.com/alxbl/typhoon).
+as well as [Typhoon](https://github.com/poseidon/typhoon) for the Kubernetes bootstrap.
 
 Currently, my homelab cluster is made up of the following nodes:
 
@@ -38,6 +38,18 @@ Without that route on the router, none of these services are reachable from outs
 LAN clients can also reach ClusterIPs directly (e.g. AdGuard on `10.3.0.53`).
 
 > **NOTE:** The dev cluster uses `10.33.0.0/16` and announces its LoadBalancer IPs over L2.
+
+### Storage
+
+Workload volumes are static `local-zfs` PersistentVolumes (`Retain`, no provisioner) declared in
+`infra/system/storage`. Each one is pre-bound to its claim and backed by a ZFS dataset `data/k8s/<name>` of the
+`data` pool, mounted under `/var/data/k8s/<name>` on the node. To add a volume, create the dataset on the node,
+then add a PV next to the existing ones.
+
+- Never `zpool upgrade` (it removes the rollback path) and never `zfs destroy` or delete a PV/PVC that is bound to a dataset.
+- Datasets under `data/k8s` carry an SELinux `context` option; see `.rules` for the exceptions.
+- Daily backups use Velero with the `node-agent` (kopia) into Azure Blob Storage. Its `BackupStorageLocation`,
+  `backup-policy-zfs` and the `backup-pv-daily` schedule (`infra/system/velero`) are applied by hand, so a rebuild must apply them.
 
 ## Cluster Bootstrapping
 

@@ -6,3 +6,4 @@ resources:
 - host-lan.yaml
 - lb.yaml
 - namespaces.yaml
+- otlp.yaml

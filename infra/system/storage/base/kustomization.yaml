@@ -12,3 +12,4 @@ resources:
 - pv-smbd.yaml
 - pv-prometheus.yaml
 - pv-grafana.yaml
+- pv-loki.yaml

@@ -1,0 +1,26 @@
+# Dataset data/k8s/loki, claimed by monitoring/storage-loki-0 (StatefulSet volume claim of the loki release).
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: loki
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-zfs
+  volumeMode: Filesystem
+  local:
+    path: /var/data/k8s/loki
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - tachyon.lan
+  claimRef:
+    namespace: monitoring
+    name: storage-loki-0

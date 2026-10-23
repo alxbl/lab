@@ -80,6 +80,11 @@ spec:
             storageClassName: local-zfs
             volumeName: grafana
             size: 5Gi
+          additionalDataSources:
+          - name: Loki
+            type: loki
+            access: proxy
+            url: http://loki.monitoring.svc:3100
           # Served at /grafana on the Gateway (infra/k8s/gateway/overlays/segv).
           grafana.ini:
             server:

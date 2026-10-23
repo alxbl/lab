@@ -41,3 +41,16 @@ spec:
     - {}
   - fromEntities:
     - ingress
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: baseline
+  namespace: monitoring
+spec:
+  endpointSelector: {}
+  ingress:
+  - fromEndpoints:
+    - {}
+  - fromEntities:
+    - ingress

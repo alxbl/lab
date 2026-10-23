@@ -73,7 +73,7 @@ spec:
             memory: 128Mi
           limits:
             cpu: 1000m
-            memory: 1Gi
+            memory: 4Gi
   destination:
     server: "https://kubernetes.default.svc"
     namespace: system

@@ -50,7 +50,7 @@ spec:
         prometheus:
           prometheusSpec:
             retention: 30d
-            retentionSize: 40GB
+            retentionSize: 4GB
             # Pick up ServiceMonitors, PodMonitors, rules and probes from every namespace, not only this release.
             serviceMonitorSelectorNilUsesHelmValues: false
             podMonitorSelectorNilUsesHelmValues: false
@@ -65,7 +65,7 @@ spec:
                   accessModes: [ReadWriteOnce]
                   resources:
                     requests:
-                      storage: 50Gi
+                      storage: 5Gi
 
         grafana:
           fullnameOverride: grafana

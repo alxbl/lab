@@ -88,3 +88,16 @@ stringData:
   name: immich
   url: oci://ghcr.io/immich-app/immich-charts/immich
   type: helm
+---
+# Prometheus community (kube-prometheus-stack)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: prometheus-community-helm
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  name: prometheus-community
+  url: https://prometheus-community.github.io/helm-charts
+  type: helm

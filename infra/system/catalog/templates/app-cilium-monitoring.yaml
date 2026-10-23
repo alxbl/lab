@@ -1,0 +1,19 @@
+{{- if eq .Values.cluster "segv" }}
+# PodMonitors for Cilium. Separate from the cilium Application because they need the Prometheus CRDs.
+# The dev cluster has no Prometheus stack.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cilium-monitoring
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: {{ .Values.spec.destination.server }}
+  project: system
+  source:
+    path: infra/system/cilium/monitoring
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}
+{{- end }}

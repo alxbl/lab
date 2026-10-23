@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Checks that every static PV in infra/system/storage can be claimed by the PVC that the matching catalog
-# Application renders (name, class, access mode, size, volumeName). No cluster access.
+# Application (infra/k8s/catalog or infra/system/catalog) renders (name, class, access mode, size, volumeName). No cluster access.
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
@@ -9,7 +9,7 @@ TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
 kubectl kustomize infra/system/storage >"$TMP/pvs.yaml"
-helm template cat infra/k8s/catalog >"$TMP/apps.yaml"
+{ helm template cat infra/k8s/catalog; echo ---; helm template sys infra/system/catalog; } >"$TMP/apps.yaml"
 
 python3 -I - "$TMP" <<'PY'
 import json, re, subprocess, sys, yaml
@@ -30,7 +30,9 @@ def add(ns, name, cls, modes, request, volume_name=None):
     pvcs[(ns, name)] = dict(cls=cls, modes=modes, request=qty(request), volume_name=volume_name)
 
 for app in apps:
-    src, ns = app["spec"]["source"], app["spec"]["destination"].get("namespace", "default")
+    src, ns = app["spec"].get("source"), app["spec"]["destination"].get("namespace", "default")
+    if src is None:  # multi-source Application (cilium): no workload volumes
+        continue
     values = src.get("helm", {}).get("valuesObject", {})
     path = src.get("path", "")
     if path.startswith("charts/") and "alxbl/lab" in src.get("repoURL", ""):
@@ -47,6 +49,21 @@ for app in apps:
         # External chart: the StatefulSet claim is <template>-<statefulset>-<ordinal>.
         p = values["persistence"]
         add(ns, "home-assistant-home-assistant-0", p["storageClass"], [p["accessMode"]], p["size"])
+
+    elif app["metadata"]["name"] == "monitoring":
+        # Operator-generated Prometheus claim, and the Grafana subchart's claim.
+        cr = values["fullnameOverride"] + "-prometheus"
+        spec = values["prometheus"]["prometheusSpec"]["storageSpec"]["volumeClaimTemplate"]["spec"]
+        add(ns, f"prometheus-{cr}-db-prometheus-{cr}-0", spec["storageClassName"], spec["accessModes"],
+            spec["resources"]["requests"]["storage"], spec.get("volumeName"))
+        g = values["grafana"]
+        add(ns, g["fullnameOverride"], g["persistence"]["storageClass"] if "storageClass" in g["persistence"]
+            else g["persistence"]["storageClassName"], ["ReadWriteOnce"], g["persistence"]["size"],
+            g["persistence"].get("volumeName"))
+    elif app["metadata"]["name"] == "loki":
+        # StatefulSet claim: <volumeClaimTemplate>-<statefulset>-<ordinal>.
+        p = values["singleBinary"]["persistence"]
+        add(ns, "storage-loki-0", p["storageClass"], ["ReadWriteOnce"], p["size"])
 
 errors = []
 for pv in pvs:

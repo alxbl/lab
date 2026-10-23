@@ -1,0 +1,19 @@
+# Workloads send OTLP logs to Alloy (alloy.monitoring:4317/4318). The monitoring baseline only admits its own namespace.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-otlp
+  namespace: monitoring
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: alloy
+  ingress:
+  - fromEntities:
+    - cluster
+    toPorts:
+    - ports:
+      - port: "4317"
+        protocol: TCP
+      - port: "4318"
+        protocol: TCP

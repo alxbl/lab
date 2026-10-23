@@ -1,0 +1,137 @@
+# Log collector: pod logs, the host journal and an OTLP receiver, all forwarded to Loki (app-loki.yaml).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alloy
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: system
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: monitoring
+  source:
+    chart: alloy
+    repoURL: https://grafana.github.io/helm-charts
+    targetRevision: 1.14.3
+    helm:
+      valuesObject:
+        # https://github.com/grafana/alloy/blob/main/operations/helm/charts/alloy/values.yaml
+        controller:
+          type: daemonset
+        serviceMonitor:
+          enabled: true
+        alloy:
+          # Alloy reads the host journal and pod logs under /var/log, which SELinux denies to container_t on FCOS.
+          mounts:
+            varlog: true
+          securityContext:
+            runAsUser: 0
+            seLinuxOptions:
+              type: spc_t
+          extraEnv:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          # OTLP receivers, reachable in-cluster as alloy.monitoring:4317 (gRPC) and :4318 (HTTP).
+          extraPorts:
+          - name: otlp-grpc
+            port: 4317
+            targetPort: 4317
+            protocol: TCP
+          - name: otlp-http
+            port: 4318
+            targetPort: 4318
+            protocol: TCP
+          configMap:
+            content: |
+              loki.write "default" {
+                endpoint {
+                  url = "http://loki.monitoring.svc:3100/loki/api/v1/push"
+                }
+              }
+
+              // Pod logs, read through the Kubernetes API for the pods on this node.
+              discovery.kubernetes "pods" {
+                role = "pod"
+                selectors {
+                  role  = "pod"
+                  field = "spec.nodeName=" + sys.env("NODE_NAME")
+                }
+              }
+
+              discovery.relabel "pods" {
+                targets = discovery.kubernetes.pods.targets
+                rule {
+                  source_labels = ["__meta_kubernetes_namespace"]
+                  target_label  = "namespace"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_name"]
+                  target_label  = "pod"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_container_name"]
+                  target_label  = "container"
+                }
+                rule {
+                  source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+                  target_label  = "app"
+                }
+              }
+
+              loki.source.kubernetes "pods" {
+                targets    = discovery.relabel.pods.output
+                forward_to = [loki.write.default.receiver]
+              }
+
+              // Host services (kubelet, containerd, etcd-member, sshd, auditd, ...). Debug is dropped.
+              loki.relabel "journal" {
+                forward_to = []
+                rule {
+                  source_labels = ["__journal__systemd_unit"]
+                  target_label  = "unit"
+                }
+                rule {
+                  source_labels = ["__journal_priority_keyword"]
+                  target_label  = "level"
+                }
+              }
+
+              loki.process "journal" {
+                forward_to = [loki.write.default.receiver]
+                stage.drop {
+                  source = "level"
+                  value  = "debug"
+                }
+              }
+
+              loki.source.journal "host" {
+                path          = "/var/log/journal"
+                relabel_rules = loki.relabel.journal.rules
+                labels        = {job = "journal"}
+                forward_to    = [loki.process.journal.receiver]
+              }
+
+              // OTLP logs from workloads, stored through Loki's native OTLP endpoint.
+              otelcol.receiver.otlp "default" {
+                grpc {}
+                http {}
+                output {
+                  logs = [otelcol.processor.batch.default.input]
+                }
+              }
+
+              otelcol.processor.batch "default" {
+                output {
+                  logs = [otelcol.exporter.otlphttp.loki.input]
+                }
+              }
+
+              otelcol.exporter.otlphttp "loki" {
+                client {
+                  endpoint = "http://loki.monitoring.svc:3100/otlp"
+                }
+              }

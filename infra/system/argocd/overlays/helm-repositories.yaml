@@ -115,3 +115,17 @@ stringData:
   name: metrics-server
   url: https://kubernetes-sigs.github.io/metrics-server/
   type: helm
+
+---
+# Grafana community charts (Loki)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-community-helm
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  name: grafana-community
+  url: https://grafana-community.github.io/helm-charts
+  type: helm

@@ -10,3 +10,5 @@ resources:
 - pv-photoprism-db.yaml
 - pv-satisfactory.yaml
 - pv-smbd.yaml
+- pv-prometheus.yaml
+- pv-grafana.yaml

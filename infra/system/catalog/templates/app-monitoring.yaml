@@ -1,0 +1,91 @@
+# Metrics: Prometheus, Grafana, kube-state-metrics and node-exporter.
+# Requires the grafana-admin Secret (admin-user, admin-password) in the monitoring namespace.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: system
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: monitoring
+  source:
+    chart: kube-prometheus-stack
+    repoURL: https://prometheus-community.github.io/helm-charts
+    targetRevision: 92.11.0
+    helm:
+      valuesObject:
+        # https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/values.yaml
+        fullnameOverride: kps
+
+        # Typhoon binds the control-plane metrics endpoints to localhost, and Cilium replaces kube-proxy.
+        kubeEtcd:
+          enabled: false
+        kubeScheduler:
+          enabled: false
+        kubeControllerManager:
+          enabled: false
+        kubeProxy:
+          enabled: false
+        defaultRules:
+          rules:
+            etcd: false
+            kubeSchedulerAlerting: false
+            kubeSchedulerRecording: false
+            kubeControllerManager: false
+            kubeProxy: false
+
+        alertmanager:
+          enabled: false
+
+        prometheusOperator:
+          admissionWebhooks:
+            enabled: false
+          tls:
+            enabled: false
+
+        prometheus:
+          prometheusSpec:
+            retention: 30d
+            retentionSize: 40GB
+            # Pick up ServiceMonitors, PodMonitors, rules and probes from every namespace, not only this release.
+            serviceMonitorSelectorNilUsesHelmValues: false
+            podMonitorSelectorNilUsesHelmValues: false
+            ruleSelectorNilUsesHelmValues: false
+            probeSelectorNilUsesHelmValues: false
+            # Pre-bound to PV prometheus (infra/system/storage).
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  storageClassName: local-zfs
+                  volumeName: prometheus
+                  accessModes: [ReadWriteOnce]
+                  resources:
+                    requests:
+                      storage: 50Gi
+
+        grafana:
+          fullnameOverride: grafana
+          admin:
+            existingSecret: grafana-admin
+            userKey: admin-user
+            passwordKey: admin-password
+          # Pre-bound to PV grafana (infra/system/storage).
+          persistence:
+            enabled: true
+            type: pvc
+            storageClassName: local-zfs
+            volumeName: grafana
+            size: 5Gi
+          # Served at /grafana on the Gateway (infra/k8s/gateway/overlays/segv).
+          grafana.ini:
+            server:
+              root_url: https://lab.segfault.me/grafana
+              serve_from_sub_path: true
+  syncPolicy:
+    syncOptions:
+    # The Prometheus CRDs exceed the client-side apply annotation limit.
+    - ServerSideApply=true

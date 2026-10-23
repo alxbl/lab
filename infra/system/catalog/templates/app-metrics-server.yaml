@@ -1,0 +1,23 @@
+# Serves the metrics.k8s.io API (kubectl top, k9s).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metrics-server
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: system
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: kube-system
+  source:
+    chart: metrics-server
+    repoURL: https://kubernetes-sigs.github.io/metrics-server/
+    targetRevision: 3.13.1
+    helm:
+      valuesObject:
+        # https://github.com/kubernetes-sigs/metrics-server/blob/master/charts/metrics-server/values.yaml
+        args:
+        # The kubelet serving certificate is self-signed, so it cannot be verified against the cluster CA.
+        - --kubelet-insecure-tls

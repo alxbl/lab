@@ -70,7 +70,7 @@ for rollback; remove them once the new stack has survived a reboot. If the clust
   browsers and `jwt` for bearer clients against the `segv` realm, exempt Keycloak and health endpoints, migrate routes one by
   one. Check how OIDC and JWT behave on one target before relying on bearer pass-through. Per-app Keycloak clients are
   `KeycloakOIDCClient` CRs.
-- ALPN (decision 6): superseded by the Envoy Gateway plan, see `docs/envoy-gateway-plan.md`.
+- ALPN (decision 6): superseded by the Envoy Gateway plan, see `docs/auth-front-plan.md`.
 - The Gateway admits Cloudflare ranges on 443 and routes on the Host header, so a Cloudflare-proxied name of someone else's
   zone pointing at the WAN address with `Host: lab.segfault.me` would reach the LAN-only routes, Keycloak admin included.
   Worth closing when the Envoy Gateway work reshapes the routes.

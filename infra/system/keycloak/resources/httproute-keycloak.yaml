@@ -1,7 +1,5 @@
 # The public host exposes only what a login needs; the admin console and the master realm stay on lab.segfault.me,
-# which resolves only inside the LAN. The two 3p-cookies step pages are the exception: the admin console loads them
-# from the public hostname (Keycloak's frontend hostname) for its third-party cookie check. Exact paths only, so no
-# other master realm endpoint is reachable.
+# which resolves only inside the LAN.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -25,12 +23,6 @@ spec:
     - path:
         type: PathPrefix
         value: /auth/js
-    - path:
-        type: Exact
-        value: /auth/realms/master/protocol/openid-connect/3p-cookies/step1.html
-    - path:
-        type: Exact
-        value: /auth/realms/master/protocol/openid-connect/3p-cookies/step2.html
     backendRefs:
     - name: keycloak-service
       port: 8080

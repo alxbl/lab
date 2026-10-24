@@ -44,7 +44,7 @@ service:
   port: 80
 
 jellyfin:
-  JELLYFIN_CONFIG_DIR: /media/.config/jellyfin
+  JELLYFIN_DATA_DIR: /media/.config/jellyfin
   JELLYFIN_CACHE_DIR: /cache
 
 storage:

@@ -50,6 +50,14 @@ for app in apps:
         p = values["persistence"]
         add(ns, "home-assistant-home-assistant-0", p["storageClass"], [p["accessMode"]], p["size"])
 
+    elif app["metadata"]["name"] == "immich-database":
+        # CNPG instance claim: <cluster>-<ordinal>.
+        out = subprocess.run(["kubectl", "kustomize", path], check=True, capture_output=True, text=True).stdout
+        for d in yaml.safe_load_all(out):
+            if d and d["kind"] == "Cluster":
+                t = d["spec"]["storage"]["pvcTemplate"]
+                add(ns, d["metadata"]["name"] + "-1", t["storageClassName"], t["accessModes"],
+                    t["resources"]["requests"]["storage"], t.get("volumeName"))
     elif app["metadata"]["name"] == "monitoring":
         # Operator-generated Prometheus claim, and the Grafana subchart's claim.
         cr = values["fullnameOverride"] + "-prometheus"

@@ -5,4 +5,5 @@ resources:
 - resources/db-immich.yaml
 - resources/pg-immich.yaml
 - resources/cm-immich.yaml
-- resources/netpol-immich.yaml
+- resources/cnp-cnpg.yaml
+- resources/httproute-immich.yaml

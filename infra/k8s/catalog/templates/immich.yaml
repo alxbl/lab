@@ -1,0 +1,73 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: immich-database
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: media
+  project: default
+  source:
+    path: infra/k8s/immich
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: immich
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: media
+  project: default
+  source:
+    chart: immich
+    repoURL: oci://ghcr.io/immich-app/immich-charts/immich
+    targetRevision: 0.13.2
+    helm:
+      releaseName: immich
+      valuesObject:
+        controllers:
+          main:
+            containers:
+              main:
+                env:
+                  DB_HOSTNAME: immich-database-rw
+                  DB_DATABASE_NAME: app
+                  DB_USERNAME: app
+                  DB_PASSWORD:
+                    valueFrom:
+                      secretKeyRef:
+                        name: immich-database-app
+                        key: password
+        immich:
+          metrics:
+            enabled: false  # No ServiceMonitor deployed.
+          persistence:
+            library:
+              # Shared with smbd; Immich keeps its files under <share>/immich.
+              existingClaim: smbd-data
+          existingConfiguration: immich-cm
+          configurationKind: ConfigMap
+        valkey:
+          enabled: true
+        server:
+          defaultPodOptions:
+            securityContext:
+              # level s0: pods that share a volume must use one SELinux level (see charts/aquisition).
+              seLinuxOptions:
+                level: s0
+              fsGroupChangePolicy: OnRootMismatch
+          persistence:
+            data:
+              existingClaim: smbd-data
+              globalMounts:
+              - path: /data
+                subPath: immich

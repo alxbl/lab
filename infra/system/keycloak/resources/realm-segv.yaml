@@ -50,6 +50,9 @@ spec:
     users:
     - username: alxbl
       enabled: true
+      # Immich links its user to the login by email.
+      email: alex@segfault.me
+      emailVerified: true
       federatedIdentities:
       - identityProvider: github
         userId: '860411'

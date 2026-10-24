@@ -6,6 +6,15 @@ metadata:
   namespace: media
 spec:
   instances: 1
+  # Velero (infra/system/velero) copies the volume with kopia; a copy of a live data directory is not reliable, so the
+  # pre-hook leaves a logical dump next to it. Restore from backup/app.dump with pg_restore.
+  inheritedMetadata:
+    annotations:
+      backup.velero.io/backup-volumes: pgdata
+      pre.hook.backup.velero.io/container: postgres
+      pre.hook.backup.velero.io/command: '["/bin/bash", "-c", "mkdir -p /var/lib/postgresql/data/backup && pg_dump -Fc -d app -f /var/lib/postgresql/data/backup/app.dump"]'
+      pre.hook.backup.velero.io/on-error: Fail
+      pre.hook.backup.velero.io/timeout: 5m
   storage:
     size: 10Gi
     storageClass: local-zfs

@@ -1,0 +1,21 @@
+# Pilot client for the Keycloak test application (https://www.keycloak.org/app/): a public client, authorization code flow.
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: KeycloakOIDCClient
+metadata:
+  name: test-app
+  namespace: keycloak
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  keycloakCRName: keycloak
+  realm: segv
+  client:
+    displayName: Keycloak test application
+    appUrl: https://www.keycloak.org/app/
+    enabled: true
+    loginFlows:
+    - STANDARD
+    redirectUris:
+    - https://www.keycloak.org/app/*
+    webOrigins:
+    - https://www.keycloak.org

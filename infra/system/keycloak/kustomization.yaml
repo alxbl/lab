@@ -8,3 +8,5 @@ resources:
 - resources/cnp-cnpg.yaml
 - resources/keycloak.yaml
 - resources/httproute-keycloak.yaml
+- resources/realm-segv.yaml
+- resources/oidcclient-test-app.yaml

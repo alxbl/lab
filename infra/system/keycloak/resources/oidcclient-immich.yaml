@@ -1,0 +1,30 @@
+# Immich's OAuth login (https://photos.segfault.me). Confidential client, authorization code flow.
+# Secrets (created out of band, see scripts/keycloak-secrets): keycloak-immich.
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: KeycloakOIDCClient
+metadata:
+  name: immich
+  namespace: keycloak
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  keycloakCRName: keycloak
+  realm: segv
+  client:
+    displayName: Immich
+    appUrl: https://photos.segfault.me
+    enabled: true
+    loginFlows:
+    - STANDARD
+    redirectUris:
+    - https://photos.segfault.me/auth/login
+    - https://photos.segfault.me/user-settings
+    # Mobile app.
+    - app.immich:///oauth-callback
+    webOrigins:
+    - https://photos.segfault.me
+    auth:
+      method: client-secret
+      secretRef:
+        name: keycloak-immich
+        key: client-secret

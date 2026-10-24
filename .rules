@@ -52,7 +52,7 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 ## Storage
 - Workload volumes are static `local-zfs` PVs (`Retain`, pre-bound to their claim) on datasets `data/k8s/<name>` of the ZFS pool `data` (`infra/system/storage`). OpenEBS is gone; don't reintroduce it.
 - The parent `data/k8s` carries `context=container_file_t:s0`. Child datasets set `context=none` explicitly, except the shared media dataset, which uses the fixed context.
-- Never `zpool upgrade` (it removes the rollback path), never `zfs destroy`, and never delete a PV or PVC that is bound to a dataset.
+- Never `zpool upgrade` (it removes the rollback path), never `zfs destroy` (unless the user gives an explicit go for the named snapshots or datasets, after you list them and any holds), and never delete a PV or PVC that is bound to a dataset.
 - The kubelet container needs `/var/data` to exist even when the pool failed to import (it is a podman volume in the butane config).
 - Velero's BackupStorageLocation, `backup-policy-zfs` and the `backup-pv-daily` schedule (`infra/system/velero`) are applied by hand until #62 is fixed; a rebuild must apply them.
 - Home Assistant keeps its HTTP settings (including `trusted_proxies`) in `/config/.storage/http`; the `http:` block in `configuration.yaml` is ignored after its one-time migration (#64).

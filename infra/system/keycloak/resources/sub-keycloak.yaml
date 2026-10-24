@@ -8,4 +8,6 @@ spec:
   name: keycloak-operator
   source: operatorhubio-catalog
   sourceNamespace: olm
+  # Pinned so the manual approval below is for a known version.
+  startingCSV: keycloak-operator.v26.8.1
   installPlanApproval: Manual

@@ -1,0 +1,22 @@
+# The keycloak baseline only admits same-namespace and Gateway traffic. The CNPG operator (cnpg-system) manages the
+# instance over its status endpoint (8000) and Postgres (5432); Keycloak connects from within the namespace.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: keycloak-db-cnpg
+  namespace: keycloak
+spec:
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: keycloak-db
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        io.kubernetes.pod.namespace: cnpg-system
+        app.kubernetes.io/name: cloudnative-pg
+    toPorts:
+    - ports:
+      - port: "8000"
+        protocol: TCP
+      - port: "5432"
+        protocol: TCP

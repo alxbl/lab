@@ -27,6 +27,10 @@ spec:
     admin: https://lab.segfault.me/auth
   proxy:
     headers: xforwarded
+  # Required by the KeycloakOIDCClient CRs.
+  features:
+    enabled:
+    - client-admin-api:v2
   ingress:
     enabled: false
   additionalOptions:

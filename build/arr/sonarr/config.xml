@@ -1,5 +1,6 @@
 <Config>
     <BindAddress>*</BindAddress>
+    <AllowedHosts>localhost</AllowedHosts>
     <Port>8989</Port>
     <SslPort>9898</SslPort>
     <EnableSsl>False</EnableSsl>

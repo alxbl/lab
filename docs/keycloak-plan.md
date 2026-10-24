@@ -11,7 +11,8 @@ token, no access", is the remaining phase and starts from here.
   account is rejected by the `first broker login deny` flow.
 - Pilot client `test-app` (public, https://www.keycloak.org/app/), defined as a `KeycloakOIDCClient` CR.
 - The admin console and the `master` realm are served only on `lab.segfault.me` (LAN). The public host exposes
-  `/auth/realms/segv`, `/auth/resources` and `/auth/js`; the restriction is in the HTTPRoute, not only at cortex.
+  `/auth/realms/segv`, `/auth/resources`, `/auth/js` and the two master 3p-cookies step pages (exact paths, loaded by the
+  admin console's third-party cookie check); the restriction is in the HTTPRoute, not only at cortex.
 
 ## Where things live
 - `infra/system/keycloak` (Argo app `keycloak`, no auto-sync): namespace, Subscription, CNPG `Cluster`, `Keycloak` CR,

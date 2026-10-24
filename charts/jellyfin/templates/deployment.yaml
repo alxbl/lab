@@ -45,6 +45,8 @@ spec:
           env:
             - name: JELLYFIN_DATA_DIR
               value: {{ .Values.jellyfin.JELLYFIN_DATA_DIR}}
+            - name: JELLYFIN_CONFIG_DIR
+              value: {{ .Values.jellyfin.JELLYFIN_DATA_DIR}}/config
             - name: JELLYFIN_CACHE_DIR
               value: {{ .Values.jellyfin.JELLYFIN_CACHE_DIR}}
             - name: DOTNET_USE_POLLING_FILE_WATCHER

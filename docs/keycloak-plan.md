@@ -1,107 +1,70 @@
 # Keycloak on segv, then Envoy Gateway
 
-Keycloak goes first and stands alone. Envoy Gateway (the enforcement point for "no valid token, no access") is a separate
-phase that starts only after Keycloak has passed the checks in phase 5.
+Keycloak is deployed and the GitHub login works (verified 2026-10-24). Envoy Gateway, the enforcement point for "no valid
+token, no access", is the remaining phase and starts from here.
 
-Conventions: `STOP and ask` = the user says go in the conversation first. Secrets never enter the repo, logs or chat.
+## Result
+- `https://segfault.me/auth` flows Cloudflare, cortex nginx, nghttpx, the segv Cilium Gateway, Keycloak 26.8.1.
+- Keycloak is deployed by the Keycloak Operator (OLM, v26.8.1, pinned, manual InstallPlan approval) with Postgres from CNPG
+  on the dataset `data/k8s/keycloak-db` (10G).
+- Realm `segv`: GitHub identity provider, registration off, user `alxbl` pre-linked to GitHub id 860411. Every other GitHub
+  account is rejected by the `first broker login deny` flow.
+- Pilot client `test-app` (public, https://www.keycloak.org/app/), defined as a `KeycloakOIDCClient` CR.
+- The admin console and the `master` realm are served only on `lab.segfault.me` (LAN). The public host exposes
+  `/auth/realms/segv`, `/auth/resources` and `/auth/js`; the restriction is in the HTTPRoute, not only at cortex.
 
-## Autonomy (from the user's brief)
-Run without prompting. Where a decision is needed, document the options, the choice and the reasoning in the PR.
-- Proceed without asking: syncing Argo resources, committing, opening PRs, merging to `main`, cleaning up merged worktrees,
-  creating the Keycloak ZFS dataset on `tachyon.lan` (explicitly requested; 10G, adjust later).
-- Interrupt for: deleting resources or rolling back state, an unresolvable dead end, a leaked credential, or breaking
-  something unrelated.
-- Validation: verify everything is up, then ask the user to try the GitHub SSO and report back; watch the logs meanwhile.
+## Where things live
+- `infra/system/keycloak` (Argo app `keycloak`, no auto-sync): namespace, Subscription, CNPG `Cluster`, `Keycloak` CR,
+  routes, `KeycloakRealmImport` `segv`, `KeycloakOIDCClient` `test-app`.
+- `infra/system/storage/base/pv-keycloak-db.yaml`, the claim in `scripts/test/storage-bindings.sh`, the `keycloak` baseline
+  policy in `infra/system/cilium/policies/overlays/segv/namespaces.yaml`.
+- Secrets (Proton Drive, listed in `scripts/secrets.list`, created by `scripts/keycloak-secrets`):
+  `keycloak-bootstrap-admin`, `keycloak-admin` (operator service account), `keycloak-github` (OAuth app; prompted with `--github`).
+- Edge, in `alxbl/segfault.me` (PR #1): `build/nginx/conf.d/segfault.me.conf` (`/auth/`), `build/nghttpx/etc/nghttpx.conf`,
+  `build/docker-compose.yaml`. The GitHub OAuth callback is `https://segfault.me/auth/realms/segv/broker/github/endpoint`.
 
-## Goal
-- Keycloak reachable at `https://segfault.me/auth`, via Cloudflare, `cortex.segfault.me` (nghttpx) and segv's Cilium Gateway.
-- Deployed by the Keycloak Operator (OLM) with Postgres from CNPG on a dedicated ZFS dataset.
-- Realm configuration is code. GitHub is the identity provider and only `alxbl` may log in.
-- Keycloak is the front for internet-facing apps ("expose it as a front"). Enforcement is phase 6 (Envoy Gateway), which
-  starts after Keycloak is validated, as agreed.
+## Decisions
+1. **Apex certificate.** The Gateway certificate already lists `segfault.me` and `*.segfault.me`; nothing to change.
+2. **Path.** `http-relative-path=/auth`, hostname `https://segfault.me/auth`, admin hostname `https://lab.segfault.me/auth`.
+3. **Realm IaC.** `KeycloakRealmImport` creates a realm once and never reconciles it; changing the realm means a new import.
+   Clients are `KeycloakOIDCClient` CRs, which do reconcile. Terraform or `keycloak-config-cli` stays an option if drift hurts.
+4. **GitHub user restriction.** Supplying `authenticationFlows` replaces Keycloak's built-in flows, so the import lists the
+   whole default set (exported from a throwaway 26.8.1 realm) plus `first broker login deny`. Regenerate that block when
+   upgrading Keycloak.
+5. **Secrets.** Created out of band; realm secrets reach the import through `placeholders`.
+6. **Backend hop is HTTP/1.1, not h2.** The Gateway negotiates no ALPN (Cilium `gatewayAPI.enableAlpn` is off, a cluster-wide
+   setting) and Keycloak does not need h2. nghttpx stays in the chain; adding `;proto=h2` to its backend is the switch once
+   ALPN is enabled.
+7. **Verified backend TLS.** The old nghttpx config used `insecure=yes`. The image has no CA bundle, so the host's is mounted,
+   and the backend is the alias `origin.segfault.me` (`extra_hosts`, address from git-ignored `build/.env`), which matches the
+   Gateway's wildcard certificate.
+8. **No key in nghttpx.** The nginx to nghttpx hop is plain HTTP on a private docker network.
 
-## State found in the repo (2026-10-24)
-- `infra/system/keycloak` holds only an OLM `Subscription` (`keycloak-operator`, channel `fast`, `installPlanApproval: Manual`).
-  The Argo `keycloak` app exists in `infra/system/catalog` and is deliberately unsynced.
-- `infra/system/postgres` installs the CNPG operator (chart 0.29.0). The Argo `cnpg` app is also unsynced.
-- `infra/system/olm` installs OLM v0.46.0. Whether it is synced and healthy on segv is unverified.
-- Gateway: `https-in-gw` (class `cilium`, ns `gateway`), HTTPS listener with wildcard `*.segfault.me`, LB `10.3.0.2`.
-  Routes live in `infra/k8s/gateway/overlays/segv/routes.yaml`.
-- Postgres precedent: `infra/k8s/immich/resources/pg-immich.yaml` (CNPG `Cluster`, static `local-zfs` PV via `pvcTemplate`,
-  PV in `infra/system/storage/base/pv-immich-db.yaml`, claim special-cased in `scripts/test/storage-bindings.sh`).
-- A local branch `keycloak` (`88c00c1 keycloak wip`) holds a hand-rolled Helm chart in `charts/keycloak`. It does not use the
-  operator, so this plan supersedes it. Do not delete the branch without asking.
-- The `prompts/06-keycloak.md` brief (outside the repo) is the source of the requirements above.
+## Traps found
+- The operator's client controller needs `features.enabled: client-admin-api:v2` on the `Keycloak` CR.
+- It also needs the `keycloak-admin` Secret (a master-realm service account). Keycloak creates that account only when it
+  initialises `master`, so on the first deployment it was created once through the admin API. A rebuild gets it on first start.
+- The operator does not URL-encode the client secret: keep it hex (base64 gives `invalid_client_credentials`).
+- The operator Deployment is owned by OLM: `rollout restart` is reverted; delete the pod instead.
+- `cilium-policies` fails to sync if the `keycloak` namespace does not exist yet; sync `keycloak` first.
+- A rebuild must approve the InstallPlan by hand and apply `keycloak-secrets` before the `Keycloak` CR starts.
 
-## Decisions to make (document the choice in the PR)
-1. **Wildcard vs apex.** `*.segfault.me` does not cover `segfault.me` itself. Check `infra/k8s/gateway/base/certificate.yaml`
-   `dnsNames`. If the apex is missing, either add it to the certificate or terminate TLS for the apex only at Cloudflare/cortex and
-   speak HTTPS to the Gateway under a covered name.
-2. **Path vs host.** `/auth` means `KC_HTTP_RELATIVE_PATH=/auth` and a hostname that includes the path. Confirm Cloudflare and
-   cortex forward `/auth` unchanged (no prefix stripping) and set the proxy headers the operator expects.
-3. **Realm IaC.** The operator's `KeycloakRealmImport` CR is create-only (it does not reconcile an existing realm). Options:
-   (a) `KeycloakRealmImport` for the initial realm, with later changes by re-import into a fresh realm; (b) the Keycloak
-   Terraform provider or `keycloak-config-cli` as a Job for ongoing reconciliation. Default to (a) for the pilot and revisit
-   if drift becomes a problem.
-4. **GitHub user restriction.** Keycloak's GitHub IdP cannot filter by login natively. Candidate approach: disable
-   self-registration, pre-create the `alxbl` user, and make the first-broker-login flow link-only (deny unknown users),
-   keyed on the verified GitHub identity. Verify it actually blocks another GitHub account before calling it done.
-5. **Secrets.** Admin bootstrap credentials, the GitHub OAuth client ID/secret and the DB credentials are Kubernetes Secrets
-   created out of band. Each goes in `scripts/secrets.list` and into Proton Drive via `scripts/export-secrets`. The realm
-   import references them through the operator's placeholder support, never inline.
+## Live state on cortex (not covered by `setup.sh`)
+The host does not run the compose stack in the repo. The blog is the `segv-tls` nginx container (configs under `/app/nginx`,
+behind sslh on 443). Added by hand: container `nghttpx` (`--restart unless-stopped`, config in `/app/nghttpx`), docker network
+`edge` with `segv-tls` attached, and the `/auth/` block in `/app/nginx/conf.d/segfault.me.conf` (backup `.bak-pre-keycloak`).
+Recreating `segv-tls` with `docker run` drops the `edge` attachment (`docker network connect edge segv-tls`). The cluster's
+public address is baked into the `nghttpx` container at start (`--add-host origin.segfault.me:<ip>`): if the WAN address
+changes, recreate the container, or put a DNS-only record in front of it.
 
-## Phases
-
-### 1. Prerequisites (read-only checks first)
-- Argo `olm` synced; `operators` namespace and `operatorhubio-catalog` CatalogSource healthy; `kc get csv -A`.
-- Sync `cnpg` (ServerSideApply); confirm the operator pod and CRDs.
-- Check the apex-certificate question (decision 1).
-
-### 2. Storage
-- On `core@tachyon.lan` (authorised by the brief): create `data/k8s/keycloak-db`, 10G quota, `context=none`. List existing datasets first.
-- Add `infra/system/storage/base/pv-keycloak-db.yaml` (Retain, pre-bound to the CNPG claim `<cluster>-1`) and register it in
-  the kustomization.
-- Extend `scripts/test/storage-bindings.sh` with the keycloak database claim.
-- Snapshot discipline per repo rules: no `zfs destroy`, no `zpool upgrade`.
-
-### 3. Database and operator
-- New namespace `keycloak` (add to `infra/k8s/catalog/templates/namespaces.yaml` if that is where namespaces live).
-- CNPG `Cluster` for Keycloak following `pg-immich.yaml`, with the generated app secret.
-- Approve the operator `InstallPlan` (manual approval), wait for the CSV `Succeeded`, then confirm the `Keycloak` CRDs.
-
-### 4. Keycloak
-- `Keycloak` CR: one instance, external DB from CNPG, hostname `segfault.me`, relative path `/auth`, proxy headers on,
-  HTTP enabled behind the Gateway.
-- `HTTPRoute` for `segfault.me` `/auth` to the Keycloak service (the operator creates it; confirm port and TLS mode).
-- `CiliumNetworkPolicy` allowances: Gateway to Keycloak, Keycloak to Postgres, Keycloak to GitHub egress, and anything the host
-  firewall needs.
-- `KeycloakRealmImport` with the realm, GitHub IdP, the single allowed user and a pilot OIDC client (decision 3, 4, 5).
-- Argo wiring: catalog templates for any new app, repo Secret entries if a new Helm repo is added, sync by patching `operation`.
-
-### 5. Edge and validation
-- In the `alxbl/segfault.me` repo (own worktree): configure and start the nghttpx proxy on `cortex.segfault.me`, forward
-  `/auth` unchanged. Confirm whether the nghttpx setup is still needed (the brief says it may have changed).
-- Validate without the SSO step: pods Ready, DB reachable, `/auth/realms/<realm>/.well-known/openid-configuration` returns the
-  expected issuer through every hop (in-cluster, LAN, Cloudflare), certificates Ready, logs clean.
-- Ask the user to run the GitHub login with the pilot client, watching the Keycloak logs, then test with a second GitHub
-  account to prove it is denied.
-- Exit criteria for Envoy Gateway work: issuer URL stable, JWKS reachable from inside the cluster, realm and client IaC
-  committed, secrets exported.
-
-### 6. Envoy Gateway (separate plan, after phase 5)
-Install beside the Cilium Gateway on a second IP, attach a `SecurityPolicy` (OIDC for browsers, JWT for bearer clients) to one
-low-stakes route, exempt Keycloak and health endpoints, then migrate routes. Check how OIDC and JWT interact on a single
-target before relying on bearer pass-through. Write that plan when this one is done.
-
-## Risks and rollback
-- Manual InstallPlan approval is easy to forget; the operator will sit pending.
-- The Keycloak operator and `fast` channel move quickly; pin the CSV version in the PR.
-- A wrong hostname or relative path breaks every redirect; test the discovery document first.
-- Rollback: unsync `keycloak`, remove the HTTPRoute, leave the dataset and PV (Retain). Any deletion of a bound PV/PVC or
-  dataset is a STOP and ask.
-- Nothing here touches existing apps; the Gateway change is one additive route.
-
-## Deliverables
-- PR(s) in `alxbl/lab` per phase; one PR in `alxbl/segfault.me` for cortex.
-- Decision log (the five decisions above) in the PR descriptions.
-- `scripts/secrets.list` entries and a fresh `scripts/export-secrets` run.
+## Follow-ups
+- **Envoy Gateway (phase 6, own plan).** Install beside the Cilium Gateway on a second IP, `SecurityPolicy` with `oidc` for
+  browsers and `jwt` for bearer clients against the `segv` realm, exempt Keycloak and health endpoints, migrate routes one by
+  one. Check how OIDC and JWT behave on one target before relying on bearer pass-through. Per-app Keycloak clients are
+  `KeycloakOIDCClient` CRs.
+- Decide on `gatewayAPI.enableAlpn` (decision 6).
+- The Gateway admits Cloudflare ranges on 443 and routes on the Host header, so a Cloudflare-proxied name of someone else's
+  zone pointing at the WAN address with `Host: lab.segfault.me` would reach the LAN-only routes, Keycloak admin included.
+  Worth closing when the Envoy Gateway work reshapes the routes.
+- The stale local branch `keycloak` (hand-rolled chart, `88c00c1`) is superseded; delete it when convenient.
+- Test the deny flow with a second GitHub account (not yet done).

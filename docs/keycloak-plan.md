@@ -5,11 +5,20 @@ phase that starts only after Keycloak has passed the checks in phase 5.
 
 Conventions: `STOP and ask` = the user says go in the conversation first. Secrets never enter the repo, logs or chat.
 
+## Autonomy (from the user's brief)
+Run without prompting. Where a decision is needed, document the options, the choice and the reasoning in the PR.
+- Proceed without asking: syncing Argo resources, committing, opening PRs, merging to `main`, cleaning up merged worktrees,
+  creating the Keycloak ZFS dataset on `tachyon.lan` (explicitly requested; 10G, adjust later).
+- Interrupt for: deleting resources or rolling back state, an unresolvable dead end, a leaked credential, or breaking
+  something unrelated.
+- Validation: verify everything is up, then ask the user to try the GitHub SSO and report back; watch the logs meanwhile.
+
 ## Goal
 - Keycloak reachable at `https://segfault.me/auth`, via Cloudflare, `cortex.segfault.me` (nghttpx) and segv's Cilium Gateway.
 - Deployed by the Keycloak Operator (OLM) with Postgres from CNPG on a dedicated ZFS dataset.
 - Realm configuration is code. GitHub is the identity provider and only `alxbl` may log in.
-- Later (phase 6): Envoy Gateway enforces OIDC/JWT in front of internet-facing apps, using this Keycloak.
+- Keycloak is the front for internet-facing apps ("expose it as a front"). Enforcement is phase 6 (Envoy Gateway), which
+  starts after Keycloak is validated, as agreed.
 
 ## State found in the repo (2026-10-24)
 - `infra/system/keycloak` holds only an OLM `Subscription` (`keycloak-operator`, channel `fast`, `installPlanApproval: Manual`).
@@ -48,8 +57,8 @@ Conventions: `STOP and ask` = the user says go in the conversation first. Secret
 - Sync `cnpg` (ServerSideApply); confirm the operator pod and CRDs.
 - Check the apex-certificate question (decision 1).
 
-### 2. Storage (STOP and ask before touching tachyon)
-- On `core@tachyon.lan`: create `data/k8s/keycloak-db`, 10G quota, `context=none`. List existing datasets first.
+### 2. Storage
+- On `core@tachyon.lan` (authorised by the brief): create `data/k8s/keycloak-db`, 10G quota, `context=none`. List existing datasets first.
 - Add `infra/system/storage/base/pv-keycloak-db.yaml` (Retain, pre-bound to the CNPG claim `<cluster>-1`) and register it in
   the kustomization.
 - Extend `scripts/test/storage-bindings.sh` with the keycloak database claim.

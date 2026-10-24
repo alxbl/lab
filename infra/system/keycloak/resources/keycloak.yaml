@@ -1,5 +1,5 @@
 # Needs the operator CRDs, which exist only after the InstallPlan for the Subscription is approved (a rebuild must do so).
-# Secrets (created out of band, see scripts/keycloak-secrets): keycloak-bootstrap-admin.
+# Secrets (created out of band, see scripts/keycloak-secrets): keycloak-bootstrap-admin, keycloak-admin.
 apiVersion: k8s.keycloak.org/v2alpha1
 kind: Keycloak
 metadata:
@@ -39,3 +39,6 @@ spec:
   bootstrapAdmin:
     user:
       secret: keycloak-bootstrap-admin
+    # Service account for the operator's client CRs. Keycloak creates it only when it initialises the master realm.
+    service:
+      secret: keycloak-admin

@@ -17,8 +17,6 @@ cni:
   exclusive: true
 
 l7Proxy: true
-envoy:
-  enabled: true
 gatewayAPI:
   enabled: true
 l2announcements:
@@ -36,10 +34,28 @@ hubble:
   enabled: true
   relay:
     enabled: true
+  metrics:
+    enabled:
+    - dns
+    - drop
+    - tcp
+    - flow
+    - icmp
   tls:
     auto:
       method: cronJob
 
+# Metrics are scraped by the PodMonitors in infra/system/cilium/monitoring. The chart's own ServiceMonitors are
+# not used: they need the Prometheus CRDs, which do not exist when install-cilium.sh runs.
+prometheus:
+  enabled: true
+envoy:
+  enabled: true
+  prometheus:
+    enabled: true
+
 # Single controller today.
 operator:
   replicas: 1
+  prometheus:
+    enabled: true

@@ -180,7 +180,7 @@ data:
         "clientSecret": "",
         "defaultStorageQuota": null,
         "enabled": false,
-        "issuerUrl": "",upl
+        "issuerUrl": "",
         "endSessionEndpoint": "",
         "mobileOverrideEnabled": false,
         "mobileRedirectUri": "",

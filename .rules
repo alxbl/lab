@@ -48,6 +48,8 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - Host policies default-deny node ingress. Put the host endpoint in `PolicyAuditMode` and check verdicts before enforcing; a mistake locks out SSH and the API (see `DEVELOPMENT.md`).
 - Namespaces with a `baseline` CiliumNetworkPolicy are ingress default-deny. New workloads add their own ports with a NetworkPolicy.
 - `kubectl apply` of cert-manager resources right after its install can fail transiently on the webhook; retry.
+- Cluster DNS: the CoreDNS Corefile is owned by the `coredns` Argo app (`infra/system/coredns`), not Typhoon. It forwards to Quad9 over DoT on purpose and must not follow the node resolver: the UDM hands out AdGuard, a pod on this node, as LAN DNS. A reprovision restores Typhoon's stock Corefile until the app is synced again.
+- AdGuard (`charts/adguard`) regenerates its configuration from the chart's ConfigMap on every pod start. Change records and settings there, never in the UI or API, and restart the pod after a sync. The split-DNS names (`lab`, `vault`, `home`, `photos`) exist both there and as UDM local DNS records; keep them in step. AdGuard serves the whole LAN, so don't scale it down or restart it for a test without telling the user.
 
 ## Storage
 - Workload volumes are static `local-zfs` PVs (`Retain`, pre-bound to their claim) on datasets `data/k8s/<name>` of the ZFS pool `data` (`infra/system/storage`). OpenEBS is gone; don't reintroduce it.

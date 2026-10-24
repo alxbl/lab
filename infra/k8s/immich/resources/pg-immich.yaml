@@ -3,13 +3,21 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: immich-database
-  namespace: immich
+  namespace: media
 spec:
   instances: 1
   storage:
     size: 10Gi
-    # Immich is not deployed (no catalog Application). Before re-enabling it, add a PV for this claim to infra/system/storage.
     storageClass: local-zfs
+    # Binds the instance PVC (immich-database-1) to the static PV in infra/system/storage.
+    pvcTemplate:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: local-zfs
+      volumeName: immich-db
+      resources:
+        requests:
+          storage: 10Gi
 
   imageName: ghcr.io/tensorchord/cloudnative-vectorchord:18
   postgresql:

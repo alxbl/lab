@@ -8,6 +8,7 @@ resources:
 - pv-home-assistant.yaml
 - pv-vaultwarden.yaml
 - pv-photoprism-db.yaml
+- pv-immich-db.yaml
 - pv-satisfactory.yaml
 - pv-smbd.yaml
 - pv-prometheus.yaml

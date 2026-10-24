@@ -1,0 +1,21 @@
+# The media baseline only admits same-namespace and Gateway traffic. The CNPG operator (cnpg-system) manages the
+# instance over its status endpoint (8000) and Postgres (5432); the Immich pods connect from within media.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: immich-database-cnpg
+spec:
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: immich-database
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        io.kubernetes.pod.namespace: cnpg-system
+        app.kubernetes.io/name: cloudnative-pg
+    toPorts:
+    - ports:
+      - port: "8000"
+        protocol: TCP
+      - port: "5432"
+        protocol: TCP

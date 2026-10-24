@@ -1,0 +1,13 @@
+# Inotify limits. The kernel default of 128 instances is shared by every root process on the node, including all
+# root containers, and is exhausted by the control plane, kubelet and workloads (AdGuard: "too many open files").
+# The name sorts after Typhoon's max-user-watches.conf, which would otherwise win.
+variant: fcos
+version: 1.5.0
+storage:
+  files:
+    - path: /etc/sysctl.d/zz-inotify.conf
+      mode: 0644
+      contents:
+        inline: |
+          fs.inotify.max_user_instances = 8192
+          fs.inotify.max_user_watches = 524288

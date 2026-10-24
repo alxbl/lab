@@ -1,85 +1,51 @@
 # Authentication for internet-facing apps
 
-Follows `docs/keycloak-plan.md`. Supersedes the earlier Envoy Gateway plan (kept below as the deferred alternative).
+Follows `docs/keycloak-plan.md`. Records the access decisions and what is left; the Envoy Gateway findings are kept as the deferred alternative.
 
 Conventions: `STOP and ask` = the user says go in the conversation first. Secrets never enter the repo, logs or chat.
 
-## Policy (decided 2026-10-24)
-1. An app with native OIDC uses it against Keycloak (realm `segv`) and is **not** fronted.
-2. An app whose clients speak a proprietary protocol cannot sit behind a login redirect. Vaultwarden is the case: only its
-   `/admin` path is fronted, and only if the admin page is enabled.
-3. Immich will be internet-facing and uses its own SSO.
-4. Nothing else needs a front today.
+## Decisions (2026-10-24)
+1. An app with native OIDC uses it against Keycloak (realm `segv`) and is not fronted.
+2. **No proxy front for now.** Vaultwarden's clients speak a proprietary protocol and cannot sit behind a login redirect, and
+   its admin page stays disabled (`ADMIN_TOKEN` unset, answers "The admin panel is disabled"). Nothing else is fronted.
+3. **ALPN stays off** on the Cilium Gateway (`gatewayAPI.enableAlpn`): it is global to every listener, also enables
+   `appProtocol` selection, and the only gain is h2 on the cortex hop. Revisit only for a concrete need.
+4. **Routing of names.** Only the apex `segfault.me` goes through cortex (the blog stays off the home link, so it stays up
+   when the home link does not; `/auth` rides the same path). Every other public name, `vault.segfault.me` today and
+   `photos.segfault.me` for Immich, goes Cloudflare straight to segv.
+5. Envoy Gateway and oauth2-proxy are both deferred; see the appendices for when to reopen them.
 
-## Approach: oauth2-proxy, not Envoy Gateway
-The scope is one path on one app. oauth2-proxy covers it with one Deployment and avoids everything Envoy Gateway drags in:
-the Gateway API CRD mismatch (v1.3.0 for Cilium 1.18.14 against v1.6.1 for the only Envoy Gateway release that supports
-Kubernetes 1.36), a second load-balancer address, new Cilium policies for another proxy, and retiring the Cilium Gateway.
-
-The Cilium Gateway has no auth-request hook, so the proxy sits in the request path: an `HTTPRoute` rule sends the protected
-path (and `/oauth2/*`) to oauth2-proxy, which authenticates against Keycloak and proxies to the app. No CRDs, no change to
-the Gateway, and the existing wildcard certificate and source allow-list apply unchanged.
-
-What this gives up: one central policy resource, JWT validation for API clients at the edge, claim-based rules in YAML, and a
-single data-plane proxy for every route. Costs: one proxy instance per fronted app, and an extra hop on fronted paths.
-**Revisit Envoy Gateway** if more than a few web-only apps need fronting, or an API needs bearer-token validation at the
-edge (see the appendix).
-
-## Findings
-- Vaultwarden's admin page is **disabled today**: `ADMIN_TOKEN` is not set, and `https://vault.segfault.me/admin` answers
-  "The admin panel is disabled". There is nothing to front until it is enabled. Alternative to a front: leave it off, or
-  route `/admin` only on `lab.segfault.me` (LAN).
-- Only `segfault.me/auth` and `vault.segfault.me` are internet-facing now. `lab`, `home` and `photos` are LAN-only.
-- Keycloak's namespace baseline policy admits only same-namespace and Gateway traffic, so oauth2-proxy needs its own
-  `CiliumNetworkPolicy` to reach `keycloak-service:8080`.
-- The realm user `alxbl` has no email. oauth2-proxy wants one; set `--oidc-email-claim=preferred_username` and
-  `--email-domain=*` (the realm admits only the linked GitHub account) rather than putting an email in the realm.
-- `KeycloakOIDCClient` has no protocol-mapper field, which is fine: oauth2-proxy verifies the ID token, whose `aud` is the
-  client id. A mapper is only needed to accept bearer access tokens.
-- Cilium Gateway ALPN (`gatewayAPI.enableAlpn`): the earlier recommendation not to enable it rested on retiring that
-  Gateway, which no longer holds. It is still not worth it: global to every listener, also enables `appProtocol` selection,
-  and the only gain is h2 on the cortex hop. Revisit only for a concrete need.
-
-## Phases
-### A. Immich with native SSO (when Immich is deployed)
+## What this leaves to do: Immich with native SSO (when Immich is deployed)
 - `KeycloakOIDCClient` `immich` (confidential; redirect URIs `https://photos.segfault.me/auth/login`,
   `https://photos.segfault.me/user-settings`, `app.immich:///oauth-callback`). Client secret in a Secret listed in
-  `scripts/secrets.list`.
-- Immich OAuth settings (issuer `https://segfault.me/auth/realms/segv`, client id and secret) live in its configuration.
+  `scripts/secrets.list`, created by an extension of `scripts/keycloak-secrets`.
+- Immich OAuth settings (issuer `https://segfault.me/auth/realms/segv`, client id and secret) are part of its configuration.
   The secret must not be in a ConfigMap: move the configuration to a Secret (`configurationKind: Secret` in the chart).
-  Disable password login and auto-registration once SSO works; the realm only admits `alxbl`.
-- Public exposure, two options to choose between (STOP and ask):
-  - Same as Vaultwarden: Cloudflare proxies `photos.segfault.me` straight to the home address (the Gateway already admits
-    Cloudflare ranges). No cortex change.
-  - Through cortex: a `photos.segfault.me` server block in nginx proxying everything to nghttpx, with
-    `client_max_body_size 0`, `proxy_request_buffering off` and long timeouts for uploads.
-  Either way the Cloudflare proxy caps request bodies (100 MB on the free plan), which breaks large video uploads from the
-  app. Options: DNS-only record for this name (exposes the origin address), a paid plan, or accept it.
-- Add the hostname to the Cloudflare DNS and verify the Immich mobile app's OAuth flow end to end.
-
-### B. Vaultwarden `/admin` (only when `ADMIN_TOKEN` is set)
-- `KeycloakOIDCClient` `vaultwarden-admin` (confidential), redirect `https://vault.segfault.me/oauth2/callback`.
-- oauth2-proxy (Helm chart from `https://oauth2-proxy.github.io/manifests`, repository entry in
-  `infra/system/argocd/overlays/helm-repositories.yaml`, pin the chart version when implementing) in the `home` namespace:
-  `--provider=keycloak-oidc`, `--code-challenge-method=S256`, `--upstream=http://vaultwarden:80`, `--reverse-proxy` with
-  `--trusted-proxy-ip` set, and a role restriction (`--allowed-role`). Reach Keycloak in-cluster: `--skip-oidc-discovery`
-  with `--login-url` (public), `--redeem-url` and `--oidc-jwks-url` (`http://keycloak-service.keycloak:8080/auth/...`) and
-  `--oidc-issuer-url` the public issuer, so nothing hairpins through Cloudflare. Check `--insecure-oidc-skip-issuer-verification`
-  is not needed (the token `iss` is the public URL either way).
-- Secrets (client secret, cookie secret) created by an extension of `scripts/keycloak-secrets`, listed in `secrets.list`.
-- `HTTPRoute` `vault.segfault.me`: `/admin` and `/oauth2` to oauth2-proxy, everything else to Vaultwarden unchanged. The
-  Bitwarden clients never touch `/admin`.
-- `CiliumNetworkPolicy` in `keycloak` allowing oauth2-proxy to `keycloak-service:8080`.
-- Verify: unauthenticated `/admin` redirects to Keycloak; after login the Vaultwarden token prompt shows; `/api`,
-  `/identity` and the web vault are untouched; a Bitwarden client still syncs.
-
-### C. Later
-Add an instance per newly fronted app. Re-open the Envoy Gateway question if that list grows.
+  Turn off password login and auto-registration once SSO works; the realm only admits `alxbl`.
+- Exposure needs no cortex change: the `photos.segfault.me` HTTPRoute already exists, the Gateway already admits Cloudflare's
+  ranges, and the wildcard certificate covers the name. What is missing is the Cloudflare DNS record (proxied) for
+  `photos.segfault.me`, and checking that the router forwards 443 as it does for `vault.segfault.me`.
+- **Open:** the Cloudflare proxy caps request bodies (100 MB on the free plan), which breaks large video uploads from the
+  phone app. Options: a DNS-only record for this name (exposes the home address), a paid plan, or accept it.
+- Dependency to know about: sign-in to Immich needs Keycloak, which is served through cortex and then the home link; if
+  either is down, SSO login fails (an existing session keeps working).
+- Verify the mobile app's OAuth flow end to end, and that a second GitHub account is rejected.
 
 ## Risks
-- The fronted path depends on Keycloak: if it is down, `/admin` is unreachable (it fails closed). Acceptable for an admin page.
-- oauth2-proxy cookies are per host; do not share a cookie domain across hosts without a reason.
-- Do not front Keycloak, Argo CD's own login or anything the proxy itself needs.
+- Anything exposed later inherits the same questions: native OIDC if the app has it, otherwise decide explicitly.
+- Do not front Keycloak, Argo CD's own login or anything a proxy itself would need.
+
+## Appendix: if a front is needed later, oauth2-proxy
+Fits a handful of web-only apps with no CRD or Gateway changes: the Cilium Gateway has no auth-request hook, so the proxy
+sits in the path (an `HTTPRoute` rule sends the protected path and `/oauth2/*` to it, and it proxies to the app).
+- Chart `https://oauth2-proxy.github.io/manifests` (repository entry in `infra/system/argocd/overlays/helm-repositories.yaml`).
+- `--provider=keycloak-oidc`, `--code-challenge-method=S256`, `--upstream=<app>`, `--reverse-proxy` with `--trusted-proxy-ip`,
+  `--allowed-role`. The realm user has no email: use `--oidc-email-claim=preferred_username` and `--email-domain=*`.
+- Reach Keycloak in-cluster to avoid a hairpin through Cloudflare: `--skip-oidc-discovery` with the public `--login-url`,
+  and `--redeem-url` and `--oidc-jwks-url` on `http://keycloak-service.keycloak:8080/auth/...`, public `--oidc-issuer-url`.
+  The `keycloak` namespace baseline policy needs an allowance for the proxy.
+- One `KeycloakOIDCClient` and one proxy instance per fronted app. Costs: an extra hop, and no central policy or edge JWT
+  validation. Reopen Envoy Gateway if the list grows beyond a few apps or an API needs bearer-token validation.
 
 ## Appendix: Envoy Gateway findings (deferred alternative)
 - Compatibility: Envoy Gateway v1.9 (Envoy 1.39.x, Gateway API **v1.6.1**, Kubernetes 1.33 to 1.36) is the only release

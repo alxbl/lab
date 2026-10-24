@@ -1,0 +1,37 @@
+# Needs the operator CRDs, which exist only after the InstallPlan for the Subscription is approved (a rebuild must do so).
+# Secrets (created out of band, see scripts/keycloak-secrets): keycloak-bootstrap-admin.
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: keycloak
+  namespace: keycloak
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  instances: 1
+  db:
+    vendor: postgres
+    host: keycloak-db-rw
+    database: app
+    usernameSecret:
+      name: keycloak-db-app
+      key: username
+    passwordSecret:
+      name: keycloak-db-app
+      key: password
+  http:
+    httpEnabled: true
+  # TLS ends at the Gateway; the public URL carries the /auth prefix.
+  hostname:
+    hostname: https://segfault.me/auth
+    admin: https://lab.segfault.me/auth
+  proxy:
+    headers: xforwarded
+  ingress:
+    enabled: false
+  additionalOptions:
+  - name: http-relative-path
+    value: /auth
+  bootstrapAdmin:
+    user:
+      secret: keycloak-bootstrap-admin

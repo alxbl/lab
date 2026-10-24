@@ -6,6 +6,8 @@ metadata:
     {{- include "jellyfin.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "jellyfin.selectorLabels" . | nindent 6 }}
@@ -47,7 +49,7 @@ spec:
               value: {{ .Values.jellyfin.JELLYFIN_CONFIG_DIR}}
             - name: JELLYFIN_CACHE_DIR
               value: {{ .Values.jellyfin.JELLYFIN_CACHE_DIR}}
-            - name: DOTNET_USE_POLLING_FILE_WATCHER   
+            - name: DOTNET_USE_POLLING_FILE_WATCHER
               value: '1'
             - name: DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE
               value: 'false'

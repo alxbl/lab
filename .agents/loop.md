@@ -4,10 +4,11 @@ base: main
 branch: "<type>/<slug>"
 commits: conventional
 validate:
-  - for t in scripts/test/*.sh; do "$t" || exit 1; done
+  - .worktrees/<branch>/scripts/test/<name>.sh, one call per script, when scripts/ or scripts/test/ change
   - ansible-playbook --syntax-check -i ansible/hosts ansible/playbook.yml
   - kubectl kustomize <changed kustomize dir>
-  - helm lint <changed chart>; helm template <changed chart>
+  - helm lint <changed chart>
+  - helm template <changed chart>
   - terraform fmt -check <changed .tf file>
 environments:
   segv:
@@ -30,4 +31,5 @@ review:
 - `CLAUDE.md` is binding. Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code; trust scripts and manifests and report drift.
 - Source `.env` first (zsh). It exports `KUBECONFIG` for segv.
 - Validation never touches live systems. `terraform fmt -check -recursive infra` already fails on main for `dev.tf` and `segv.tf`, so check only the files you change.
+- Check image tags and release notes with WebFetch or WebSearch; `curl` is not allowed.
 - Apps track `HEAD` of `main`; changes take effect only after the human merges and syncs.

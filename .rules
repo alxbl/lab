@@ -9,6 +9,7 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - `scripts/pacstrap.sh` partitions and wipes disks. Never run it.
 - Never commit secrets, kubeconfigs (`*.conf`, `kube.conf`), terraform state, or private PKI. Only the root CA is committed under `pki/`. `infra/examples/secrets` holds placeholders only.
 - Secrets and the real PKI live in Proton Drive at `/my-files/Documents/Homelab/_secrets` (layout in `README.md`). Use `scripts/export-secrets` and `scripts/import-secrets`; never copy their contents into the repo, logs or chat.
+- A new Secret that cannot be recreated from the repo goes in `scripts/secrets.list` and into Proton Drive with `scripts/export-secrets`. Point `SECRETS_LIST` at a one-entry list to export only it.
 
 ## Environment
 - Source `.env` first (zsh). It sets `LAB_ROOT` and `KUBECONFIG`. Scripts assume it.
@@ -55,10 +56,13 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - The kubelet container needs `/var/data` to exist even when the pool failed to import (it is a podman volume in the butane config).
 - Velero's BackupStorageLocation, `backup-policy-zfs` and the `backup-pv-daily` schedule (`infra/system/velero`) are applied by hand until #62 is fixed; a rebuild must apply them.
 - Home Assistant keeps its HTTP settings (including `trusted_proxies`) in `/config/.storage/http`; the `http:` block in `configuration.yaml` is ignored after its one-time migration (#64).
+- A new storage-backed app needs, before its first sync: the ZFS dataset (quota, `context=none`; created on `core@tachyon.lan`), a pre-bound PV in `infra/system/storage`, and its claim in `scripts/test/storage-bindings.sh`, which special-cases external charts by app name (e.g. operator-generated claim names).
 
 ## GitOps
 - ArgoCD app-of-apps. `infra/system/argocd` installs ArgoCD and the `root` app. `infra/system/catalog` and `infra/k8s/catalog` are meta-charts whose templates are the `Application`s. A new workload needs a catalog template plus its manifests (kustomize dir, upstream chart, or a chart in `charts/`).
 - Apps track `HEAD` of `github.com/alxbl/lab`. Changes only take effect once pushed.
+- Most Applications have no auto-sync; sync by patching `operation`. A Helm chart source takes its chart version as the `revision` (not `HEAD`), the operation does not inherit the app's `syncOptions` (pass `ServerSideApply=true` for large CRDs: ArgoCD, kube-prometheus-stack), and a resource removed from git is only deleted with `prune`.
+- Every Helm chart source needs a repository Secret in `infra/system/argocd/overlays/helm-repositories.yaml`, applied by syncing the `argocd` app; without it the Application is not picked up. The OSS Loki chart is in `grafana-community`, not `grafana`.
 - `charts/` holds my own charts. They may contain lab-specific hardcoded values.
 - `charts/aquisition` pins our `alxbl/*` image tags and has no ArgoCD auto-sync; sync by patching the Application. It is one Deployment with six containers, so any change restarts all of them.
 - Arr major bumps migrate databases one-way. Back up first with each app's Backup API command (containers have no `sqlite3`; don't copy live DBs).

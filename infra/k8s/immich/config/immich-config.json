@@ -139,7 +139,7 @@
       "modelName": "PP-OCRv5_mobile"
     },
     "urls": [
-      "http://immich-app-machine-learning:3003"
+      "http://immich-machine-learning:3003"
     ]
   },
   "map": {
@@ -200,7 +200,7 @@
     "tokenEndpointAuthMethod": "client_secret_post"
   },
   "passwordLogin": {
-    "enabled": true
+    "enabled": false
   },
   "reverseGeocoding": {
     "enabled": true

@@ -23,8 +23,9 @@ Conventions: `STOP and ask` = the user says go in the conversation first. Secret
   Done: the non-secret configuration is `infra/k8s/immich/config/immich-config.json` and `scripts/immich-config` renders it
   with the client secret into Secret `media/immich-config`, which the chart mounts (`configurationKind: Secret`). Run the
   script before syncing the app and after any change to the JSON or the client secret, then restart `immich-server`.
-  Auto-registration is off (Immich links the login to the existing user by email). Password login stays on until SSO is
-  verified by hand; then turn it off in the JSON.
+  Auto-registration is off (Immich links the login to the existing user by email). SSO was verified by hand on
+  2026-10-24 and password login is off. Recovery if Keycloak is unreachable: set `passwordLogin.enabled` back to true in
+  the JSON, run `scripts/immich-config`, restart `immich-server` (or `immich-admin enable-password-login` in the pod).
 - Exposure needs no cortex change: the `photos.segfault.me` HTTPRoute already exists, the Gateway already admits Cloudflare's
   ranges, and the wildcard certificate covers the name. What is missing is the Cloudflare DNS record (proxied) for
   `photos.segfault.me`, and checking that the router forwards 443 as it does for `vault.segfault.me`.

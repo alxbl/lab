@@ -20,8 +20,11 @@ Conventions: `STOP and ask` = the user says go in the conversation first. Secret
   `https://photos.segfault.me/user-settings`, `app.immich:///oauth-callback`). Client secret in a Secret listed in
   `scripts/secrets.list`, created by an extension of `scripts/keycloak-secrets`.
 - Immich OAuth settings (issuer `https://segfault.me/auth/realms/segv`, client id and secret) are part of its configuration.
-  The secret must not be in a ConfigMap: move the configuration to a Secret (`configurationKind: Secret` in the chart).
-  Turn off password login and auto-registration once SSO works; the realm only admits `alxbl`.
+  Done: the non-secret configuration is `infra/k8s/immich/config/immich-config.json` and `scripts/immich-config` renders it
+  with the client secret into Secret `media/immich-config`, which the chart mounts (`configurationKind: Secret`). Run the
+  script before syncing the app and after any change to the JSON or the client secret, then restart `immich-server`.
+  Auto-registration is off (Immich links the login to the existing user by email). Password login stays on until SSO is
+  verified by hand; then turn it off in the JSON.
 - Exposure needs no cortex change: the `photos.segfault.me` HTTPRoute already exists, the Gateway already admits Cloudflare's
   ranges, and the wildcard certificate covers the name. What is missing is the Cloudflare DNS record (proxied) for
   `photos.segfault.me`, and checking that the router forwards 443 as it does for `vault.segfault.me`.

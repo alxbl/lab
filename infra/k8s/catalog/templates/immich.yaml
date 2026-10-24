@@ -54,8 +54,10 @@ spec:
             library:
               # Shared with smbd; Immich keeps its files under <share>/immich.
               existingClaim: smbd-data
-          existingConfiguration: immich-cm
-          configurationKind: ConfigMap
+          # The configuration file carries the OAuth client secret, so it is a Secret rendered by scripts/immich-config
+          # from infra/k8s/immich/config/immich-config.json.
+          existingConfiguration: immich-config
+          configurationKind: Secret
         valkey:
           enabled: true
         server:

@@ -1,0 +1,20 @@
+{{- if eq .Values.cluster "segv" }}
+# Cluster DNS forwards to Quad9 over DoT instead of the node resolver, which may point at AdGuard (a pod on this node).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: coredns
+  namespace: argocd
+spec:
+  destination:
+    server: {{ .Values.spec.destination.server }}
+  project: system
+  source:
+    path: infra/system/coredns
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}
+  syncPolicy:
+    syncOptions:
+    # The ConfigMap was created by Typhoon with client-side apply.
+    - ServerSideApply=true
+{{- end }}

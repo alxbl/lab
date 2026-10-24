@@ -5,15 +5,15 @@ branch: "<type>/<slug>"
 commits: conventional
 validate:
   - .worktrees/<branch>/scripts/test/<name>.sh, one call per script, when scripts/ or scripts/test/ change
-  - ansible-playbook --syntax-check -i ansible/hosts ansible/playbook.yml
-  - kubectl kustomize <changed kustomize dir>
-  - helm lint <changed chart>
-  - helm template <changed chart>
-  - terraform fmt -check <changed .tf file>
+  - ansible-playbook --syntax-check -i .worktrees/<branch>/ansible/hosts .worktrees/<branch>/ansible/playbook.yml
+  - kubectl kustomize .worktrees/<branch>/<changed kustomize dir>
+  - helm lint .worktrees/<branch>/<changed chart>
+  - helm template .worktrees/<branch>/<changed chart>
+  - terraform fmt -check .worktrees/<branch>/<changed .tf file>
 environments:
   segv:
     access: read-only
-    how: kubectl with --kubeconfig infra/clusters/segv/kube.conf (get, describe, logs only). Never terraform, helm install/upgrade, or scripts/bootstrap.sh.
+    how: kubectl --kubeconfig infra/clusters/segv/kube.conf <get|describe|logs> [flags], verb first (e.g. `... get -n argocd applications`); flags before the verb match no allow rule. Never terraform, helm install/upgrade, or scripts/bootstrap.sh.
   dev:
     access: none
     how: infra/clusters/dev/dev.conf, always passed with --kubeconfig. Not available to loops.

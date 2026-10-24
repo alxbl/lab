@@ -71,7 +71,7 @@ Applications (all manual sync):
 | `home` | adguard, home-assistant (StatefulSet), vaultwarden |
 | `kube-system` | Cilium agent, envoy and operator, Hubble relay, CoreDNS, static control-plane pods |
 | `media` | aquisition (one Deployment, six containers), jellyfin, smbd |
-| `olm`, `operators` | Operator Lifecycle Manager (no operators in use) |
+| `olm`, `operators` | Empty namespaces (created by `system-catalog`); OLM itself was never re-synced after the cutover (#84) |
 | `satisfactory` | namespace only |
 | `system` | Velero v1.13.0 and its `node-agent` |
 

@@ -13,13 +13,7 @@ spec:
     path: infra/system/olm
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: olm
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: operators
+  syncPolicy:
+    syncOptions:
+    # The OLM CRDs exceed the client-side apply annotation limit.
+    - ServerSideApply=true

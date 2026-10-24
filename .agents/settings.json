@@ -36,6 +36,8 @@
       "Bash(gh pr list:*)",
       "Bash(gh pr diff:*)",
       "Bash(gh pr checks:*)",
+      "Bash(gh release list:*)",
+      "Bash(gh release view:*)",
       "Bash(gh pr create:*)",
       "Bash(gh pr edit:*)",
       "Bash(~/.config/agents/skills/loop-retro/recurrence.sh:*)",
@@ -48,7 +50,8 @@
       "Bash(terraform validate:*)",
       "Bash(kubectl --kubeconfig infra/clusters/segv/kube.conf get:*)",
       "Bash(kubectl --kubeconfig infra/clusters/segv/kube.conf describe:*)",
-      "Bash(kubectl --kubeconfig infra/clusters/segv/kube.conf logs:*)"
+      "Bash(kubectl --kubeconfig infra/clusters/segv/kube.conf logs:*)",
+      "Bash(kubectl --kubeconfig infra/clusters/segv/kube.conf version:*)"
     ],
     "deny": [
       "Bash(git push --force:*)",

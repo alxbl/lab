@@ -49,20 +49,28 @@ token, no access", is the remaining phase and starts from here.
 - `cilium-policies` fails to sync if the `keycloak` namespace does not exist yet; sync `keycloak` first.
 - A rebuild must approve the InstallPlan by hand and apply `keycloak-secrets` before the `Keycloak` CR starts.
 
-## Live state on cortex (not covered by `setup.sh`)
-The host does not run the compose stack in the repo. The blog is the `segv-tls` nginx container (configs under `/app/nginx`,
-behind sslh on 443). Added by hand: container `nghttpx` (`--restart unless-stopped`, config in `/app/nghttpx`), docker network
-`edge` with `segv-tls` attached, and the `/auth/` block in `/app/nginx/conf.d/segfault.me.conf` (backup `.bak-pre-keycloak`).
-Recreating `segv-tls` with `docker run` drops the `edge` attachment (`docker network connect edge segv-tls`). The cluster's
-public address is baked into the `nghttpx` container at start (`--add-host origin.segfault.me:<ip>`): if the WAN address
-changes, recreate the container, or put a DNS-only record in front of it.
+## Backups
+`keycloak` is in the `backup-pv-daily` schedule (applied by hand, #62). The `keycloak-db` pod opts its volume in, and a
+Velero pre-hook writes `pg_dump -Fc` to `/var/lib/postgresql/data/backup/app.dump` first (a kopia copy of a live data
+directory is not reliable); the backup fails if the dump fails. Verified with a one-off backup on 2026-10-24: hook ran,
+volume uploaded, no errors. Restore: restore the volume, then `pg_restore` the dump into a fresh cluster. The realm itself
+is rebuilt from git, so the dump only has to carry runtime state.
+
+## Cortex deployment
+Reproducible from `alxbl/segfault.me` `build/setup.sh` (PRs #2, #3), cut over on 2026-10-24: `/app/segfault.me` holds the
+checkout, the compose stack (`build_nginx_1`, `build_nghttpx_1`, both `unless-stopped`), the git-ignored origin certificate
+in `build/certs` and `build/.env` (`SEGV_ORIGIN_IP`), and `build/sslh/sslh` becomes `/etc/default/sslh`. Hugo is pinned to
+0.113.0 (the theme needs `resources.ToCSS`). nginx is published on loopback only. The old hand-started `segv-tls` and
+`nghttpx` containers are stopped with `restart=no` and kept, with `/app/nginx`, `/app/segv` and `/app/docker-compose.yml`,
+for rollback; remove them once the new stack has survived a reboot. If the cluster's WAN address changes, edit
+`build/.env` and run `docker-compose up -d` in `build/`.
 
 ## Follow-ups
 - **Envoy Gateway (phase 6, own plan).** Install beside the Cilium Gateway on a second IP, `SecurityPolicy` with `oidc` for
   browsers and `jwt` for bearer clients against the `segv` realm, exempt Keycloak and health endpoints, migrate routes one by
   one. Check how OIDC and JWT behave on one target before relying on bearer pass-through. Per-app Keycloak clients are
   `KeycloakOIDCClient` CRs.
-- Decide on `gatewayAPI.enableAlpn` (decision 6).
+- ALPN (decision 6): superseded by the Envoy Gateway plan, see `docs/envoy-gateway-plan.md`.
 - The Gateway admits Cloudflare ranges on 443 and routes on the Host header, so a Cloudflare-proxied name of someone else's
   zone pointing at the WAN address with `Host: lab.segfault.me` would reach the LAN-only routes, Keycloak admin included.
   Worth closing when the Envoy Gateway work reshapes the routes.

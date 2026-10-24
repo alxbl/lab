@@ -14,6 +14,7 @@ spec:
       name: backup-policy-zfs
     includedNamespaces:
       - 'home'
+      - 'keycloak'
       - 'media'
       - 'satisfactory'
     includedResources: []

@@ -6,3 +6,5 @@ resources:
 - resources/sub-keycloak.yaml
 - resources/pg-keycloak.yaml
 - resources/cnp-cnpg.yaml
+- resources/keycloak.yaml
+- resources/httproute-keycloak.yaml

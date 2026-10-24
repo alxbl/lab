@@ -1,0 +1,45 @@
+# Replaces the Corefile that Typhoon installs at bootstrap (client-side apply, once): a reprovision restores Typhoon's
+# version until this app is synced again. Only on segv; dev keeps the stock Corefile.
+# Never pruned: deleting this ConfigMap takes cluster DNS down.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
+  annotations:
+    argocd.argoproj.io/sync-options: Delete=false
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health {
+          lameduck 5s
+        }
+        ready
+        log . {
+            class error
+        }
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+            pods insecure
+            fallthrough in-addr.arpa ip6.arpa
+        }
+        prometheus :9153
+        # Quad9 over DoT, so pod DNS does not depend on the node resolver (the UDM may hand out AdGuard, a pod on this node).
+        # The UDM answers only if both Quad9 addresses fail.
+        forward . tls://9.9.9.10 tls://149.112.112.10 10.0.0.1 {
+            tls_servername dns10.quad9.net
+            policy sequential
+            health_check 5s
+        }
+        cache 30
+        loop
+        reload
+        loadbalance
+    }
+
+    # Local names (the nodes' search domain) belong to the UDM.
+    lan:53 {
+        errors
+        cache 30
+        forward . 10.0.0.1
+    }

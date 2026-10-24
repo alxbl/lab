@@ -38,6 +38,12 @@ spec:
             kubeControllerManager: false
             kubeProxy: false
 
+        # Typhoon labels the CoreDNS pods k8s-app=coredns, the chart selects k8s-app=kube-dns.
+        coreDns:
+          service:
+            selector:
+              k8s-app: coredns
+
         alertmanager:
           enabled: false
 
@@ -69,6 +75,11 @@ spec:
 
         grafana:
           fullnameOverride: grafana
+          sidecar:
+            datasources:
+              # Alertmanager is disabled above.
+              alertmanager:
+                enabled: false
           admin:
             existingSecret: grafana-admin
             userKey: admin-user

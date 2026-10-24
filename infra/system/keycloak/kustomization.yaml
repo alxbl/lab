@@ -10,3 +10,4 @@ resources:
 - resources/httproute-keycloak.yaml
 - resources/realm-segv.yaml
 - resources/oidcclient-test-app.yaml
+- resources/oidcclient-immich.yaml

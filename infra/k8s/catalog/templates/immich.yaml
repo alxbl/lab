@@ -38,6 +38,9 @@ spec:
           main:
             containers:
               main:
+                # Shared by the server and machine-learning images. The chart's appVersion lags the releases.
+                image:
+                  tag: v3.3.5
                 env:
                   DB_HOSTNAME: immich-database-rw
                   DB_DATABASE_NAME: app

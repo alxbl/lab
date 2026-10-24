@@ -14,3 +14,4 @@ resources:
 - pv-prometheus.yaml
 - pv-grafana.yaml
 - pv-loki.yaml
+- pv-keycloak-db.yaml

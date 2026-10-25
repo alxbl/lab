@@ -218,6 +218,19 @@ sequenceDiagram
 
 Password login to Immich is off. Keycloak holds one user, `alxbl`, linked to a GitHub identity.
 
+### Adding a user
+
+Done by hand in the live realm, from the admin console on `lab.segfault.me`. The realm import only runs once and never
+reconciles, and doing it by hand keeps emails out of git.
+
+1. Realm `segv`, Users, Create user. Set the email to the one on the user's Immich account; Immich links by email.
+2. On the user, Identity provider links, link `github` with the account's numeric GitHub id
+   (`https://api.github.com/users/<name>`, field `id`) and its username. Keycloak matches on the id, not the name.
+
+Without the link the login completes the GitHub flow and then fails with `access_denied`
+(`IDENTITY_PROVIDER_FIRST_LOGIN_ERROR` in the Keycloak log). The GitHub provider requests the `user:email` scope; without
+it, accounts with no public profile email fail with `Primary email could not be retrieved from the github endpoint`.
+
 ## 4. Storage and backups
 
 ```mermaid

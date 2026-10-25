@@ -247,7 +247,7 @@ flowchart LR
     d4[("keycloak-db")]:::data
     d5[("vaultwarden, home-assistant, adguard")]:::data
     d6[("prometheus, grafana, loki")]:::data
-    d7[("photoprism-db, satisfactory<br/>PVs Available, apps not provisioned")]:::data
+    d7[("photoprism-db (retired, kept as backup), satisfactory<br/>satisfactory not provisioned")]:::data
   end
 
   pvs["static PVs, StorageClass local-zfs<br/>Retain, pre-bound to their claims<br/>infra/system/storage"]:::sys
@@ -285,7 +285,7 @@ flowchart LR
   repo --> argo
   argo --> root["root<br/>infra/k8s/catalog"]:::sys
   argo --> syscat["system-catalog<br/>infra/system/catalog"]:::sys
-  root --> w["workloads: immich, immich-database, jellyfin, aquisition, smbd,<br/>home-assistant, vaultwarden, adguard-home, gateway,<br/>cert-manager, velero<br/>(photoprism, satisfactory: defined, not provisioned)"]:::sys
+  root --> w["workloads: immich, immich-database, jellyfin, aquisition, smbd,<br/>home-assistant, vaultwarden, adguard-home, gateway,<br/>cert-manager, velero<br/>(satisfactory: defined, not provisioned)"]:::sys
   syscat --> s["system: argocd, cilium, cilium-policies, cilium-monitoring,<br/>gateway-api, coredns, storage, olm, cnpg, keycloak,<br/>monitoring, loki, alloy, metrics-server"]:::sys
 ```
 
@@ -306,8 +306,8 @@ flowchart LR
 
 ## Not verified
 
-- Why `home-assistant` and `velero` are OutOfSync at the time of writing (`velero` is expected, see #62); `photoprism` and
-  `satisfactory` are Missing by design.
+- Why `home-assistant` and `velero` are OutOfSync at the time of writing (`velero` is expected, see #62); `satisfactory` is
+  Missing by design (`photoprism` was retired, its data volume kept as a backup).
 - The router's 443 port-forward and its local DNS records: inferred from the working paths and from DNS answers, not read from
   the UDM.
 - Component versions are from container images; AdGuard, Vaultwarden, smbd and aquisition are on `latest` tags.

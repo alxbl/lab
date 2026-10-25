@@ -45,7 +45,8 @@ spec:
       config:
         clientId: ${GITHUB_CLIENT_ID}
         clientSecret: ${GITHUB_CLIENT_SECRET}
-        defaultScope: read:user
+        # user:email lets Keycloak read the primary email of accounts with no public profile email.
+        defaultScope: user:email
         syncMode: IMPORT
     users:
     - username: alxbl

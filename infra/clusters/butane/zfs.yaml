@@ -1,8 +1,9 @@
 # ZFS support for stock Fedora CoreOS: rebases onto the ZFS image once, before sshd starts, then imports pools.
 # The image reference is the literal @ZFS_IMAGE@ (a pinned digest): replace it before rendering, e.g. with
 # Terraform replace(file("../butane/zfs.yaml"), "@ZFS_IMAGE@", var.zfs_image).
-# The console placeholder in the unit is replaced the same way, with an `rpm-ostree kargs --append-if-missing=...` ExecStart
-# (serial console) or with nothing. It runs before the reboot the rebase needs anyway, so it costs no extra reboot.
+# The kargs run after the rebase and before the reboot the rebase needs anyway, so they cost no extra reboot.
+# `nosmt` (from the base image) turns SMT off, so it is removed. The console placeholder in the unit is replaced the same
+# way, with an `rpm-ostree kargs --append-if-missing=...` ExecStart (serial console) or with nothing.
 variant: fcos
 version: 1.5.0
 systemd:
@@ -22,6 +23,7 @@ systemd:
         [Service]
         Type=oneshot
         ExecStart=/usr/bin/rpm-ostree rebase ostree-unverified-registry:@ZFS_IMAGE@
+        ExecStart=/usr/bin/rpm-ostree kargs --delete-if-present=mitigations=auto,nosmt
         @CONSOLE_KARGS@
         ExecStart=/usr/bin/touch /var/lib/zfs-rebased
         ExecStart=/usr/bin/systemctl reboot

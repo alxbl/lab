@@ -57,6 +57,8 @@ spec:
           prometheusSpec:
             retention: 30d
             retentionSize: 4GB
+            # OTLP metrics from Alloy (the restore test) at /api/v1/otlp/v1/metrics.
+            enableOTLPReceiver: true
             # Pick up ServiceMonitors, PodMonitors, rules and probes from every namespace, not only this release.
             serviceMonitorSelectorNilUsesHelmValues: false
             podMonitorSelectorNilUsesHelmValues: false

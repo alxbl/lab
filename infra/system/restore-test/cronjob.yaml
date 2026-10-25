@@ -1,0 +1,71 @@
+# Restores the newest vaultwarden snapshot from the Velero kopia repository into a tmpfs and pushes the result as OTLP
+# metrics through Alloy (restore-test.sh).
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: restore-test
+  namespace: system
+spec:
+  # Sunday, after the 03:00 UTC backup schedule.
+  schedule: "0 6 * * 0"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 900
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: restore-test
+            image: kopia/kopia:0.23.1
+            command: [/bin/sh, /scripts/restore-test.sh]
+            env:
+            - name: KOPIA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: velero-repo-credentials
+                  key: repository-password
+            - {name: KOPIA_CONFIG_PATH, value: /tmp/kopia/repository.config}
+            - {name: KOPIA_CACHE_DIRECTORY, value: /tmp/kopia/cache}
+            - {name: KOPIA_LOG_DIR, value: /tmp/kopia/logs}
+            - {name: REPO_CONTAINER, value: velero}
+            - {name: REPO_ACCOUNT, value: segvdata}
+            - {name: REPO_PREFIX, value: kopia/home/}
+            - {name: CREDENTIALS_FILE, value: /azure/cloud}
+            - {name: VOLUME, value: vaultwarden}
+            - {name: NAMESPACE, value: home}
+            - {name: RESTORE_DIR, value: /restore}
+            - {name: REQUIRED_FILE, value: db.sqlite3}
+            # Daily backups; a day and a half tolerates one missed run.
+            - {name: MAX_SNAPSHOT_AGE, value: "129600"}
+            - {name: OTLP_URL, value: "http://alloy.monitoring.svc:4318/v1/metrics"}
+            resources:
+              requests: {cpu: 100m, memory: 128Mi}
+              # The tmpfs below counts against the memory limit.
+              limits: {cpu: "1", memory: 512Mi}
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop: [ALL]
+            volumeMounts:
+            - {name: scripts, mountPath: /scripts, readOnly: true}
+            - {name: azure, mountPath: /azure, readOnly: true}
+            - {name: tmp, mountPath: /tmp}
+            - {name: restore, mountPath: /restore}
+          volumes:
+          - name: scripts
+            configMap:
+              name: restore-test-script
+          - name: azure
+            secret:
+              secretName: velero-azure-storage-key
+          - name: tmp
+            emptyDir: {}
+          - name: restore
+            emptyDir:
+              medium: Memory
+              sizeLimit: 64Mi

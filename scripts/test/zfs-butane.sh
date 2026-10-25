@@ -32,14 +32,15 @@ rebase=$(unit zfs-rebase.service .contents)
 grep -qx 'Before=sshd.service' <<<"$rebase" || fail "rebase not ordered before sshd"
 grep -qx 'ConditionPathExists=!/var/lib/zfs-rebased' <<<"$rebase" || fail "rebase has no marker condition"
 grep -qx "ExecStart=/usr/bin/rpm-ostree rebase ostree-unverified-registry:$IMAGE" <<<"$rebase" || fail "image reference not substituted"
-[[ $(grep -n '^ExecStart=' <<<"$rebase" | sed 's/^[0-9]*:ExecStart=\/usr\/bin\///; s/ .*//' | paste -sd,) == rpm-ostree,touch,systemctl ]] || fail "rebase, marker, reboot out of order"
+[[ $(grep -n '^ExecStart=' <<<"$rebase" | sed 's/^[0-9]*:ExecStart=\/usr\/bin\///; s/ .*//' | paste -sd,) == rpm-ostree,rpm-ostree,touch,systemctl ]] || fail "rebase, kargs, marker, reboot out of order"
+grep -qx 'ExecStart=/usr/bin/rpm-ostree kargs --delete-if-present=mitigations=auto,nosmt' <<<"$rebase" || fail "nosmt is not removed"
 
 # Opt-in serial console: appended after the rebase and before the reboot, so no extra reboot is needed.
 ign=$(render "$KARGS")
 rebase=$(unit zfs-rebase.service .contents)
-[[ $(grep -n '^ExecStart=' <<<"$rebase" | sed 's/^[0-9]*:ExecStart=\/usr\/bin\///; s/ .*//' | paste -sd,) == rpm-ostree,rpm-ostree,touch,systemctl ]] || fail "kargs not between rebase and marker"
+[[ $(grep -n '^ExecStart=' <<<"$rebase" | sed 's/^[0-9]*:ExecStart=\/usr\/bin\///; s/ .*//' | paste -sd,) == rpm-ostree,rpm-ostree,rpm-ostree,touch,systemctl ]] || fail "console kargs not between rebase and marker"
 grep -qx "$KARGS" <<<"$rebase" || fail "console kargs line missing"
-[[ $(grep -c '^ExecStart=/usr/bin/rpm-ostree kargs' <<<"$rebase") == 1 ]] || fail "kargs must appear once"
+[[ $(grep -c '^ExecStart=/usr/bin/rpm-ostree kargs' <<<"$rebase") == 2 ]] || fail "console kargs must be a separate kargs call"
 ! jq -e ".kernelArguments" <<<"$ign" >/dev/null || fail "butane kernel_arguments would cause an extra reboot"
 grep -qF 'kernel_args  = local.console_args' "$HERE/../../infra/clusters/dev/dev.tf" || fail "dev.tf does not pass the console to the PXE installer"
 echo "ok"

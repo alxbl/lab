@@ -30,6 +30,7 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - dev and segv both use upstream `poseidon/typhoon` with `components.cilium.enable = false`. Don't repoint or bump the ref without asking.
 - Typhoon installs no CNI. Cilium and the Gateway API CRDs are installed with Helm by `scripts/install-cilium.sh` (`infra/system/cilium`; `dev/up.sh` runs it on dev, on segv run it once the node has registered), then adopted by ArgoCD. The chart version lives in `infra/system/catalog/templates/app-cilium.yaml` and is pinned at 1.18.14 (kernel bug); don't bump it without asking.
 - Fresh FCOS nodes can be rebooted once by Zincati shortly after install, which wipes root. Scripts that talk to the API during bring-up must wait and retry.
+- After a node reboot, workloads take about 10 minutes to return: pods sit in `Unknown`, then `CreateContainerError` (the runtime still holds the container name after a first create timed out) for those mounting `smbd-data`. If the API refuses connections, check `etcd-member.service` and `kubelet.service` on the node first (it was found stopped once, cause unknown). Don't delete pods meanwhile.
 - Cluster-level changes go in the `.tf` files. Per-node OS tweaks go in butane snippets.
 - segv is a single node and Typhoon registers its controller `NoSchedule`. Until #61 is fixed, remove the taint (`node-role.kubernetes.io/controller`) after any (re)install, or the Cilium operator cannot schedule and the install deadlocks.
 
@@ -71,6 +72,7 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - Jellyfin major bumps migrate the database one-way, one major at a time (10.8, 10.10.7, 10.11, 12.x). With the server scaled to 0, copy `/media/.config/jellyfin` aside and check that `du -sb` and the file count match before each hop. Remove third-party plugins first.
 - Jellyfin 10.11+ refuses a config dir equal to the data dir, and the image defaults `JELLYFIN_CONFIG_DIR` and `JELLYFIN_LOG_DIR` to `/config/*`, so the chart sets the data and config dirs explicitly (config nested in data, owned by uid 1000). A failed start can leave rows in `data/jellyfin.db-wal`: move the WAL and SHM aside before retrying.
 - The live Keycloak `segv` realm is edited by hand in the admin console (`KeycloakRealmImport` never reconciles); mirror every change in `infra/system/keycloak/resources/realm-segv.yaml` so a fresh import matches. Users and their GitHub links are created by hand and never go in git (procedure: `docs/hld/segv-cluster.md`, section 3).
+- To retire an Argo app whose PVC is bound to a dataset: patch the Application's finalizers to null, delete the Application (a cascade would delete the PVC), then delete its Deployment, Service and ConfigMap by name. The PVC, PV and dataset stay.
 - Default branch is `main`. Agents work through branch + PR; I merge and sync.
 
 ## Ansible and workstations

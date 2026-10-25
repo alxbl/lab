@@ -37,7 +37,8 @@ spec:
             - {name: CREDENTIALS_FILE, value: /azure/cloud}
             - {name: VOLUME, value: vaultwarden}
             - {name: NAMESPACE, value: home}
-            - {name: RESTORE_DIR, value: /restore}
+            # Kopia stages a sibling entry next to its target, so it cannot restore into the mount point itself.
+            - {name: RESTORE_DIR, value: /restore/data}
             - {name: REQUIRED_FILE, value: db.sqlite3}
             # Daily backups; a day and a half tolerates one missed run.
             - {name: MAX_SNAPSHOT_AGE, value: "129600"}

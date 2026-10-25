@@ -115,23 +115,33 @@ spec:
                 forward_to    = [loki.process.journal.receiver]
               }
 
-              // OTLP logs from workloads, stored through Loki's native OTLP endpoint.
+              // OTLP logs from workloads are stored through Loki's native OTLP endpoint, and OTLP metrics through
+              // Prometheus's.
               otelcol.receiver.otlp "default" {
                 grpc {}
                 http {}
                 output {
-                  logs = [otelcol.processor.batch.default.input]
+                  logs    = [otelcol.processor.batch.default.input]
+                  metrics = [otelcol.processor.batch.default.input]
                 }
               }
 
               otelcol.processor.batch "default" {
                 output {
-                  logs = [otelcol.exporter.otlphttp.loki.input]
+                  logs    = [otelcol.exporter.otlphttp.loki.input]
+                  metrics = [otelcol.exporter.otlphttp.prometheus.input]
                 }
               }
 
               otelcol.exporter.otlphttp "loki" {
                 client {
                   endpoint = "http://loki.monitoring.svc:3100/otlp"
+                }
+              }
+
+              // The exporter appends /v1/metrics.
+              otelcol.exporter.otlphttp "prometheus" {
+                client {
+                  endpoint = "http://kps-prometheus.monitoring.svc:9090/api/v1/otlp"
                 }
               }

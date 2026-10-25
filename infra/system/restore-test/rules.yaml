@@ -1,0 +1,25 @@
+# The job pushes once a week and OTLP samples are not stale-marked, so instant queries lose them after five minutes.
+# These rules re-emit the last pushed value every minute for the dashboard.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: restore-test
+  namespace: monitoring
+spec:
+  groups:
+  - name: restore-test
+    interval: 1m
+    rules:
+    - record: restore_test:success:last
+      expr: max by (namespace, volume) (last_over_time(restore_test_success[14d]))
+    - record: restore_test:duration_seconds:last
+      expr: max by (namespace, volume) (last_over_time(restore_test_duration_seconds[14d]))
+    - record: restore_test:snapshot_age_seconds:last
+      expr: max by (namespace, volume) (last_over_time(restore_test_snapshot_age_seconds[14d]))
+    - record: restore_test:restored_files:last
+      expr: max by (namespace, volume) (last_over_time(restore_test_restored_files[14d]))
+    - record: restore_test:restored_bytes:last
+      expr: max by (namespace, volume) (last_over_time(restore_test_restored_bytes[14d]))
+    # Matches the 30d retention.
+    - record: restore_test:last_success_age_seconds
+      expr: time() - max by (namespace, volume) (last_over_time(restore_test_last_success_timestamp_seconds[30d]))

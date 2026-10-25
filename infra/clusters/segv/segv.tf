@@ -84,6 +84,7 @@ module "segv" {
       file("../butane/wipe-root.yaml"),
       file("./butane/hosts.yaml"),
       file("../butane/sysctl.yaml"),
+      file("../butane/kubelet.yaml"),
       replace(replace(file("../butane/zfs.yaml"), "@ZFS_IMAGE@", var.zfs_image), "@CONSOLE_KARGS@", local.console_kargs),
     ]
   }

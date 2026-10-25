@@ -86,9 +86,9 @@ module "dev" {
 
   # Setup static DNS in /etc/hosts so that routing works properly.
   snippets = {
-    "node1" = [ file("../butane/wipe-root.yaml"), file("./butane/hosts.yaml"), file("../butane/sysctl.yaml") ]
+    "node1" = [ file("../butane/wipe-root.yaml"), file("./butane/hosts.yaml"), file("../butane/sysctl.yaml"), file("../butane/kubelet.yaml") ]
     "node2" = concat(
-      [ file("../butane/wipe-root.yaml"), file("./butane/hosts.yaml"), file("../butane/sysctl.yaml") ],
+      [ file("../butane/wipe-root.yaml"), file("./butane/hosts.yaml"), file("../butane/sysctl.yaml"), file("../butane/kubelet.yaml") ],
       var.zfs_image == "" ? [] : [ replace(replace(file("../butane/zfs.yaml"), "@ZFS_IMAGE@", var.zfs_image), "@CONSOLE_KARGS@", local.console_kargs) ]
     )
   }

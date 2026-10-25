@@ -16,6 +16,10 @@ bpf:
 cni:
   exclusive: true
 
+# Enforces the kubernetes.io/egress-bandwidth pod annotation (used by velero).
+bandwidthManager:
+  enabled: true
+
 l7Proxy: true
 gatewayAPI:
   enabled: true

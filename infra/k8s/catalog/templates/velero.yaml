@@ -44,6 +44,10 @@ spec:
           namespace: system
           # defaultRepoMaintainFrequency: 
 
+        # The chart applies these to the velero and node-agent pods alike; the node-agent runs the kopia uploads.
+        podAnnotations:
+          kubernetes.io/egress-bandwidth: 25M
+
         backupsEnabled: false
         snapshotsEnabled: false
         deployNodeAgent: true

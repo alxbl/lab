@@ -1,0 +1,15 @@
+# The kubelet unit has no ordering on containerd, so on a cold boot it starts before the CRI socket exists and exits.
+# Its restarts then arrive faster than RestartSec (kubelet.path re-triggers it) and trip the start limit, which leaves
+# it failed until someone starts it by hand. Order it after containerd and lift the limit.
+variant: fcos
+version: 1.5.0
+systemd:
+  units:
+    - name: kubelet.service
+      dropins:
+        - name: 10-containerd.conf
+          contents: |
+            [Unit]
+            After=containerd.service
+            Wants=containerd.service
+            StartLimitIntervalSec=0

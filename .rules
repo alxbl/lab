@@ -70,6 +70,7 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - Arr major bumps migrate databases one-way. Back up first with each app's Backup API command (containers have no `sqlite3`; don't copy live DBs).
 - Jellyfin major bumps migrate the database one-way, one major at a time (10.8, 10.10.7, 10.11, 12.x). With the server scaled to 0, copy `/media/.config/jellyfin` aside and check that `du -sb` and the file count match before each hop. Remove third-party plugins first.
 - Jellyfin 10.11+ refuses a config dir equal to the data dir, and the image defaults `JELLYFIN_CONFIG_DIR` and `JELLYFIN_LOG_DIR` to `/config/*`, so the chart sets the data and config dirs explicitly (config nested in data, owned by uid 1000). A failed start can leave rows in `data/jellyfin.db-wal`: move the WAL and SHM aside before retrying.
+- The live Keycloak `segv` realm is edited by hand in the admin console (`KeycloakRealmImport` never reconciles); mirror every change in `infra/system/keycloak/resources/realm-segv.yaml` so a fresh import matches. Users and their GitHub links are created by hand and never go in git (procedure: `docs/hld/segv-cluster.md`, section 3).
 - Default branch is `main`. Agents work through branch + PR; I merge and sync.
 
 ## Ansible and workstations

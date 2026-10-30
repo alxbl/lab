@@ -268,7 +268,7 @@ flowchart LR
 
 - Namespaces in the schedule: `home`, `media`, `keycloak`, `satisfactory`. Only pods that opt in are backed up (Vaultwarden, smbd,
   Home Assistant, both CNPG databases).
-- The schedule, location and policy are applied by hand (#62). The old OpenEBS-era repository and the 26 pre-cutover backups were
+- The schedule, location and policy come from the `velero-config` Application; on a rebuild sync `velero`, then `velero-config`. The old OpenEBS-era repository and the 26 pre-cutover backups were
   deleted on 2026-10-24; the container holds about 279 GB.
 - Database secrets and generated client secrets are not in git. They are created by `scripts/keycloak-secrets` and
   `scripts/immich-config`, and exported with `scripts/export-secrets`.
@@ -286,7 +286,7 @@ flowchart LR
   argo --> root["root<br/>infra/k8s/catalog"]:::sys
   argo --> syscat["system-catalog<br/>infra/system/catalog"]:::sys
   root --> w["workloads: immich, immich-database, jellyfin, aquisition, smbd,<br/>home-assistant, vaultwarden, adguard-home, gateway,<br/>cert-manager, velero<br/>(satisfactory: defined, not provisioned)"]:::sys
-  syscat --> s["system: argocd, cilium, cilium-policies, cilium-monitoring,<br/>gateway-api, coredns, storage, olm, cnpg, keycloak,<br/>monitoring, loki, alloy, metrics-server"]:::sys
+  syscat --> s["system: argocd, cilium, cilium-policies, cilium-monitoring,<br/>gateway-api, coredns, storage, olm, cnpg, keycloak,<br/>monitoring, loki, alloy, metrics-server,<br/>velero-config"]:::sys
 ```
 
 ## What changed since the 2026-10-21 snapshot
@@ -306,7 +306,7 @@ flowchart LR
 
 ## Not verified
 
-- Why `home-assistant` and `velero` are OutOfSync at the time of writing (`velero` is expected, see #62); `satisfactory` is
+- Why `home-assistant` and `velero` are OutOfSync at the time of writing (`velero`: cause not investigated); `satisfactory` is
   Missing by design (`photoprism` was retired, its data volume kept as a backup).
 - The router's 443 port-forward and its local DNS records: inferred from the working paths and from DNS answers, not read from
   the UDM.

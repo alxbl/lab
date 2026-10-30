@@ -49,7 +49,8 @@ then add a PV next to the existing ones.
 - Never `zpool upgrade` (it removes the rollback path) and never `zfs destroy` or delete a PV/PVC that is bound to a dataset.
 - Datasets under `data/k8s` carry an SELinux `context` option; see `.rules` for the exceptions.
 - Daily backups use Velero with the `node-agent` (kopia) into Azure Blob Storage. Its `BackupStorageLocation`,
-  `backup-policy-zfs` and the `backup-pv-daily` schedule (`infra/system/velero`) are applied by hand, so a rebuild must apply them.
+  `backup-policy-zfs` and the `backup-pv-daily` schedule (`infra/system/velero`) are the `velero-config` Application. On a
+  rebuild, sync `velero` first (it installs the CRDs), then `velero-config`; the `velero` server restarts until the location exists.
 - `restore-test` (`infra/system/restore-test`) restores the newest vaultwarden snapshot with kopia into a tmpfs every Sunday
   and pushes the result to Prometheus over OTLP through Alloy. The "Backups" Grafana dashboard shows it next to Velero's metrics.
   `immich/.kopiaignore` on the smbd volume keeps Immich's thumbnails and transcodes out of the backup.

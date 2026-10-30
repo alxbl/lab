@@ -247,7 +247,7 @@ flowchart LR
     d4[("keycloak-db")]:::data
     d5[("vaultwarden, home-assistant, adguard")]:::data
     d6[("prometheus, grafana, loki")]:::data
-    d7[("photoprism-db (retired, kept as backup), satisfactory<br/>satisfactory not provisioned")]:::data
+    d7[("satisfactory<br/>not provisioned")]:::data
   end
 
   pvs["static PVs, StorageClass local-zfs<br/>Retain, pre-bound to their claims<br/>infra/system/storage"]:::sys
@@ -307,7 +307,7 @@ flowchart LR
 ## Not verified
 
 - Why `home-assistant` and `velero` are OutOfSync at the time of writing (`velero` is expected, see #62); `satisfactory` is
-  Missing by design (`photoprism` was retired, its data volume kept as a backup).
+  Missing by design (not provisioned). `photoprism` was retired and its volume (`data/k8s/photoprism-db`) deleted on 2026-10-30.
 - The router's 443 port-forward and its local DNS records: inferred from the working paths and from DNS answers, not read from
   the UDM.
 - Component versions are from container images; AdGuard, Vaultwarden, smbd and aquisition are on `latest` tags.

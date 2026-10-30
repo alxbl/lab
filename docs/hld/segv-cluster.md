@@ -182,11 +182,13 @@ flowchart TB
 | `segfault.me` (apex) | internet, via Cloudflare and cortex | `/auth/realms/segv`, `/auth/resources`, `/auth/js` | Keycloak. The blog is static files on cortex, not in the cluster |
 | `vault.segfault.me` | internet, via Cloudflare to home | `/` | Vaultwarden |
 | `photos.segfault.me` | internet, via Cloudflare to home; direct on the LAN | `/` | Immich |
+| `code.segfault.me` | internet, via Cloudflare to home; direct on the LAN | `/` | Forgejo (sign-in through Keycloak only, no public registration) |
 | `lab.segfault.me` | LAN only | `/argocd`, `/watch`, `/grafana`, `/auth` (Keycloak admin and `master` realm); `/` redirects to `/watch` | ArgoCD, Jellyfin, Grafana, Keycloak |
 | `home.segfault.me` | LAN only | `/` | Home Assistant |
+| `git` over SSH | LAN and VPN | SSH :22 on `10.3.0.2` (a `LoadBalancer` sharing the Gateway address) | Forgejo |
 | `smbd` | LAN | SMB :445 on `10.3.0.2` (a `LoadBalancer` sharing the Gateway address) | smbd |
 
-The Keycloak admin console is deliberately not routable from the public host, and only Vaultwarden and Immich sit behind Cloudflare
+The Keycloak admin console is deliberately not routable from the public host, and only Vaultwarden, Immich and Forgejo sit behind Cloudflare
 directly. The UDM serves the split-DNS names as local records; AdGuard serves the same names as rewrites and is the primary
 resolver handed out by DHCP.
 
@@ -231,6 +233,14 @@ Without the link the login completes the GitHub flow and then fails with `access
 (`IDENTITY_PROVIDER_FIRST_LOGIN_ERROR` in the Keycloak log). The GitHub provider requests the `user:email` scope; without
 it, accounts with no public profile email fail with `Primary email could not be retrieved from the github endpoint`.
 
+### Signing in to Forgejo
+
+Forgejo (`code.segfault.me`) uses the same realm through the `forgejo` client. Public registration is off: the first Keycloak
+login creates the Forgejo account, named after the Keycloak username and using its email. A user therefore needs only the steps
+in "Adding a user"; there is no per-client link. New accounts are not admins. Promote them in Site Administration while signed
+in as the local `forgejo-admin` (password in the `code/forgejo-admin` Secret). Account linking is `auto`, so a Keycloak username
+that equals an existing local one signs into it; keep Keycloak usernames distinct from `forgejo-admin`.
+
 ## 4. Storage and backups
 
 ```mermaid
@@ -247,7 +257,7 @@ flowchart LR
     d4[("keycloak-db")]:::data
     d5[("vaultwarden, home-assistant, adguard")]:::data
     d6[("prometheus, grafana, loki")]:::data
-    d7[("photoprism-db (retired, kept as backup), satisfactory<br/>satisfactory not provisioned")]:::data
+    d7[("satisfactory<br/>not provisioned")]:::data
   end
 
   pvs["static PVs, StorageClass local-zfs<br/>Retain, pre-bound to their claims<br/>infra/system/storage"]:::sys
@@ -266,12 +276,35 @@ flowchart LR
   sec["scripts/export-secrets<br/>scripts/secrets.list"]:::sys --> proton
 ```
 
-- Namespaces in the schedule: `home`, `media`, `keycloak`, `satisfactory`. Only pods that opt in are backed up (Vaultwarden, smbd,
-  Home Assistant, both CNPG databases).
+- Namespaces in the schedule: `code`, `home`, `media`, `keycloak`, `satisfactory`. Only pods that opt in are backed up (Vaultwarden,
+  smbd, Home Assistant, Forgejo, the CNPG databases). Forgejo's Actions runners hold no state worth keeping and are not backed up.
 - The schedule, location and policy come from the `velero-config` Application; on a rebuild sync `velero`, then `velero-config`. The old OpenEBS-era repository and the 26 pre-cutover backups were
   deleted on 2026-10-24; the container holds about 279 GB.
-- Database secrets and generated client secrets are not in git. They are created by `scripts/keycloak-secrets` and
-  `scripts/immich-config`, and exported with `scripts/export-secrets`.
+- Secrets are not in git. Generated client and admin secrets are created by `scripts/keycloak-secrets`,
+  `scripts/immich-config` and `scripts/forgejo-secrets`; the database `<cluster>-app` secrets are created by CNPG. Every runtime
+  secret is listed in `scripts/secrets.list`, exported with `scripts/export-secrets` and restored with `scripts/import-secrets`.
+
+### Restoring a database
+
+Argo and `scripts/import-secrets` bring back the CNPG clusters empty; the data is not restored automatically. Restore the volume
+from Velero (kopia), which brings back the pre-hook dump `backup/app.dump`, then load it into the running cluster:
+
+```sh
+kubectl -n code exec forgejo-database-1 -c postgres -- \
+  pg_restore -d app --clean --if-exists --no-owner --role=app /var/lib/postgresql/data/backup/app.dump
+```
+
+The same command applies to `immich-database-1` (namespace `media`) and `keycloak-db-1` (namespace `keycloak`). Restart the
+application afterwards. The app Secrets (`<cluster>-app`) come from `scripts/import-secrets`; they must be restored before the
+cluster first starts so that the password matches the dump.
+
+### Forgejo after a rebuild
+
+- Datasets are assumed to exist. Sync `forgejo-database` and `forgejo`, then restore the database as above.
+- The runner token (`code/forgejo-runner-token`) belongs to the Forgejo database. With the database restored it stays valid. On
+  a fresh database, delete the Secret, run `scripts/forgejo-secrets --runner-token` once Forgejo is up, and restart the runners.
+- Not in git, by hand: the UDM local record and the Cloudflare record for `code.segfault.me`, and the Keycloak user (see
+  "Adding a user").
 
 ## 5. GitOps
 
@@ -306,8 +339,8 @@ flowchart LR
 
 ## Not verified
 
-- Why `home-assistant` and `velero` are OutOfSync at the time of writing (`velero`: cause not investigated); `satisfactory` is
-  Missing by design (`photoprism` was retired, its data volume kept as a backup).
+- Why `home-assistant` and `velero` are OutOfSync at the time of writing (`velero`: cause not investigated); 
+- The database restore procedure above has not been rehearsed; the weekly restore test covers only Vaultwarden.
 - The router's 443 port-forward and its local DNS records: inferred from the working paths and from DNS answers, not read from
   the UDM.
 - Component versions are from container images; AdGuard, Vaultwarden, smbd and aquisition are on `latest` tags.

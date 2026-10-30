@@ -9,7 +9,7 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - `scripts/pacstrap.sh` partitions and wipes disks. Never run it.
 - Never commit secrets, kubeconfigs (`*.conf`, `kube.conf`), terraform state, or private PKI. Only the root CA is committed under `pki/`. `infra/examples/secrets` holds placeholders only.
 - Secrets and the real PKI live in Proton Drive at `/my-files/Documents/Homelab/_secrets` (layout in `README.md`). Use `scripts/export-secrets` and `scripts/import-secrets`; never copy their contents into the repo, logs or chat.
-- A new Secret that cannot be recreated from the repo goes in `scripts/secrets.list` and into Proton Drive with `scripts/export-secrets`. Point `SECRETS_LIST` at a one-entry list to export only it.
+- Every Secret a workload needs at runtime goes in `scripts/secrets.list` and into Proton Drive with `scripts/export-secrets`, so `scripts/import-secrets` restores a rebuilt cluster without re-running a generator script. That includes derived Secrets (`forgejo-oauth`) and operator-generated ones (the CNPG `<cluster>-app` Secrets). The generator scripts only create them the first time. Point `SECRETS_LIST` at a one-entry list to export only it.
 
 ## Environment
 - Source `.env` first (zsh). It sets `LAB_ROOT` and `KUBECONFIG`. Scripts assume it.

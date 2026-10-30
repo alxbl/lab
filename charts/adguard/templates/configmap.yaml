@@ -160,6 +160,8 @@ data:
         answer: 10.3.0.2
       - domain: photos.segfault.me
         answer: 10.3.0.2
+      - domain: code.segfault.me
+        answer: 10.3.0.2
       - domain: home.segfault.me
         answer: 10.3.0.2
       - domain: dns.segfault.me

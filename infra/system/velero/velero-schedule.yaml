@@ -16,6 +16,7 @@ spec:
       kind: configmap
       name: backup-policy-zfs
     includedNamespaces:
+      - 'code'
       - 'home'
       - 'keycloak'
       - 'media'

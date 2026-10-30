@@ -11,3 +11,4 @@ resources:
 - resources/realm-segv.yaml
 - resources/oidcclient-test-app.yaml
 - resources/oidcclient-immich.yaml
+- resources/oidcclient-forgejo.yaml

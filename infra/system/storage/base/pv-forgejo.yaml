@@ -1,9 +1,8 @@
-# Dataset data/k8s/photoprism-db, claimed by media/photoprism-cache. Kept as a backup of the retired PhotoPrism library
-# (MariaDB + cache); the app is gone and the dataset quota is 27G, below the 50Gi declared here.
+# Dataset data/k8s/forgejo, claimed by code/forgejo (Forgejo repositories, LFS and attachments).
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: photoprism-db
+  name: forgejo
 spec:
   capacity:
     storage: 50Gi
@@ -13,7 +12,7 @@ spec:
   storageClassName: local-zfs
   volumeMode: Filesystem
   local:
-    path: /var/data/k8s/photoprism-db
+    path: /var/data/k8s/forgejo
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -23,5 +22,5 @@ spec:
               values:
                 - tachyon.lan
   claimRef:
-    namespace: media
-    name: photoprism-cache
+    namespace: code
+    name: forgejo

@@ -1,0 +1,21 @@
+# The code baseline only admits same-namespace and Gateway traffic. The CNPG operator (cnpg-system) manages the
+# instance over its status endpoint (8000) and Postgres (5432); Forgejo connects from within code.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: forgejo-database-cnpg
+spec:
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: forgejo-database
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        io.kubernetes.pod.namespace: cnpg-system
+        app.kubernetes.io/name: cloudnative-pg
+    toPorts:
+    - ports:
+      - port: "8000"
+        protocol: TCP
+      - port: "5432"
+        protocol: TCP

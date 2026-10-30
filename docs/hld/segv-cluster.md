@@ -280,8 +280,9 @@ flowchart LR
   smbd, Home Assistant, Forgejo, the CNPG databases). Forgejo's Actions runners hold no state worth keeping and are not backed up.
 - The schedule, location and policy are applied by hand (#62). The old OpenEBS-era repository and the 26 pre-cutover backups were
   deleted on 2026-10-24; the container holds about 279 GB.
-- Database secrets and generated client secrets are not in git. They are created by `scripts/keycloak-secrets` and
-  `scripts/immich-config` and `scripts/forgejo-secrets`, and exported with `scripts/export-secrets`.
+- Secrets are not in git. Generated client and admin secrets are created by `scripts/keycloak-secrets`,
+  `scripts/immich-config` and `scripts/forgejo-secrets`; the database `<cluster>-app` secrets are created by CNPG. Every runtime
+  secret is listed in `scripts/secrets.list`, exported with `scripts/export-secrets` and restored with `scripts/import-secrets`.
 
 ### Restoring a database
 

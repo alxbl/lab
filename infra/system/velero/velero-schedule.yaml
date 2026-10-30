@@ -4,6 +4,9 @@ kind: Schedule
 metadata:
   name: backup-pv-daily
   namespace: system
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   # Every day at 3AM UTC
   schedule: 0 3 * * *

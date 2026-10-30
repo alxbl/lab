@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: backup-policy-zfs
   namespace: system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 data:
   skipped.yaml: |
     version: v1

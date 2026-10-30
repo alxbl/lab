@@ -50,7 +50,11 @@ for app in apps:
         p = values["persistence"]
         add(ns, "home-assistant-home-assistant-0", p["storageClass"], [p["accessMode"]], p["size"])
 
-    elif app["metadata"]["name"] in ("immich-database", "keycloak"):
+    elif app["metadata"]["name"] == "forgejo":
+        # External chart: the claim is created from the persistence values.
+        p = values["persistence"]
+        add(ns, p["claimName"], p["storageClass"], p["accessModes"], p["size"], p.get("volumeName"))
+    elif app["metadata"]["name"] in ("immich-database", "keycloak", "forgejo-database"):
         # CNPG instance claim: <cluster>-<ordinal>.
         out = subprocess.run(["kubectl", "kustomize", path], check=True, capture_output=True, text=True).stdout
         for d in yaml.safe_load_all(out):
@@ -58,6 +62,10 @@ for app in apps:
                 t = d["spec"]["storage"]["pvcTemplate"]
                 add(d["metadata"].get("namespace", ns), d["metadata"]["name"] + "-1", t["storageClassName"], t["accessModes"],
                     t["resources"]["requests"]["storage"], t.get("volumeName"))
+            elif d and d["kind"] == "PersistentVolumeClaim":
+                sp = d["spec"]
+                add(d["metadata"].get("namespace", ns), d["metadata"]["name"], sp.get("storageClassName"),
+                    sp["accessModes"], sp["resources"]["requests"]["storage"], sp.get("volumeName"))
     elif app["metadata"]["name"] == "monitoring":
         # Operator-generated Prometheus claim, and the Grafana subchart's claim.
         cr = values["fullnameOverride"] + "-prometheus"

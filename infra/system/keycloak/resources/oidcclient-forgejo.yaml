@@ -1,0 +1,27 @@
+# Forgejo's OAuth login (https://code.segfault.me). Confidential client, authorization code flow.
+# Secrets (created out of band, see scripts/keycloak-secrets): keycloak-forgejo.
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: KeycloakOIDCClient
+metadata:
+  name: forgejo
+  namespace: keycloak
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  keycloakCRName: keycloak
+  realm: segv
+  client:
+    displayName: Forgejo
+    appUrl: https://code.segfault.me
+    enabled: true
+    loginFlows:
+    - STANDARD
+    redirectUris:
+    - https://code.segfault.me/user/oauth2/keycloak/callback
+    webOrigins:
+    - https://code.segfault.me
+    auth:
+      method: client-secret
+      secretRef:
+        name: keycloak-forgejo
+        key: client-secret

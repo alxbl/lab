@@ -1,0 +1,126 @@
+# Forgejo Actions runner pool. Scale with `kubectl -n code scale statefulset forgejo-runner --replicas=N`; each pod
+# registers itself on first start using the token in Secret forgejo-runner-token (scripts/forgejo-secrets).
+# Jobs run in containers on a privileged Docker-in-Docker sidecar.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: forgejo-runner
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-zfs
+  volumeName: forgejo-runner
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: forgejo-runner
+spec:
+  clusterIP: None
+  selector:
+    app: forgejo-runner
+  ports:
+  - name: none
+    port: 1
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: forgejo-runner
+spec:
+  serviceName: forgejo-runner
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: forgejo-runner
+  template:
+    metadata:
+      labels:
+        app: forgejo-runner
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+      volumes:
+      - name: state
+        persistentVolumeClaim:
+          claimName: forgejo-runner
+      - name: certs
+        emptyDir: {}
+      initContainers:
+      # The kubelet creates the per-pod subPath as root; hand it to the runner user.
+      - name: prepare
+        image: docker.io/library/busybox:1.37.0
+        securityContext:
+          runAsUser: 0
+        command: ["/bin/sh", "-c", "mkdir -p /state/$POD_NAME && chown 1000:1000 /state/$POD_NAME"]
+        env:
+        - &pod-name
+          name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        volumeMounts:
+        - name: state
+          mountPath: /state
+      - name: register
+        image: &runner-image code.forgejo.org/forgejo/runner:13.2.1
+        workingDir: /data
+        command:
+        - /bin/sh
+        - -c
+        - |
+          [ -f .runner ] || forgejo-runner register --no-interactive \
+            --instance http://forgejo-http.code.svc.cluster.local:3000 \
+            --token "$RUNNER_TOKEN" --name "$POD_NAME" \
+            --labels docker:docker://code.forgejo.org/oci/node:22-bookworm
+        env:
+        - *pod-name
+        - name: RUNNER_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: forgejo-runner-token
+              key: token
+        volumeMounts:
+        - name: state
+          mountPath: /data
+          subPathExpr: $(POD_NAME)
+      containers:
+      - name: runner
+        image: *runner-image
+        workingDir: /data
+        command:
+        - /bin/sh
+        - -c
+        - |
+          while ! nc -z localhost 2376 </dev/null; do echo 'waiting for the docker daemon'; sleep 5; done
+          exec forgejo-runner daemon
+        env:
+        - *pod-name
+        - name: DOCKER_HOST
+          value: tcp://localhost:2376
+        - name: DOCKER_CERT_PATH
+          value: /certs/client
+        - name: DOCKER_TLS_VERIFY
+          value: "1"
+        volumeMounts:
+        - name: state
+          mountPath: /data
+          subPathExpr: $(POD_NAME)
+        - name: certs
+          mountPath: /certs
+      - name: dind
+        image: docker.io/library/docker:29.9.2-dind
+        securityContext:
+          privileged: true
+          runAsUser: 0
+        env:
+        - name: DOCKER_TLS_CERTDIR
+          value: /certs
+        volumeMounts:
+        - name: certs
+          mountPath: /certs

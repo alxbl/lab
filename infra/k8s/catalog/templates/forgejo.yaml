@@ -1,0 +1,105 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: forgejo-database
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: code
+  project: default
+  source:
+    path: infra/k8s/forgejo
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: forgejo
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: code
+  project: default
+  source:
+    chart: forgejo
+    repoURL: oci://code.forgejo.org/forgejo-helm/forgejo
+    targetRevision: 17.3.2
+    helm:
+      releaseName: forgejo
+      valuesObject:
+        # The data volume is RWO, so a rolling update would deadlock on it.
+        strategy:
+          type: Recreate
+        persistence:
+          create: true
+          claimName: forgejo
+          size: 50Gi
+          storageClass: local-zfs
+          volumeName: forgejo
+          accessModes:
+          - ReadWriteOnce
+        service:
+          ssh:
+            # Git over SSH on the gateway VIP (shared with smbd and the gateway), LAN and VPN only.
+            type: LoadBalancer
+            port: 22
+            loadBalancerIP: 10.3.0.2
+            annotations:
+              lbipam.cilium.io/sharing-key: gateway-vip
+              lbipam.cilium.io/sharing-cross-namespace: gateway
+        gitea:
+          podAnnotations:
+            backup.velero.io/backup-volumes: data
+          admin:
+            # Break-glass local admin; created by scripts/forgejo-secrets.
+            existingSecret: forgejo-admin
+            passwordMode: initialOnlyNoReset
+            email: alex@segfault.me
+          # Keycloak realm segv. The client secret is derived from keycloak/keycloak-forgejo by scripts/forgejo-secrets.
+          oauth:
+          - name: keycloak
+            provider: openidConnect
+            existingSecret: forgejo-oauth
+            autoDiscoverUrl: https://segfault.me/auth/realms/segv/.well-known/openid-configuration
+          additionalConfigFromEnvs:
+          - name: FORGEJO__DATABASE__PASSWD
+            valueFrom:
+              secretKeyRef:
+                name: forgejo-database-app
+                key: password
+          config:
+            server:
+              DOMAIN: code.segfault.me
+              SSH_DOMAIN: code.segfault.me
+              ROOT_URL: https://code.segfault.me/
+              SSH_PORT: 22
+              SSH_LISTEN_PORT: 2222
+            database:
+              DB_TYPE: postgres
+              HOST: forgejo-database-rw.code.svc.cluster.local:5432
+              NAME: app
+              USER: app
+            service:
+              # Accounts come from Keycloak only, which admits users I have linked by hand.
+              DISABLE_REGISTRATION: false
+              ALLOW_ONLY_EXTERNAL_REGISTRATION: true
+            oauth2_client:
+              ENABLE_AUTO_REGISTRATION: true
+              USERNAME: preferred_username
+              ACCOUNT_LINKING: auto
+            actions:
+              ENABLED: true
+            # One replica: no Valkey.
+            cache:
+              ADAPTER: memory
+            session:
+              PROVIDER: db
+            queue:
+              TYPE: level

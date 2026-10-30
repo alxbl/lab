@@ -52,7 +52,7 @@ token, no access", is the remaining phase and starts from here.
 - A rebuild must approve the InstallPlan by hand and apply `keycloak-secrets` before the `Keycloak` CR starts.
 
 ## Backups
-`keycloak` is in the `backup-pv-daily` schedule (applied by hand, #62). The `keycloak-db` pod opts its volume in, and a
+`keycloak` is in the `backup-pv-daily` schedule (defined by the `velero-config` Application). The `keycloak-db` pod opts its volume in, and a
 Velero pre-hook writes `pg_dump -Fc` to `/var/lib/postgresql/data/backup/app.dump` first (a kopia copy of a live data
 directory is not reliable); the backup fails if the dump fails. Verified with a one-off backup on 2026-10-24: hook ran,
 volume uploaded, no errors. Restore: restore the volume, then `pg_restore` the dump into a fresh cluster. The realm itself

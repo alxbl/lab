@@ -278,7 +278,7 @@ flowchart LR
 
 - Namespaces in the schedule: `code`, `home`, `media`, `keycloak`, `satisfactory`. Only pods that opt in are backed up (Vaultwarden,
   smbd, Home Assistant, Forgejo, the CNPG databases). Forgejo's Actions runners hold no state worth keeping and are not backed up.
-- The schedule, location and policy are applied by hand (#62). The old OpenEBS-era repository and the 26 pre-cutover backups were
+- The schedule, location and policy come from the `velero-config` Application; on a rebuild sync `velero`, then `velero-config`. The old OpenEBS-era repository and the 26 pre-cutover backups were
   deleted on 2026-10-24; the container holds about 279 GB.
 - Secrets are not in git. Generated client and admin secrets are created by `scripts/keycloak-secrets`,
   `scripts/immich-config` and `scripts/forgejo-secrets`; the database `<cluster>-app` secrets are created by CNPG. Every runtime
@@ -319,7 +319,7 @@ flowchart LR
   argo --> root["root<br/>infra/k8s/catalog"]:::sys
   argo --> syscat["system-catalog<br/>infra/system/catalog"]:::sys
   root --> w["workloads: immich, immich-database, jellyfin, aquisition, smbd,<br/>home-assistant, vaultwarden, adguard-home, gateway,<br/>cert-manager, velero<br/>(satisfactory: defined, not provisioned)"]:::sys
-  syscat --> s["system: argocd, cilium, cilium-policies, cilium-monitoring,<br/>gateway-api, coredns, storage, olm, cnpg, keycloak,<br/>monitoring, loki, alloy, metrics-server"]:::sys
+  syscat --> s["system: argocd, cilium, cilium-policies, cilium-monitoring,<br/>gateway-api, coredns, storage, olm, cnpg, keycloak,<br/>monitoring, loki, alloy, metrics-server,<br/>velero-config"]:::sys
 ```
 
 ## What changed since the 2026-10-21 snapshot
@@ -339,9 +339,8 @@ flowchart LR
 
 ## Not verified
 
+- Why `home-assistant` and `velero` are OutOfSync at the time of writing (`velero`: cause not investigated); 
 - The database restore procedure above has not been rehearsed; the weekly restore test covers only Vaultwarden.
-- Why `home-assistant` and `velero` are OutOfSync at the time of writing (`velero` is expected, see #62); `satisfactory` is
-  Missing by design (not provisioned). `photoprism` was retired and its volume (`data/k8s/photoprism-db`) deleted on 2026-10-30.
 - The router's 443 port-forward and its local DNS records: inferred from the working paths and from DNS answers, not read from
   the UDM.
 - Component versions are from container images; AdGuard, Vaultwarden, smbd and aquisition are on `latest` tags.

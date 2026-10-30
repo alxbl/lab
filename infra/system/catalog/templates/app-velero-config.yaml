@@ -1,0 +1,17 @@
+# Velero backup storage location, volume policy and daily schedule (infra/system/velero). Needs the CRDs of the velero chart.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velero-config
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    server: {{ .Values.spec.destination.server }}
+    namespace: system
+  project: system
+  source:
+    path: infra/system/velero
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}

@@ -182,11 +182,13 @@ flowchart TB
 | `segfault.me` (apex) | internet, via Cloudflare and cortex | `/auth/realms/segv`, `/auth/resources`, `/auth/js` | Keycloak. The blog is static files on cortex, not in the cluster |
 | `vault.segfault.me` | internet, via Cloudflare to home | `/` | Vaultwarden |
 | `photos.segfault.me` | internet, via Cloudflare to home; direct on the LAN | `/` | Immich |
+| `code.segfault.me` | internet, via Cloudflare to home; direct on the LAN | `/` | Forgejo (sign-in through Keycloak only, no public registration) |
 | `lab.segfault.me` | LAN only | `/argocd`, `/watch`, `/grafana`, `/auth` (Keycloak admin and `master` realm); `/` redirects to `/watch` | ArgoCD, Jellyfin, Grafana, Keycloak |
 | `home.segfault.me` | LAN only | `/` | Home Assistant |
+| `git` over SSH | LAN and VPN | SSH :22 on `10.3.0.2` (a `LoadBalancer` sharing the Gateway address) | Forgejo |
 | `smbd` | LAN | SMB :445 on `10.3.0.2` (a `LoadBalancer` sharing the Gateway address) | smbd |
 
-The Keycloak admin console is deliberately not routable from the public host, and only Vaultwarden and Immich sit behind Cloudflare
+The Keycloak admin console is deliberately not routable from the public host, and only Vaultwarden, Immich and Forgejo sit behind Cloudflare
 directly. The UDM serves the split-DNS names as local records; AdGuard serves the same names as rewrites and is the primary
 resolver handed out by DHCP.
 
@@ -266,12 +268,12 @@ flowchart LR
   sec["scripts/export-secrets<br/>scripts/secrets.list"]:::sys --> proton
 ```
 
-- Namespaces in the schedule: `home`, `media`, `keycloak`, `satisfactory`. Only pods that opt in are backed up (Vaultwarden, smbd,
-  Home Assistant, both CNPG databases).
+- Namespaces in the schedule: `code`, `home`, `media`, `keycloak`, `satisfactory`. Only pods that opt in are backed up (Vaultwarden,
+  smbd, Home Assistant, Forgejo, the CNPG databases). Forgejo's Actions runners hold no state worth keeping and are not backed up.
 - The schedule, location and policy are applied by hand (#62). The old OpenEBS-era repository and the 26 pre-cutover backups were
   deleted on 2026-10-24; the container holds about 279 GB.
 - Database secrets and generated client secrets are not in git. They are created by `scripts/keycloak-secrets` and
-  `scripts/immich-config`, and exported with `scripts/export-secrets`.
+  `scripts/immich-config` and `scripts/forgejo-secrets`, and exported with `scripts/export-secrets`.
 
 ## 5. GitOps
 

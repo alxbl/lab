@@ -9,6 +9,9 @@ resources:
 - pv-vaultwarden.yaml
 - pv-photoprism-db.yaml
 - pv-immich-db.yaml
+- pv-forgejo.yaml
+- pv-forgejo-db.yaml
+- pv-forgejo-runner.yaml
 - pv-satisfactory.yaml
 - pv-smbd.yaml
 - pv-prometheus.yaml

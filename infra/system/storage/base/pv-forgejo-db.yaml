@@ -1,0 +1,26 @@
+# Dataset data/k8s/forgejo-db, claimed by code/forgejo-database-1 (CNPG instance PVC).
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: forgejo-db
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-zfs
+  volumeMode: Filesystem
+  local:
+    path: /var/data/k8s/forgejo-db
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - tachyon.lan
+  claimRef:
+    namespace: code
+    name: forgejo-database-1

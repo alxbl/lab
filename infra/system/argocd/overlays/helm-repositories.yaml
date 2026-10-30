@@ -129,3 +129,17 @@ stringData:
   name: grafana-community
   url: https://grafana-community.github.io/helm-charts
   type: helm
+
+---
+# Forgejo
+apiVersion: v1
+kind: Secret
+metadata:
+  name: forgejo-helm
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  name: forgejo
+  url: oci://code.forgejo.org/forgejo-helm/forgejo
+  type: helm

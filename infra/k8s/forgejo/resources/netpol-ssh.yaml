@@ -1,0 +1,21 @@
+# Git over SSH is reachable from the LAN and VPN only (the Cloudflare proxy does not carry it). The rootless image
+# listens on 2222; the LoadBalancer Service on the shared gateway VIP maps 22 to it.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-forgejo-ssh
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: forgejo
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 10.0.0.0/8
+    - ipBlock:
+        cidr: 192.168.2.0/24
+    ports:
+    - port: 2222
+      protocol: TCP

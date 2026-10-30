@@ -233,6 +233,14 @@ Without the link the login completes the GitHub flow and then fails with `access
 (`IDENTITY_PROVIDER_FIRST_LOGIN_ERROR` in the Keycloak log). The GitHub provider requests the `user:email` scope; without
 it, accounts with no public profile email fail with `Primary email could not be retrieved from the github endpoint`.
 
+### Signing in to Forgejo
+
+Forgejo (`code.segfault.me`) uses the same realm through the `forgejo` client. Public registration is off: the first Keycloak
+login creates the Forgejo account, named after the Keycloak username and using its email. A user therefore needs only the steps
+in "Adding a user"; there is no per-client link. New accounts are not admins. Promote them in Site Administration while signed
+in as the local `forgejo-admin` (password in the `code/forgejo-admin` Secret). Account linking is `auto`, so a Keycloak username
+that equals an existing local one signs into it; keep Keycloak usernames distinct from `forgejo-admin`.
+
 ## 4. Storage and backups
 
 ```mermaid
@@ -275,6 +283,28 @@ flowchart LR
 - Database secrets and generated client secrets are not in git. They are created by `scripts/keycloak-secrets` and
   `scripts/immich-config` and `scripts/forgejo-secrets`, and exported with `scripts/export-secrets`.
 
+### Restoring a database
+
+Argo and `scripts/import-secrets` bring back the CNPG clusters empty; the data is not restored automatically. Restore the volume
+from Velero (kopia), which brings back the pre-hook dump `backup/app.dump`, then load it into the running cluster:
+
+```sh
+kubectl -n code exec forgejo-database-1 -c postgres -- \
+  pg_restore -d app --clean --if-exists --no-owner --role=app /var/lib/postgresql/data/backup/app.dump
+```
+
+The same command applies to `immich-database-1` (namespace `media`) and `keycloak-db-1` (namespace `keycloak`). Restart the
+application afterwards. The app Secrets (`<cluster>-app`) come from `scripts/import-secrets`; they must be restored before the
+cluster first starts so that the password matches the dump.
+
+### Forgejo after a rebuild
+
+- Datasets are assumed to exist. Sync `forgejo-database` and `forgejo`, then restore the database as above.
+- The runner token (`code/forgejo-runner-token`) belongs to the Forgejo database. With the database restored it stays valid. On
+  a fresh database, delete the Secret, run `scripts/forgejo-secrets --runner-token` once Forgejo is up, and restart the runners.
+- Not in git, by hand: the UDM local record and the Cloudflare record for `code.segfault.me`, and the Keycloak user (see
+  "Adding a user").
+
 ## 5. GitOps
 
 ```mermaid
@@ -308,6 +338,7 @@ flowchart LR
 
 ## Not verified
 
+- The database restore procedure above has not been rehearsed; the weekly restore test covers only Vaultwarden.
 - Why `home-assistant` and `velero` are OutOfSync at the time of writing (`velero` is expected, see #62); `satisfactory` is
   Missing by design (`photoprism` was retired, its data volume kept as a backup).
 - The router's 443 port-forward and its local DNS records: inferred from the working paths and from DNS answers, not read from

@@ -1,4 +1,4 @@
-FROM ghcr.io/linuxserver/lidarr:3.1.0.4875-ls43
+FROM ghcr.io/linuxserver/lidarr:3.1.6.5079-ls46
 ENV ARR_APP_NAME=Lidarr
 ENV ARR_DATA_DIR=/media/.config
 

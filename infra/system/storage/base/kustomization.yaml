@@ -7,7 +7,6 @@ resources:
 - pv-adguard.yaml
 - pv-home-assistant.yaml
 - pv-vaultwarden.yaml
-- pv-photoprism-db.yaml
 - pv-immich-db.yaml
 - pv-forgejo.yaml
 - pv-forgejo-db.yaml

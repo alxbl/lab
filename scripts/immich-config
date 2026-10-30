@@ -2,7 +2,7 @@
 # Renders the Immich configuration Secret (media/immich-config) from infra/k8s/immich/config/immich-config.json with the
 # Keycloak client secret (keycloak/keycloak-immich) filled in, and applies it. Run it before the first sync of the immich
 # Application and again after changing the JSON or rotating the client secret; Immich reads the file at start, so restart
-# immich-server afterwards. The Secret is derived, so it is not in scripts/secrets.list.
+# immich-server afterwards. The Secret is derived but also listed in scripts/secrets.list, so a rebuild restores it with import-secrets instead.
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)

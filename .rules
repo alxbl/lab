@@ -57,7 +57,7 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - The parent `data/k8s` carries `context=container_file_t:s0`. Child datasets set `context=none` explicitly, except the shared media dataset, which uses the fixed context.
 - Never `zpool upgrade` (it removes the rollback path), never `zfs destroy` (unless the user gives an explicit go for the named snapshots or datasets, after you list them and any holds), and never delete a PV or PVC that is bound to a dataset.
 - The kubelet container needs `/var/data` to exist even when the pool failed to import (it is a podman volume in the butane config).
-- Velero's BackupStorageLocation, `backup-policy-zfs` and the `backup-pv-daily` schedule (`infra/system/velero`) are applied by hand until #62 is fixed; a rebuild must apply them.
+- Velero's BackupStorageLocation, `backup-policy-zfs` and the `backup-pv-daily` schedule (`infra/system/velero`) are the `velero-config` Application; on a rebuild sync `velero`, then `velero-config`.
 - Home Assistant keeps its HTTP settings (including `trusted_proxies`) in `/config/.storage/http`; the `http:` block in `configuration.yaml` is ignored after its one-time migration (#64).
 - A new storage-backed app needs, before its first sync: the ZFS dataset (quota, `context=none`; created on `core@tachyon.lan`), a pre-bound PV in `infra/system/storage`, and its claim in `scripts/test/storage-bindings.sh`, which special-cases external charts by app name (e.g. operator-generated claim names).
 

@@ -61,7 +61,7 @@ spec:
             # Break-glass local admin; created by scripts/forgejo-secrets.
             existingSecret: forgejo-admin
             passwordMode: initialOnlyNoReset
-            email: alex@segfault.me
+            email: admin@segfault.me
           # Keycloak realm segv. The client secret is derived from keycloak/keycloak-forgejo by scripts/forgejo-secrets.
           oauth:
           - name: keycloak
@@ -92,7 +92,7 @@ spec:
               ALLOW_ONLY_EXTERNAL_REGISTRATION: true
             oauth2_client:
               ENABLE_AUTO_REGISTRATION: true
-              USERNAME: preferred_username
+              USERNAME: nickname
               ACCOUNT_LINKING: auto
             actions:
               ENABLED: true

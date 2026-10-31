@@ -13,6 +13,7 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 
 ## Environment
 - Source `.env` first (zsh). It sets `LAB_ROOT` and `KUBECONFIG`. Scripts assume it.
+- `.env` builds `KUBECONFIG` from `$(pwd)`, so it only resolves from the `main` checkout. In a worktree, set `KUBECONFIG` (or pass `--kubeconfig`) to the absolute path of `main/infra/clusters/segv/kube.conf`.
 - Tools (`terraform`, `kubectl`, `helm`, ...) are installed on the host, not by the repo.
 - Large boot binaries (`*.efi`, `*.kpxe`, `*.elf`) are Git LFS.
 
@@ -50,7 +51,8 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - Namespaces with a `baseline` CiliumNetworkPolicy are ingress default-deny. New workloads add their own ports with a NetworkPolicy.
 - `kubectl apply` of cert-manager resources right after its install can fail transiently on the webhook; retry.
 - Cluster DNS: the CoreDNS Corefile is owned by the `coredns` Argo app (`infra/system/coredns`), not Typhoon. It forwards to Quad9 over DoT on purpose and must not follow the node resolver: the UDM hands out AdGuard, a pod on this node, as LAN DNS. A reprovision restores Typhoon's stock Corefile until the app is synced again.
-- AdGuard (`charts/adguard`) regenerates its configuration from the chart's ConfigMap on every pod start. Change records and settings there, never in the UI or API, and restart the pod after a sync. The split-DNS names (`lab`, `vault`, `home`, `photos`) exist both there and as UDM local DNS records; keep them in step. AdGuard serves the whole LAN, so don't scale it down or restart it for a test without telling the user.
+- AdGuard (`charts/adguard`) regenerates its configuration from the chart's ConfigMap on every pod start. Change records and settings there, never in the UI or API, and restart the pod after a sync. The split-DNS names (`lab`, `vault`, `home`, `photos`, `code`) exist both there and as UDM local DNS records; keep them in step. AdGuard serves the whole LAN, so don't scale it down or restart it for a test without telling the user.
+- The gateway, `smbd` and `forgejo-ssh` share the VIP `10.3.0.2` through `lbipam.cilium.io/sharing-key: gateway-vip`. LB-IPAM only admits a Service if every other Service on the IP lists its namespace in `lbipam.cilium.io/sharing-cross-namespace` (gateway: `infra/k8s/gateway/overlays/segv`; the others: their catalog templates). A new sharer stays `<pending>` with `already_allocated_incompatible_service` until all of them are updated.
 
 ## Storage
 - Workload volumes are static `local-zfs` PVs (`Retain`, pre-bound to their claim) on datasets `data/k8s/<name>` of the ZFS pool `data` (`infra/system/storage`). OpenEBS is gone; don't reintroduce it.
@@ -65,6 +67,8 @@ Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When the
 - ArgoCD app-of-apps. `infra/system/argocd` installs ArgoCD and the `root` app. `infra/system/catalog` and `infra/k8s/catalog` are meta-charts whose templates are the `Application`s. A new workload needs a catalog template plus its manifests (kustomize dir, upstream chart, or a chart in `charts/`).
 - Apps track `HEAD` of `github.com/alxbl/lab`. Changes only take effect once pushed.
 - Most Applications have no auto-sync; sync by patching `operation`. A Helm chart source takes its chart version as the `revision` (not `HEAD`), the operation does not inherit the app's `syncOptions` (pass `ServerSideApply=true` for large CRDs: ArgoCD, kube-prometheus-stack), and a resource removed from git is only deleted with `prune`.
+- Catalog templates (`infra/k8s/catalog`, `infra/system/catalog`) are rendered by the `root` and `system-catalog` apps. After changing one, sync that app first, then the Application it renders. Argo only sees a new `HEAD` after a hard refresh (annotation `argocd.argoproj.io/refresh=hard`). After patching `operation`, `status.operationState.phase` still shows the previous run until the new one starts, so wait on the new `startedAt`.
+- A new namespace needs: an entry in `infra/k8s/catalog/templates/namespaces.yaml`; a `baseline` policy in `infra/system/cilium/policies/overlays/segv/namespaces.yaml` (without it the namespace is not default-deny); `includedNamespaces` in `infra/system/velero/velero-schedule.yaml`; its runtime Secrets in `scripts/secrets.list`; and, for a public hostname, the AdGuard rewrite plus the UDM and Cloudflare records. Storage needs are listed under Storage.
 - Every Helm chart source needs a repository Secret in `infra/system/argocd/overlays/helm-repositories.yaml`, applied by syncing the `argocd` app; without it the Application is not picked up. The OSS Loki chart is in `grafana-community`, not `grafana`.
 - `charts/` holds my own charts. They may contain lab-specific hardcoded values.
 - `charts/aquisition` pins our `alxbl/*` image tags and has no ArgoCD auto-sync; sync by patching the Application. It is one Deployment with six containers, so any change restarts all of them.

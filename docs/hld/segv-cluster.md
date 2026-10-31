@@ -236,10 +236,11 @@ it, accounts with no public profile email fail with `Primary email could not be 
 ### Signing in to Forgejo
 
 Forgejo (`code.segfault.me`) uses the same realm through the `forgejo` client. Public registration is off: the first Keycloak
-login creates the Forgejo account, named after the Keycloak username and using its email. A user therefore needs only the steps
+login creates the Forgejo account, named after the Keycloak `nickname` claim and using its email. A user therefore needs only the steps
 in "Adding a user"; there is no per-client link. New accounts are not admins. Promote them in Site Administration while signed
-in as the local `forgejo-admin` (password in the `code/forgejo-admin` Secret). Account linking is `auto`, so a Keycloak username
-that equals an existing local one signs into it; keep Keycloak usernames distinct from `forgejo-admin`.
+in as the local `forgejo-admin` (password in the `code/forgejo-admin` Secret). Account linking is `auto`, so a Keycloak user whose
+username or email equals an existing Forgejo account signs into it. The local admin uses `admin@segfault.me` for that reason;
+keep Keycloak emails and usernames distinct from it.
 
 ## 4. Storage and backups
 

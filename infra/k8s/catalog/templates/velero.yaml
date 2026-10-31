@@ -23,7 +23,7 @@ spec:
         initContainers:
           - name: velero-plugin-for-microsoft-azure
             image: velero/velero-plugin-for-microsoft-azure:v1.9.2
-            immagePullPolicy: IfNotPresent
+            imagePullPolicy: IfNotPresent
             volumeMounts:
               - mountPath: /target
                 name: plugins
@@ -42,7 +42,7 @@ spec:
           logLevel: warning
           defaultSnapshotMoveData: false
           namespace: system
-          # defaultRepoMaintainFrequency: 
+          # defaultRepoMaintainFrequency:
 
         # The chart applies these to the velero and node-agent pods alike; the node-agent runs the kopia uploads.
         podAnnotations:

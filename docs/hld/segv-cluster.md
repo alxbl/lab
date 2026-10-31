@@ -126,7 +126,7 @@ flowchart LR
   loki -.-> graf
   alloy -.-> loki
 
-  velero -->|"fs backup of home, media,<br/>keycloak, satisfactory"| azblob
+  velero -->|"fs backup of code, home, media,<br/>keycloak, satisfactory"| azblob
   NSKC --- zfs
   NSMEDIA --- zfs
   NSHOME --- zfs
@@ -271,7 +271,7 @@ flowchart LR
   end
   pvs --> BK
 
-  azure[("Azure Blob segvdata/velero<br/>kopia repos: media, home, keycloak, satisfactory")]:::ext
+  azure[("Azure Blob segvdata/velero<br/>kopia repos: code, media, home, keycloak, satisfactory")]:::ext
   BK --> azure
   proton[("Proton Drive<br/>secrets, PKI, Terraform state")]:::ext
   sec["scripts/export-secrets<br/>scripts/secrets.list"]:::sys --> proton
@@ -340,7 +340,7 @@ flowchart LR
 
 ## Not verified
 
-- Why `home-assistant` and `velero` are OutOfSync at the time of writing (`velero`: cause not investigated); 
+- `satisfactory` is Missing by design (not provisioned). `photoprism` was retired and its volume (`data/k8s/photoprism-db`) deleted on 2026-10-30.
 - The database restore procedure above has not been rehearsed; the weekly restore test covers only Vaultwarden.
 - The router's 443 port-forward and its local DNS records: inferred from the working paths and from DNS answers, not read from
   the UDM.

@@ -17,10 +17,12 @@ ns=
 echo "kubectl ${ns:+-n $ns }$*" >>"$FAKE_LOG"
 case $1 in
   get) [[ -f $FAKE_STATE/$ns/$3 ]] || exit 1
+       if [[ $3 == forgejo-runner-token ]]; then base64 -w0 <"$FAKE_STATE/$ns/$3"; fi
        if [[ $3 == keycloak-forgejo ]]; then echo '{"data":{"client-secret":"c2VjcmV0"}}'; fi ;;
-  create) cat >/dev/null; touch "$FAKE_STATE/$ns/$4" ;;
+  create) cat >"$FAKE_STATE/$ns/$4" ;;
+  delete) rm -f "$FAKE_STATE/$ns/$3" ;;
   apply) cat >"$FAKE_STATE/applied.json" ;;
-  exec) echo fake-token ;;
+  exec) printf '%s\n' "${FAKE_TOKEN-fake-token}" ;;
 esac
 STUB
 chmod +x "$TMP/kubectl"
@@ -52,6 +54,20 @@ grep -q 'create secret generic forgejo-runner-token' "$FAKE_LOG" || fail "runner
 : >"$FAKE_LOG"
 "$HERE/../forgejo-secrets" --runner-token
 ! grep -q 'exec' "$FAKE_LOG" || fail "runner token regenerated"
+
+# 3b. An empty Secret counts as missing and is replaced.
+: >"$FAKE_STATE/code/forgejo-runner-token"
+: >"$FAKE_LOG"
+"$HERE/../forgejo-secrets" --runner-token
+grep -q 'delete secret forgejo-runner-token' "$FAKE_LOG" || fail "empty runner token not replaced"
+grep -q 'create secret generic forgejo-runner-token' "$FAKE_LOG" || fail "runner token not recreated"
+[[ -s $FAKE_STATE/code/forgejo-runner-token ]] || fail "recreated runner token is empty"
+
+# 3c. An empty answer from Forgejo fails and creates nothing.
+rm -f "$FAKE_STATE/code/forgejo-runner-token"
+: >"$FAKE_LOG"
+if FAKE_TOKEN= "$HERE/../forgejo-secrets" --runner-token 2>/dev/null; then fail "empty token accepted"; fi
+! grep -q 'create secret generic forgejo-runner-token' "$FAKE_LOG" || fail "empty token stored"
 
 # 4. No generated value appears on a command line.
 ! grep -q 'fake-token' "$FAKE_LOG" || fail "token leaked into argv"

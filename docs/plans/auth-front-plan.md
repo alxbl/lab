@@ -1,6 +1,6 @@
 # Authentication for internet-facing apps
 
-Follows `docs/keycloak-plan.md`. Records the access decisions and what is left; the Envoy Gateway findings are kept as the deferred alternative.
+Follows `docs/plans/keycloak-plan.md`. Records the access decisions and what is left; the Envoy Gateway findings are kept as the deferred alternative.
 
 Conventions: `STOP and ask` = the user says go in the conversation first. Secrets never enter the repo, logs or chat.
 

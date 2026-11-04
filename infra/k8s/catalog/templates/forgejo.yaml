@@ -34,6 +34,9 @@ spec:
     helm:
       releaseName: forgejo
       valuesObject:
+        image:
+          # Chart 17.3.2 ships Forgejo 15.0.11. Drop this once a chart's appVersion is 17.
+          tag: 17.0.1
         # The data volume is RWO, so a rolling update would deadlock on it.
         strategy:
           type: Recreate

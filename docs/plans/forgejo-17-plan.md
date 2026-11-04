@@ -4,7 +4,7 @@ Tracks #148. Forgejo 17.0 was released on 2026-10-15; segv runs 15.0.11 (LTS) fr
 15.0.11. The chart's major (17) is its own numbering and has nothing to do with Forgejo's. As of 2026-11-03 no chart ships
 Forgejo 17, so this plan runs the 17 image on the current chart through `image.tag` and rolls back if it does not work.
 
-Nothing here has been run. Conventions: `STOP and ask` = the user says go in the conversation first. Never `zfs destroy` or
+Run on 2026-11-04; it worked and 17.0.1 is kept (see Outcome). Conventions: `STOP and ask` = the user says go in the conversation first. Never `zfs destroy` or
 `zfs rollback -r` without an explicit go for the named snapshots, after listing them and any holds.
 
 ## Decision first
@@ -26,6 +26,8 @@ upgrade guide has no note about skipping majors and lists no required migration 
 - 17: relative links in rendered documents resolve from the repository root; action-run webhooks are deprecated and are not
   migrated (list the instance's webhooks first). Optional: delete unused `pulls/*.patch` files.
 - Runner is 13.2.1, which meets the 13.2 minimum for job summaries.
+- Read in full on 2026-11-04, additionally: 17 refuses mirrors and migrations over `http://` and `git://` (the `aur` mirror is
+  https); config durations are parsed strictly; `actor` is a protected username.
 
 ## Layout
 - `forgejo` Application: chart `forgejo` 17.3.2 (`infra/k8s/catalog/templates/forgejo.yaml`), Deployment `forgejo`, one replica,
@@ -37,9 +39,10 @@ upgrade guide has no note about skipping majors and lists no required migration 
 
 ## Before
 1. Read `16.0.0.md` and the 17.0 release notes in full; update this file if they disagree.
-2. On the node: `zfs list -t snapshot -r data/k8s/forgejo data/k8s/forgejo-db` and `zfs holds` on each. A rollback to anything but
+2. On the node (`core@tachyon.lan`; `zfs snapshot`, `hold` and `rollback` need `sudo -n`, `core` has no delegation):
+   `zfs list -t snapshot -r data/k8s/forgejo data/k8s/forgejo-db` and `zfs holds` on each. A rollback to anything but
    the newest snapshot needs `-r` and destroys the newer ones. STOP and ask if that is the case.
-3. Confirm the latest Velero backup of `code` completed. It is the fallback if the ZFS rollback goes wrong.
+3. Confirm the latest Velero backup of `code` completed (`kubectl -n system get backups.velero.io`; there is no `velero` CLI). It is the fallback if the ZFS rollback goes wrong.
 4. List the instance's webhooks and its mirrors. Announce the downtime: nothing may be pushed between the snapshot and the
    end of the trial, or the rollback loses it.
 
@@ -76,3 +79,13 @@ After 17 migrates the database, 15 cannot read it, so restore the volumes; do no
 
 If the rollback itself fails: restore from the Velero backup (`forgejo-database` carries a `pg_dump` at
 `backup/app.dump` next to its data; restore with `pg_restore`).
+
+## Outcome (2026-11-04)
+- Forgejo 17.0.1 ran on chart 17.3.2 through `image.tag`; migrations v16a to v17a ran cleanly and the `app.ini` the chart
+  generates worked unchanged. Verified: Keycloak SSO login (by hand), OIDC auth source kept, SSH push and clone on `10.3.0.2`,
+  a CI run, `aur` mirror sync, web UI. No webhooks existed. `image.tag: 17.0.1` was committed to the catalog template.
+- `forgejo doctor check --all` fails on its `paths` check: `/data/log` has never existed on this volume. Run the other checks
+  with `--run <name>` (not the `paths`, `gc-lfs` and `delete-orphaned-repos` ones); they were clean apart from old orphaned rows.
+- Harmless log warnings: `package_cleanup_rule` `*_last_download_days` are BIGINT in the database and INTEGER in the struct.
+- The first attempt stopped at the snapshot (permission denied) and everything was restored; nothing had changed.
+- Snapshots `@pre-forgejo17` (hold `keep`) are kept until the user decides.

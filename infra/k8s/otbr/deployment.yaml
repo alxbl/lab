@@ -1,4 +1,4 @@
-# DRAFT, NOT DEPLOYED. OpenThread Border Router for the SLZB-07 (OpenThread RCP, 921600 baud, RTS/CTS).
+# OpenThread Border Router for the SLZB-07 (OpenThread RCP, 921600 baud, RTS/CTS).
 # Runs otbr-agent directly, never the image's entrypoint: that script runs `sysctl --system`, NAT and firewall setup
 # against the host (incident 2026-11-06, see docs/plans/slzb07-thread.md). Host network is needed for the infra link (eno1).
 apiVersion: apps/v1
@@ -8,7 +8,7 @@ metadata:
   labels:
     app.kubernetes.io/name: otbr
 spec:
-  replicas: 0 # Keep at 0 until the canary in the plan has passed.
+  replicas: 1
   strategy:
     type: Recreate
   selector:
@@ -53,11 +53,12 @@ spec:
         lifecycle:
           postStart:
             exec:
-              # Hand multicast routing back to the host and keep NAT64 off (verified in the sandbox: mc_forwarding returns to 0).
+              # Hand multicast routing back to the host, keep NAT64 off, and keep border routing off so no router advertisements
+              # reach the LAN (option 1 in the plan; remove `ot-ctl br disable` for option 2).
               command:
               - sh
               - -c
-              - 'for i in $(seq 60); do ot-ctl state >/dev/null 2>&1 && break; sleep 1; done; ot-ctl bbr disable; ot-ctl nat64 disable'
+              - 'for i in $(seq 60); do ot-ctl state >/dev/null 2>&1 && break; sleep 1; done; ot-ctl bbr disable; ot-ctl nat64 disable; ot-ctl br disable'
         securityContext:
           privileged: true # Only for the tty and /dev/net/tun (device cgroup); the command touches no host settings.
         ports:

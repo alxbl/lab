@@ -1,5 +1,6 @@
-# OpenThread Border Router for the SLZB-07 (OpenThread RCP, 921600 baud, RTS/CTS).
-# Runs on the host network of tachyon: it owns wpan0 and routes between Thread and eno1.
+# DRAFT, NOT DEPLOYED. OpenThread Border Router for the SLZB-07 (OpenThread RCP, 921600 baud, RTS/CTS).
+# Runs otbr-agent directly, never the image's entrypoint: that script runs `sysctl --system`, NAT and firewall setup
+# against the host (incident 2026-11-06, see docs/plans/slzb07-thread.md). Host network is needed for the infra link (eno1).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -7,7 +8,7 @@ metadata:
   labels:
     app.kubernetes.io/name: otbr
 spec:
-  replicas: 1
+  replicas: 0 # Keep at 0 until the canary in the plan has passed.
   strategy:
     type: Recreate
   selector:
@@ -25,35 +26,57 @@ spec:
       nodeSelector:
         kubernetes.io/hostname: tachyon.lan
       containers:
+      # otbr-agent aborts without a D-Bus system bus.
+      - name: dbus
+        image: docker.io/openthread/otbr@sha256:2dbe6d36b88a7833fedbd82caca34620c781c5144b89449c8b5579650d30f537
+        command: [dbus-daemon, --system, --nofork, --nopidfile]
+        securityContext:
+          capabilities:
+            drop: [ALL]
+            add: [SETUID, SETGID, SETPCAP, CHOWN, DAC_OVERRIDE]
+        volumeMounts:
+        - name: dbus
+          mountPath: /run/dbus
       - name: otbr
         # openthread/otbr publishes only `latest`; pinned by digest (pulled 2026-11-05).
         image: docker.io/openthread/otbr@sha256:2dbe6d36b88a7833fedbd82caca34620c781c5144b89449c8b5579650d30f537
-        args:
-        - --radio-url
+        command:
+        - otbr-agent
+        - --thread-ifname=wpan0
+        - --backbone-ifname=eno1
+        - --syslog-disable
+        - --debug-level=6
+        - --data-path=/var/lib/thread
+        # REST is unauthenticated: pods only (host-allow-cluster); host-allow-lan does not open 8081.
+        - --rest-listen-address=0.0.0.0
         - spinel+hdlc+uart:///dev/serial/by-id/usb-SMLIGHT_SMLIGHT_SLZB-07_b0e08c1bd5a0ef11bec3a9a361ce3355-if00-port0?uart-baudrate=921600&uart-flow-control
-        - --backbone-interface
-        - eno1
-        env:
-        - name: INFRA_IF_NAME
-          value: eno1
-        # REST is unauthenticated: reachable from pods only (host-allow-cluster); the LAN policy does not open 8081.
-        - name: REST_HOST
-          value: 0.0.0.0
+        lifecycle:
+          postStart:
+            exec:
+              # Hand multicast routing back to the host and keep NAT64 off (verified in the sandbox: mc_forwarding returns to 0).
+              command:
+              - sh
+              - -c
+              - 'for i in $(seq 60); do ot-ctl state >/dev/null 2>&1 && break; sleep 1; done; ot-ctl bbr disable; ot-ctl nat64 disable'
         securityContext:
-          privileged: true # tty (usbtty_device_t), /dev/net/tun and sysctls (forwarding, accept_ra).
+          privileged: true # Only for the tty and /dev/net/tun (device cgroup); the command touches no host settings.
         ports:
         - name: rest
           containerPort: 8081
         volumeMounts:
         - name: data
           mountPath: /var/lib/thread
+        - name: dbus
+          mountPath: /run/dbus
         - name: radio
           mountPath: /dev/serial/by-id/usb-SMLIGHT_SMLIGHT_SLZB-07_b0e08c1bd5a0ef11bec3a9a361ce3355-if00-port0
       volumes:
       - name: data
         persistentVolumeClaim:
           claimName: otbr
+      - name: dbus
+        emptyDir: {}
       - name: radio
         hostPath:
           path: /dev/serial/by-id/usb-SMLIGHT_SMLIGHT_SLZB-07_b0e08c1bd5a0ef11bec3a9a361ce3355-if00-port0
-          type: CharDevice
+          # No type: the kubelet check rejects the by-id symlink ("is not a character device").

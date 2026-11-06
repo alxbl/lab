@@ -7,3 +7,4 @@ resources:
 - resources/netpol-ssh.yaml
 - resources/httproute-forgejo.yaml
 - resources/runner.yaml
+- resources/cache.yaml

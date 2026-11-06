@@ -1,0 +1,85 @@
+# The Actions cache shared by every runner. Without it each runner pod spawns its own cache server, so an entry saved by
+# one runner is a miss on the others. The runners reach it through the external_server setting of forgejo-runner-config
+# (runner.yaml); the shared secret is Secret forgejo-cache-secret (scripts/forgejo-secrets).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: forgejo-cache
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-zfs
+  volumeName: forgejo-cache
+  resources:
+    requests:
+      storage: 30Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: forgejo-cache
+spec:
+  selector:
+    app: forgejo-cache
+  ports:
+  - name: http
+    port: 8088
+    targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: forgejo-cache
+spec:
+  replicas: 1
+  strategy:
+    # The volume is RWO.
+    type: Recreate
+  selector:
+    matchLabels:
+      app: forgejo-cache
+  template:
+    metadata:
+      labels:
+        app: forgejo-cache
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: forgejo-cache
+      - name: config
+        configMap:
+          name: forgejo-runner-config
+      - name: secret
+        secret:
+          secretName: forgejo-cache-secret
+      containers:
+      - name: cache
+        image: code.forgejo.org/forgejo/runner:13.2.1
+        command:
+        - forgejo-runner
+        - cache-server
+        - --config=/config/cache-server.yml
+        - --dir=/cache
+        - --host=0.0.0.0
+        - --port=8088
+        ports:
+        - name: http
+          containerPort: 8088
+        readinessProbe:
+          tcpSocket:
+            port: http
+        volumeMounts:
+        - name: data
+          mountPath: /cache
+        - name: config
+          mountPath: /config
+          readOnly: true
+        - name: secret
+          mountPath: /secrets/cache
+          readOnly: true

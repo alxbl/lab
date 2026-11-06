@@ -73,6 +73,15 @@ spec:
           claimName: forgejo-runner
       - name: certs
         emptyDir: {}
+      # The Docker store (image layers and every job's container filesystem) lives in RAM. The node's /var is a USB 2.0
+      # SSD (480 Mbit/s) that also holds etcd; it sustains about 10 MB/s of writes, so extracting the 2.4 GB CI image
+      # on four runners at once took 9 minutes. The store is rebuilt after a pod restart anyway. The limit bounds what
+      # one runner can use: the image (about 3.6 GB with the Node base) plus a job's build tree. A pod that exceeds it
+      # is evicted.
+      - name: docker
+        emptyDir:
+          medium: Memory
+          sizeLimit: 12Gi
       - name: config
         configMap:
           name: forgejo-runner-config
@@ -158,3 +167,5 @@ spec:
         volumeMounts:
         - name: certs
           mountPath: /certs
+        - name: docker
+          mountPath: /var/lib/docker

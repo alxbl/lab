@@ -1,0 +1,13 @@
+# Fabric credentials and node data (/data). Bound to the static PV `matter-server`.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: matter-server
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-zfs
+  volumeName: matter-server
+  resources:
+    requests:
+      storage: 1Gi

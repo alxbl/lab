@@ -1,0 +1,26 @@
+# Dataset data/k8s/otbr, claimed by home/otbr.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: otbr
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-zfs
+  volumeMode: Filesystem
+  local:
+    path: /var/data/k8s/otbr
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - tachyon.lan
+  claimRef:
+    namespace: home
+    name: otbr

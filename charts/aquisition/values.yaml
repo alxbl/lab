@@ -10,7 +10,7 @@ imagePullSecrets:
 images:
   sonarr: "4.0.20.3014"
   radarr: "6.4.4.10685"
-  prowlarr: "2.6.5.5623"
+  prowlarr: "2.7.0.5723"
   lidarr: ""
   gluetun: ""
   qbt: ""

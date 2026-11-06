@@ -4,7 +4,7 @@ kind: CiliumClusterwideNetworkPolicy
 metadata:
   name: gateway-allow-sources
 spec:
-  description: Only LAN, VPN and Cloudflare may reach the Cilium gateway proxy on 80/443.
+  description: Only LAN, VPN, Cloudflare and the cluster itself may reach the Cilium gateway proxy on 80/443.
   endpointSelector:
     matchLabels:
       reserved:ingress: ""
@@ -30,6 +30,16 @@ spec:
     - 172.64.0.0/13
     - 131.0.72.0/22
     - 172.177.238.119/32 # segv-www
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+      - port: "443"
+        protocol: TCP
+  # Pods and nodes are cluster identities, not CIDRs, so the list above never matched them: they were answered
+  # with 403 and had to reach the gateway through Cloudflare (CoreDNS resolves the public names there).
+  - fromEntities:
+    - cluster
     toPorts:
     - ports:
       - port: "80"

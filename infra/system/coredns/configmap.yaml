@@ -37,6 +37,20 @@ data:
         loadbalance
     }
 
+    # The public names (code, vault, photos, ...) resolve to the Cloudflare proxy for everyone outside, but the UDM holds
+    # local records that point them at the gateway VIP. Pods get those too, so a runner pulls an image or clones a
+    # repository over the LAN instead of going out to Cloudflare and back. The gateway admits pods with
+    # gateway-allow-sources (infra/system/cilium/policies). Quad9 answers if the UDM does not.
+    segfault.me:53 {
+        errors
+        cache 30
+        forward . 10.0.0.1 tls://9.9.9.10 tls://149.112.112.10 {
+            tls_servername dns10.quad9.net
+            policy sequential
+            health_check 5s
+        }
+    }
+
     # Local names (the nodes' search domain) belong to the UDM.
     lan:53 {
         errors

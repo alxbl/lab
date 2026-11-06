@@ -42,10 +42,14 @@ assert d["metadata"]["name"] == "forgejo-oauth" and d["metadata"]["namespace"] =
 assert d["stringData"] == {"key": "forgejo", "secret": "secret"}
 PY
 
-# 2. Re-running keeps the existing admin Secret.
+grep -q 'create secret generic forgejo-cache-secret' "$FAKE_LOG" || fail "cache secret not created"
+[[ $(wc -c <"$FAKE_STATE/code/forgejo-cache-secret") -ge 32 ]] || fail "cache secret too short"
+
+# 2. Re-running keeps the existing admin and cache Secrets.
 : >"$FAKE_LOG"
 "$HERE/../forgejo-secrets"
 ! grep -q 'create secret generic forgejo-admin' "$FAKE_LOG" || fail "existing admin secret recreated"
+! grep -q 'create secret generic forgejo-cache-secret' "$FAKE_LOG" || fail "existing cache secret recreated"
 
 # 3. --runner-token creates the token once.
 : >"$FAKE_LOG"

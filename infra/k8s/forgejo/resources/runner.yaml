@@ -1,6 +1,24 @@
 # Forgejo Actions runner pool. Scale with `kubectl -n code scale statefulset forgejo-runner --replicas=N`; each pod
 # registers itself on first start using the token in Secret forgejo-runner-token (scripts/forgejo-secrets).
-# Jobs run in containers on a privileged Docker-in-Docker sidecar.
+# Jobs run in containers on a privileged Docker-in-Docker sidecar. The pods keep their state in one shared dataset
+# (a subdirectory each), so its quota is shared too; the Actions cache lives elsewhere (cache.yaml).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: forgejo-runner-config
+data:
+  # Partial config: the runner fills in the defaults, and ignores a key it does not know, so check spellings against
+  # `forgejo-runner generate-config`.
+  config.yml: |
+    cache:
+      enabled: true
+      # One cache server for all runners. Each runner keeps a local proxy that forwards to it with the shared secret.
+      external_server: http://forgejo-cache.code.svc.cluster.local:8088/
+      secret_url: file:/secrets/cache/secret
+  cache-server.yml: |
+    cache:
+      secret_url: file:/secrets/cache/secret
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -55,6 +73,12 @@ spec:
           claimName: forgejo-runner
       - name: certs
         emptyDir: {}
+      - name: config
+        configMap:
+          name: forgejo-runner-config
+      - name: cache-secret
+        secret:
+          secretName: forgejo-cache-secret
       initContainers:
       # The kubelet creates the per-pod subPath as root; hand it to the runner user.
       - name: prepare
@@ -102,7 +126,7 @@ spec:
         - -c
         - |
           while ! nc -z localhost 2376 </dev/null; do echo 'waiting for the docker daemon'; sleep 5; done
-          exec forgejo-runner daemon
+          exec forgejo-runner daemon --config /config/config.yml
         env:
         - *pod-name
         - name: DOCKER_HOST
@@ -117,6 +141,12 @@ spec:
           subPathExpr: $(POD_NAME)
         - name: certs
           mountPath: /certs
+        - name: config
+          mountPath: /config
+          readOnly: true
+        - name: cache-secret
+          mountPath: /secrets/cache
+          readOnly: true
       - name: dind
         image: docker.io/library/docker:29.9.2-dind
         securityContext:

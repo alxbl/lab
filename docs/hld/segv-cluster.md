@@ -40,7 +40,7 @@ flowchart LR
     subgraph NSKS["kube-system"]
       cilium["Cilium 1.18.14<br/>kube-proxy replacement, host firewall<br/>WireGuard, Hubble, LB-IPAM + L2"]:::sys
       gw{{"Gateway https-in-gw<br/>10.3.0.2 :80 :443<br/>wildcard cert, source allow-list"}}:::edge
-      coredns["CoreDNS 1.13.1<br/>DoT to Quad9, lan zone to UDM"]:::sys
+      coredns["CoreDNS 1.13.1<br/>DoT to Quad9, lan and segfault.me zones to UDM"]:::sys
       mets["metrics-server 0.8.1"]:::sys
     end
 
@@ -172,8 +172,8 @@ flowchart TB
     direction LR
     d0["Pods"]:::app --> d1["CoreDNS"]:::app
     d1 -->|"cluster.local"| d2["Kubernetes API data"]:::app
-    d1 -->|"lan zone"| d3["UDM 10.0.0.1"]:::ext
-    d1 -->|"everything else, DoT"| d4["Quad9, then UDM if both fail"]:::ext
+    d1 -->|"lan and segfault.me zones"| d3["UDM 10.0.0.1"]:::ext
+    d1 -->|"everything else, DoT"| d4["Quad9, then UDM if both fail<br/>(and for segfault.me if the UDM fails)"]:::ext
   end
 ```
 

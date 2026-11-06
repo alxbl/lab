@@ -13,6 +13,7 @@ resources:
 - pv-forgejo.yaml
 - pv-forgejo-db.yaml
 - pv-forgejo-runner.yaml
+- pv-forgejo-cache.yaml
 - pv-satisfactory.yaml
 - pv-smbd.yaml
 - pv-prometheus.yaml

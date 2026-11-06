@@ -1,0 +1,19 @@
+# Dedicated NVMe disk for etcd. Wiped on every reprovision, like the root filesystem: Typhoon bootstraps a fresh etcd with new
+# certificates, and stale data would conflict. The literal @ETCD_DISK@ is a /dev/disk/by-id path (never /dev/nvmeXn1), replaced
+# before rendering, e.g. with Terraform replace(file("../butane/etcd-disk.yaml"), "@ETCD_DISK@", var.etcd_disk).
+variant: fcos
+version: 1.5.0
+storage:
+  disks:
+    - device: "@ETCD_DISK@"
+      wipe_table: true
+      partitions:
+        - label: etcd
+          number: 1
+  filesystems:
+    - device: /dev/disk/by-partlabel/etcd
+      format: xfs
+      wipe_filesystem: true
+      label: etcd
+      path: /var/lib/etcd
+      with_mount_unit: true

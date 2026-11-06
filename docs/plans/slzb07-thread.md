@@ -15,7 +15,7 @@ INCIDENT 2026-11-06 (do not repeat): the `openthread/otbr` image entrypoint runs
 - Live drift: the `otbr` Deployment has replicas 0, `NAT64=0` and no hostPath `type` (the kubelet rejects `CharDevice` for the by-id symlink). Git still has `type: CharDevice` (fix on unmerged local branch/worktree `otbr-hostpath`). Re-sync from git before any use.
 - Argo apps track `main` on GitHub: nothing deploys until merged.
 
-CURRENT (2026-11-06, option 1 live): `otbr` runs `otbr-agent` directly on the host network (PR #153, #154) with border routing OFF (`ot-ctl br disable` in the postStart hook), BBR and NAT64 off. The radio was verified on the real SLZB-07 in a pod-network canary (leader, RCP `SL-OPENTHREAD/2.7.2.0_GitHub-fb0446f53`). No Matter device has been paired yet (the user owns none); the Thread/Matter integrations in Home Assistant are added by hand when one exists. If pairing or control fails, see "Border routing: option 1 (current) vs option 2 vs option 3" and implement option 2 or 3.
+CURRENT (2026-11-06, option 1 live): `otbr` runs `otbr-agent` directly on the host network (PR #153, #154, #155) with border routing OFF (`ot-ctl br disable` in the postStart hook), BBR and NAT64 off, and the SRP server enabled by hand (`ot-ctl srp server enable`; it auto-enables only with border routing). Verified live 2026-11-06 on the host network: leader, `rp_filter` 0, forwarding 0, DNS fine, HA pod reaches `http://otbr.home.svc:8081/node` and `matter-server.home.svc:5580`; `matter-server` synced and running. A Thread network (dataset in the otbr PVC) already exists. The radio was verified on the real SLZB-07 in a pod-network canary (leader, RCP `SL-OPENTHREAD/2.7.2.0_GitHub-fb0446f53`). No Matter device has been paired yet (the user owns none); the Thread/Matter integrations in Home Assistant are added by hand when one exists. If pairing or control fails, see "Border routing: option 1 (current) vs option 2 vs option 3" and implement option 2 or 3.
 
 
 ## Findings that shape the plan
@@ -48,7 +48,7 @@ Caveats / not proven:
 ## Border routing: option 1 (current) vs option 2 vs option 3
 Why this exists: with border routing ON, `otbr-agent` sends router advertisements on `eno1` carrying its own non-routable ULA on-link prefix and a route to the Thread OMR prefix, so LAN hosts may autoconfigure ULA addresses. The user wanted to try without IPv6 on the LAN first, hence:
 
-**Option 1 (current):** border routing OFF. The Thread mesh is reachable only from tachyon (`wpan0`); `matter-server` is on the host network on the same node, so it reaches the mesh directly. Unproven: whether Matter commissioning and operation work this way. The Advertising Proxy must publish `_matter._tcp` records on the LAN mDNS with an address the host can reach (mesh-local or OMR). Expect trouble because devices usually register an OMR address, which only exists when border routing is on.
+**Option 1 (current):** border routing OFF, SRP server enabled manually. The Thread mesh is reachable only from tachyon (`wpan0`); `matter-server` is on the host network on the same node, so it reaches the mesh directly. Unproven: whether Matter commissioning and operation work this way. The Advertising Proxy must publish `_matter._tcp` records on the LAN mDNS with an address the host can reach (mesh-local or OMR). Expect trouble because devices usually register an OMR address, which only exists when border routing is on.
 - Symptoms that mean "go to option 2": the commissioning flow in HA fails at "finding the node on the network" or times out after the Thread join succeeded; `matter-server` logs cannot resolve or reach the node; `dns-sd`/`avahi-browse -r _matter._tcp` shows no usable AAAA; `ot-ctl netdata show` lists no OMR prefix (`ot-ctl br omrprefix` fails because BR is off).
 
 **Option 2 (next):** border routing ON, no UDM change.
@@ -74,7 +74,7 @@ Why this exists: with border routing ON, `otbr-agent` sends router advertisement
 4. Run `ot-ctl` as `kubectl -n home exec deploy/otbr -c otbr -- ot-ctl <cmd>`.
 5. Back up the active dataset (`ot-ctl dataset active -x`) as a Secret in `scripts/secrets.list` before relying on the network (not done yet; Velero already backs the PVC).
 
-### Canary sequence (step 1 done 2026-11-06; verify rp_filter=0 and DNS after each)
+### Canary sequence (steps 1 and 2 done 2026-11-06; verify rp_filter=0 and DNS after each)
 1. Merge the new Deployment (replicas 0), sync, then scale to 1 with `hostNetwork` temporarily **false** in a throwaway copy: own pod netns, privileged only for the device. Check `ot-ctl state` forms a network over the real RCP at 921600/flow control. This cannot touch host networking.
 2. Switch to `hostNetwork: true` with `--backbone-ifname eno1`. Watch `sysctl net.ipv4.conf.all.rp_filter`, `ip -6 addr/route`, DNS (`dig @10.3.0.53 example.com`) and pod health for 5 minutes. Roll back by scaling to 0 and, if needed, `sysctl --system` on the host.
 3. Sync `matter-server`; add the Thread and Matter integrations in HA.

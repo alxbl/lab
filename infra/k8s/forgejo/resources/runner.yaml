@@ -45,6 +45,10 @@ spec:
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
+        # level s0: pods sharing the volume must use one SELinux level, otherwise the runtime relabels it per pod
+        # (random MCS) and the other pods lose access (see charts/aquisition).
+        seLinuxOptions:
+          level: s0
       volumes:
       - name: state
         persistentVolumeClaim:

@@ -15,7 +15,7 @@ INCIDENT 2026-11-06 (do not repeat): the `openthread/otbr` image entrypoint runs
 - Live drift: the `otbr` Deployment has replicas 0, `NAT64=0` and no hostPath `type` (the kubelet rejects `CharDevice` for the by-id symlink). Git still has `type: CharDevice` (fix on unmerged local branch/worktree `otbr-hostpath`). Re-sync from git before any use.
 - Argo apps track `main` on GitHub: nothing deploys until merged.
 
-Open: run OTBR without taking over the host. Investigation done (below); draft manifest in `infra/k8s/otbr/deployment.yaml` on local branch `otbr-hostpath` (worktree `otbr-hostpath`, uncommitted); next is the canary sequence.
+CURRENT (2026-11-06, option 1 live): `otbr` runs `otbr-agent` directly on the host network (PR #153, #154) with border routing OFF (`ot-ctl br disable` in the postStart hook), BBR and NAT64 off. The radio was verified on the real SLZB-07 in a pod-network canary (leader, RCP `SL-OPENTHREAD/2.7.2.0_GitHub-fb0446f53`). No Matter device has been paired yet (the user owns none); the Thread/Matter integrations in Home Assistant are added by hand when one exists. If pairing or control fails, see "Border routing: option 1 (current) vs option 2 vs option 3" and implement option 2 or 3.
 
 
 ## Findings that shape the plan
@@ -45,7 +45,36 @@ Caveats / not proven:
 - Border routing sends RAs on `eno1` advertising its own on-link ULA prefix and an OMR route. LAN hosts may autoconfigure ULA addresses. This is OTBR's own prefix, not routable, but it is IPv6 on the LAN. `ot-ctl br disable` avoids it, at the cost of the mesh being reachable only from tachyon; untested whether the Advertising Proxy then publishes usable addresses for Matter.
 - Revert on tachyon is still pending (needs the user's go): `net.ipv6.conf.{all,default,eno1}.forwarding` back to 0 (set to 1 by the old entrypoint) and `net.ipv6.conf.eno1.accept_ra` back to default.
 
-### Canary sequence (each needs the user's go; verify rp_filter=0 and DNS after each)
+## Border routing: option 1 (current) vs option 2 vs option 3
+Why this exists: with border routing ON, `otbr-agent` sends router advertisements on `eno1` carrying its own non-routable ULA on-link prefix and a route to the Thread OMR prefix, so LAN hosts may autoconfigure ULA addresses. The user wanted to try without IPv6 on the LAN first, hence:
+
+**Option 1 (current):** border routing OFF. The Thread mesh is reachable only from tachyon (`wpan0`); `matter-server` is on the host network on the same node, so it reaches the mesh directly. Unproven: whether Matter commissioning and operation work this way. The Advertising Proxy must publish `_matter._tcp` records on the LAN mDNS with an address the host can reach (mesh-local or OMR). Expect trouble because devices usually register an OMR address, which only exists when border routing is on.
+- Symptoms that mean "go to option 2": the commissioning flow in HA fails at "finding the node on the network" or times out after the Thread join succeeded; `matter-server` logs cannot resolve or reach the node; `dns-sd`/`avahi-browse -r _matter._tcp` shows no usable AAAA; `ot-ctl netdata show` lists no OMR prefix (`ot-ctl br omrprefix` fails because BR is off).
+
+**Option 2 (next):** border routing ON, no UDM change.
+1. In `infra/k8s/otbr/deployment.yaml` remove `; ot-ctl br disable` from the postStart hook (keep `bbr disable` and `nat64 disable`). PR, merge, hard-refresh and sync `otbr`, restart the pod.
+2. Check `ot-ctl br state` is `running`, `ot-ctl br omrprefix` and `onlinkprefix` show ULA prefixes, and `ot-ctl netdata show` lists the OMR prefix.
+3. Expected side effects: RAs on `eno1` with an on-link ULA prefix and a route; LAN hosts gain ULA addresses (`ip -6 addr` on the workstation shows `fd..`). Check that AdGuard and general browsing still work (a ULA-only RA with no default route should not change IPv4 behaviour). Verify `sysctl net.ipv4.conf.all.rp_filter` is 0 and `dig @10.3.0.53 example.com` still answers.
+4. Host forwarding is still not required for the Matter server on the same host. Do not set `net.ipv6.conf.all.forwarding=1` unless LAN clients other than tachyon must reach Thread devices; if so, set it per interface (`eno1`, `wpan0`) and set `accept_ra=2` on `eno1`, and re-verify Cilium (rp_filter, DNS).
+5. Rollback: re-add `ot-ctl br disable` and restart, or scale `otbr` to 0. RA-learned addresses on LAN hosts expire within about 30 minutes.
+
+**Option 3 (alternative to 2):** put a ULA on the LAN deliberately instead of letting OTBR invent one.
+- ULA = Unique Local Address (RFC 4193, `fc00::/7`, in practice `fd00::/8`), the IPv6 counterpart of RFC 1918 private space; not routable on the internet.
+- Generate a random /48: `printf 'fd%s\n' "$(openssl rand -hex 5)"` gives 40 random bits (`fdXX:XXXX:XXXX::/48`). Use `fdXX:XXXX:XXXX:1::/64` for the LAN. Record it in `docs/hld/segv-cluster.md`.
+- UDM (UniFi Network, wording varies): Settings, Networks, LAN, IPv6: interface type Static, the /64, Router Advertisement on, DHCPv6 off (SLAAC). **Ask the user first:** it changes the whole LAN.
+- Gotcha: with no WAN IPv6 the UDM RA may still claim to be a default router, so some clients try IPv6 first and fall back (slow connects). If seen, remove it.
+- Then also do option 2 (border routing on); OTBR will use the LAN's existing prefix as its on-link prefix.
+
+**Option 4 (last resort):** routable IPv6 for segv and the WAN (ISP prefix request, firewalling, cluster ingress, review of Cilium routing and host policies). Separate plan; the user wants all other avenues exhausted first. Cilium currently has IPv6 disabled (`enable-ipv6: false`), so it does not filter IPv6 host traffic.
+
+### Testing once a Matter device exists (the user has none yet)
+1. HA: Settings, Devices and services, add **Thread** (it discovers the border router; if not, add **Open Thread Border Router** with URL `http://otbr.home.svc:8081`) and set the network as preferred. Add **Matter** with URL `ws://matter-server.home.svc:5580/ws`.
+2. Check `ot-ctl state` is `leader`, `ot-ctl dataset active` exists, and `matter-server` is running (`kubectl -n home logs deploy/matter-server`).
+3. Commission with the HA companion app (phone needs Bluetooth, and the Thread credentials are shared from HA). Then use `ot-ctl child table` / `neighbor table` to see the device join.
+4. Run `ot-ctl` as `kubectl -n home exec deploy/otbr -c otbr -- ot-ctl <cmd>`.
+5. Back up the active dataset (`ot-ctl dataset active -x`) as a Secret in `scripts/secrets.list` before relying on the network (not done yet; Velero already backs the PVC).
+
+### Canary sequence (step 1 done 2026-11-06; verify rp_filter=0 and DNS after each)
 1. Merge the new Deployment (replicas 0), sync, then scale to 1 with `hostNetwork` temporarily **false** in a throwaway copy: own pod netns, privileged only for the device. Check `ot-ctl state` forms a network over the real RCP at 921600/flow control. This cannot touch host networking.
 2. Switch to `hostNetwork: true` with `--backbone-ifname eno1`. Watch `sysctl net.ipv4.conf.all.rp_filter`, `ip -6 addr/route`, DNS (`dig @10.3.0.53 example.com`) and pod health for 5 minutes. Roll back by scaling to 0 and, if needed, `sysctl --system` on the host.
 3. Sync `matter-server`; add the Thread and Matter integrations in HA.

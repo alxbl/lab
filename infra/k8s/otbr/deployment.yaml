@@ -1,0 +1,59 @@
+# OpenThread Border Router for the SLZB-07 (OpenThread RCP, 921600 baud, RTS/CTS).
+# Runs on the host network of tachyon: it owns wpan0 and routes between Thread and eno1.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otbr
+  labels:
+    app.kubernetes.io/name: otbr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: otbr
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: otbr
+      annotations:
+        backup.velero.io/backup-volumes: data
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/hostname: tachyon.lan
+      containers:
+      - name: otbr
+        # openthread/otbr publishes only `latest`; pinned by digest (pulled 2026-11-05).
+        image: docker.io/openthread/otbr@sha256:2dbe6d36b88a7833fedbd82caca34620c781c5144b89449c8b5579650d30f537
+        args:
+        - --radio-url
+        - spinel+hdlc+uart:///dev/serial/by-id/usb-SMLIGHT_SMLIGHT_SLZB-07_b0e08c1bd5a0ef11bec3a9a361ce3355-if00-port0?uart-baudrate=921600&uart-flow-control
+        - --backbone-interface
+        - eno1
+        env:
+        - name: INFRA_IF_NAME
+          value: eno1
+        # REST is unauthenticated: reachable from pods only (host-allow-cluster); the LAN policy does not open 8081.
+        - name: REST_HOST
+          value: 0.0.0.0
+        securityContext:
+          privileged: true # tty (usbtty_device_t), /dev/net/tun and sysctls (forwarding, accept_ra).
+        ports:
+        - name: rest
+          containerPort: 8081
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/thread
+        - name: radio
+          mountPath: /dev/serial/by-id/usb-SMLIGHT_SMLIGHT_SLZB-07_b0e08c1bd5a0ef11bec3a9a361ce3355-if00-port0
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: otbr
+      - name: radio
+        hostPath:
+          path: /dev/serial/by-id/usb-SMLIGHT_SMLIGHT_SLZB-07_b0e08c1bd5a0ef11bec3a9a361ce3355-if00-port0
+          type: CharDevice

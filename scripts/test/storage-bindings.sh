@@ -54,7 +54,7 @@ for app in apps:
         # External chart: the claim is created from the persistence values.
         p = values["persistence"]
         add(ns, p["claimName"], p["storageClass"], p["accessModes"], p["size"], p.get("volumeName"))
-    elif app["metadata"]["name"] in ("immich-database", "keycloak", "forgejo-database"):
+    elif app["metadata"]["name"] in ("immich-database", "keycloak", "forgejo-database", "otbr", "matter-server"):
         # CNPG instance claim: <cluster>-<ordinal>.
         out = subprocess.run(["kubectl", "kustomize", path], check=True, capture_output=True, text=True).stdout
         for d in yaml.safe_load_all(out):

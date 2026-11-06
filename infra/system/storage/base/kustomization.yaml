@@ -6,6 +6,8 @@ resources:
 - pv-media.yaml
 - pv-adguard.yaml
 - pv-home-assistant.yaml
+- pv-otbr.yaml
+- pv-matter-server.yaml
 - pv-vaultwarden.yaml
 - pv-immich-db.yaml
 - pv-forgejo.yaml

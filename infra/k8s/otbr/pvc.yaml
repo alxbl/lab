@@ -1,0 +1,13 @@
+# Thread dataset and network keys (/var/lib/thread). Bound to the static PV `otbr`.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: otbr
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-zfs
+  volumeName: otbr
+  resources:
+    requests:
+      storage: 1Gi

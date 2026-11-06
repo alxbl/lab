@@ -37,6 +37,12 @@ variable "console" {
   default = "ttyS1"
 }
 
+# Stable /dev/disk/by-id path of the NVMe disk for /var/lib/etcd (docs/plans/etcd-nvme.md). Empty keeps etcd on the OS disk.
+variable "etcd_disk" {
+  type    = string
+  default = ""
+}
+
 locals {
   console_args  = var.console == "" ? [] : ["console=tty0", "console=${var.console},115200n8"]
   console_kargs = var.console == "" ? "" : "ExecStart=/usr/bin/rpm-ostree kargs ${join(" ", [for a in local.console_args : "--append-if-missing=${a}"])}"
@@ -79,14 +85,14 @@ module "segv" {
   # workers = []
 
   snippets = {
-    "tachyon" = [
+    "tachyon" = concat([
       # Wipe root file system so that reprovisioning is easy
       file("../butane/wipe-root.yaml"),
       file("./butane/hosts.yaml"),
       file("../butane/sysctl.yaml"),
       file("../butane/kubelet.yaml"),
       replace(replace(file("../butane/zfs.yaml"), "@ZFS_IMAGE@", var.zfs_image), "@CONSOLE_KARGS@", local.console_kargs),
-    ]
+    ], var.etcd_disk == "" ? [] : [replace(file("../butane/etcd-disk.yaml"), "@ETCD_DISK@", var.etcd_disk)])
   }
 }
 

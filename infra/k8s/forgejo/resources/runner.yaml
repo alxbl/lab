@@ -32,7 +32,7 @@ metadata:
   name: forgejo-runner
 spec:
   serviceName: forgejo-runner
-  replicas: 3
+  replicas: 5
   podManagementPolicy: Parallel
   selector:
     matchLabels:

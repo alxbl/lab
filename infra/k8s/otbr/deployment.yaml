@@ -1,6 +1,6 @@
 # OpenThread Border Router for the SLZB-07 (OpenThread RCP, 921600 baud, RTS/CTS).
 # Runs otbr-agent directly, never the image's entrypoint: that script runs `sysctl --system`, NAT and firewall setup
-# against the host (incident 2026-11-06, see docs/plans/slzb07-thread.md). Host network is needed for the infra link (eno1).
+# against the host (incident 2026-11-06, see the ledger: github.com/lab/plans/slzb07-thread.md). Host network is needed for the infra link (eno1).
 apiVersion: apps/v1
 kind: Deployment
 metadata:

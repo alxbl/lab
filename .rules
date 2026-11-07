@@ -2,7 +2,7 @@
 
 Homelab infra-as-code (Kubernetes clusters, GitOps) plus Ansible and bootstrap scripts for Arch Linux workstations.
 Docs (`README.md`, `DEVELOPMENT.md`, `scripts/README.md`) lag the code. When they disagree, trust the scripts and manifests, and tell the user about the drift.
-`docs/plans/` is for plans written for agents to execute; put every new plan there. The rest of `docs/` (`hld/`, snapshots) is for humans.
+Plans, todos, handovers and snapshots live in the ledger (`~/Code/code.segfault.me/alxbl/ledger/main/github.com/lab/`), not in this repo; follow the `ledger` skill. `docs/` holds durable docs for humans (`hld/`, runbooks).
 
 ## Safety
 - `infra/clusters/segv` is the real cluster. `infra/clusters/dev` is the throwaway KVM test cluster. **NEVER** run `terraform apply`/`destroy` against segv, or `scripts/bootstrap.sh` (stops DNS, edits iptables, applies segv), without explicit consent. `terraform apply` in `infra/clusters/dev` is fine.

@@ -14,6 +14,8 @@ resources:
 - pv-forgejo-db.yaml
 - pv-forgejo-runner.yaml
 - pv-forgejo-cache.yaml
+- pv-firefly.yaml
+- pv-firefly-db.yaml
 - pv-satisfactory.yaml
 - pv-smbd.yaml
 - pv-prometheus.yaml

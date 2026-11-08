@@ -12,4 +12,5 @@ resources:
 - resources/oidcclient-test-app.yaml
 - resources/oidcclient-immich.yaml
 - resources/oidcclient-forgejo.yaml
+- resources/oidcclient-firefly.yaml
 - resources/cnp-oauth2-proxy.yaml

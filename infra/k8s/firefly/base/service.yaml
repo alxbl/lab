@@ -1,0 +1,12 @@
+# Exposes the proxy only; the app's own port is deliberately not published.
+apiVersion: v1
+kind: Service
+metadata:
+  name: firefly
+spec:
+  selector:
+    app.kubernetes.io/name: firefly
+  ports:
+  - name: auth
+    port: 4180
+    targetPort: auth

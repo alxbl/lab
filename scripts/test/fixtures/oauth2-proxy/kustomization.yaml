@@ -1,0 +1,15 @@
+# Test consumer of infra/k8s/oauth2-proxy (see scripts/test/oauth2-proxy.sh).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- deployment.yaml
+components:
+- ../../../../infra/k8s/oauth2-proxy
+configMapGenerator:
+- name: oauth2-proxy-params
+  options: {disableNameSuffixHash: true}
+  literals:
+  - client-id=demo
+  - secret-name=demo-oauth2-proxy
+  - upstream=http://127.0.0.1:8080
+  - redirect-url=https://demo.segfault.me/oauth2/callback

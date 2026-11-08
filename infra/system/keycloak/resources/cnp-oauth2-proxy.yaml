@@ -1,0 +1,23 @@
+# The keycloak baseline only admits same-namespace and Gateway traffic. oauth2-proxy sidecars
+# (infra/k8s/oauth2-proxy), in any namespace, redeem login codes and fetch signing keys from the Keycloak service
+# (8080), in-cluster so a login does not hairpin through the home link.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: keycloak-oauth2-proxy
+  namespace: keycloak
+spec:
+  endpointSelector:
+    matchLabels:
+      app: keycloak
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        lab.segfault.me/oauth2-proxy: "true"
+      matchExpressions:
+      - key: io.kubernetes.pod.namespace
+        operator: Exists
+    toPorts:
+    - ports:
+      - port: "8080"
+        protocol: TCP

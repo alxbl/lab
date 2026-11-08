@@ -242,6 +242,16 @@ in as the local `forgejo-admin` (password in the `code/forgejo-admin` Secret). A
 username or email equals an existing Forgejo account signs into it. The local admin uses `admin@segfault.me` for that reason;
 keep Keycloak emails and usernames distinct from it.
 
+### Fronting an app with oauth2-proxy
+
+An app without native OIDC gets an oauth2-proxy sidecar in its own pod (`infra/k8s/oauth2-proxy`, a kustomize Component; its
+header lists what a consumer must provide). The HTTPRoute targets the proxy port (4180) only, and the proxy forwards to the app
+on `127.0.0.1` with the Keycloak login name in `X-Forwarded-Preferred-Username`. Namespace baselines admit every same-namespace pod
+and the Gateway on all ports, so the app's own port is closed with a `CiliumNetworkPolicy` `ingressDeny`; without it any pod
+could reach the app directly and forge the header. The proxy redeems codes against `keycloak-service.keycloak:8080`, admitted by
+`keycloak-oauth2-proxy`. `scripts/oauth2-proxy-secrets <app> <namespace>` creates the Keycloak client secret and the proxy's
+Secret (add both to `scripts/secrets.list`). Apps with native OIDC (Immich, Forgejo, Paperless, Audiobookshelf) do not use it.
+
 ## 4. Storage and backups
 
 ```mermaid

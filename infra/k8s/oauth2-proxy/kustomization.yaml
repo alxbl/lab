@@ -1,0 +1,88 @@
+# Kustomize Component: adds an oauth2-proxy sidecar (Keycloak realm segv) to every Deployment of the consuming
+# kustomization, so the app is reachable only through the proxy. The consumer must:
+#   1. list this directory under `components:`;
+#   2. generate a ConfigMap named oauth2-proxy-params (disableNameSuffixHash) with the keys
+#        client-id     Keycloak client id (= app name)
+#        secret-name   Secret holding client-secret and cookie-secret (scripts/oauth2-proxy-secrets <app> <namespace>)
+#        upstream      the app, on loopback: http://127.0.0.1:<port>
+#        redirect-url  https://<host>/oauth2/callback
+#   3. route its HTTPRoute to port 4180 only, and deny the app's own port with a CiliumNetworkPolicy `ingressDeny`
+#      (namespace baselines admit every same-namespace pod and the Gateway on all ports);
+#   4. add the Keycloak client (infra/system/keycloak/resources/oidcclient-<app>.yaml).
+# Realm users have no email: the login name is used as the "email" and any domain is accepted.
+# The app sees the login name in X-Forwarded-Preferred-Username and X-Forwarded-User.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+- target:
+    kind: Deployment
+  patch: |-
+    - op: add
+      path: /spec/template/metadata/labels/lab.segfault.me~1oauth2-proxy
+      value: "true"
+    - op: add
+      path: /spec/template/spec/containers/-
+      value:
+        name: oauth2-proxy
+        image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.6
+        ports:
+        - name: auth
+          containerPort: 4180
+        env:
+        - {name: OAUTH2_PROXY_HTTP_ADDRESS, value: "0.0.0.0:4180"}
+        - {name: OAUTH2_PROXY_PROVIDER, value: keycloak-oidc}
+        - {name: OAUTH2_PROXY_CODE_CHALLENGE_METHOD, value: S256}
+        - {name: OAUTH2_PROXY_OIDC_ISSUER_URL, value: "https://segfault.me/auth/realms/segv"}
+        # Keycloak is reached in-cluster so a login does not hairpin through cortex and the home link.
+        - {name: OAUTH2_PROXY_SKIP_OIDC_DISCOVERY, value: "true"}
+        - {name: OAUTH2_PROXY_LOGIN_URL, value: "https://segfault.me/auth/realms/segv/protocol/openid-connect/auth"}
+        - {name: OAUTH2_PROXY_REDEEM_URL, value: "http://keycloak-service.keycloak:8080/auth/realms/segv/protocol/openid-connect/token"}
+        - {name: OAUTH2_PROXY_OIDC_JWKS_URL, value: "http://keycloak-service.keycloak:8080/auth/realms/segv/protocol/openid-connect/certs"}
+        - {name: OAUTH2_PROXY_OIDC_EMAIL_CLAIM, value: preferred_username}
+        - {name: OAUTH2_PROXY_EMAIL_DOMAINS, value: "*"}
+        - {name: OAUTH2_PROXY_REVERSE_PROXY, value: "true"}
+        - {name: OAUTH2_PROXY_COOKIE_SECURE, value: "true"}
+        - {name: OAUTH2_PROXY_SKIP_PROVIDER_BUTTON, value: "true"}
+        - {name: OAUTH2_PROXY_CLIENT_ID, value: replaced}
+        - {name: OAUTH2_PROXY_UPSTREAMS, value: replaced}
+        - {name: OAUTH2_PROXY_REDIRECT_URL, value: replaced}
+        - name: OAUTH2_PROXY_CLIENT_SECRET
+          valueFrom: {secretKeyRef: {name: replaced, key: client-secret}}
+        - name: OAUTH2_PROXY_COOKIE_SECRET
+          valueFrom: {secretKeyRef: {name: replaced, key: cookie-secret}}
+        readinessProbe:
+          httpGet: {path: /ping, port: auth}
+        livenessProbe:
+          httpGet: {path: /ping, port: auth}
+        resources:
+          requests: {cpu: 10m, memory: 32Mi}
+          limits: {memory: 128Mi}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities: {drop: [ALL]}
+
+replacements:
+- source: {kind: ConfigMap, name: oauth2-proxy-params, fieldPath: data.client-id}
+  targets:
+  - select: {kind: Deployment}
+    fieldPaths:
+    - "spec.template.spec.containers.[name=oauth2-proxy].env.[name=OAUTH2_PROXY_CLIENT_ID].value"
+- source: {kind: ConfigMap, name: oauth2-proxy-params, fieldPath: data.upstream}
+  targets:
+  - select: {kind: Deployment}
+    fieldPaths:
+    - "spec.template.spec.containers.[name=oauth2-proxy].env.[name=OAUTH2_PROXY_UPSTREAMS].value"
+- source: {kind: ConfigMap, name: oauth2-proxy-params, fieldPath: data.redirect-url}
+  targets:
+  - select: {kind: Deployment}
+    fieldPaths:
+    - "spec.template.spec.containers.[name=oauth2-proxy].env.[name=OAUTH2_PROXY_REDIRECT_URL].value"
+- source: {kind: ConfigMap, name: oauth2-proxy-params, fieldPath: data.secret-name}
+  targets:
+  - select: {kind: Deployment}
+    fieldPaths:
+    - "spec.template.spec.containers.[name=oauth2-proxy].env.[name=OAUTH2_PROXY_CLIENT_SECRET].valueFrom.secretKeyRef.name"
+    - "spec.template.spec.containers.[name=oauth2-proxy].env.[name=OAUTH2_PROXY_COOKIE_SECRET].valueFrom.secretKeyRef.name"

@@ -1,0 +1,10 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: demo, namespace: home}
+spec:
+  selector: {matchLabels: {app: demo}}
+  template:
+    metadata: {labels: {app: demo}}
+    spec:
+      containers:
+      - {name: demo, image: example/demo:1, ports: [{containerPort: 8080}]}

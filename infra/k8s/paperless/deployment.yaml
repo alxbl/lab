@@ -1,0 +1,113 @@
+# Paperless-ngx, with its Redis-protocol broker (Valkey) as a loopback-only sidecar: the broker needs no persistence and
+# no other pod should reach it. Documents live on the smbd share: files dropped into paperless/consume over SMB are
+# imported, and paperless/media holds the archive. Both directories must exist and belong to uid 1000 (the user the image
+# runs as, which owns the rest of the share); smbd writes as root, so dropped files are root-owned but readable.
+# Secrets (created out of band, see scripts/paperless-secrets): paperless-secrets (environment), paperless-database-app.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless
+  labels:
+    app.kubernetes.io/name: paperless
+spec:
+  replicas: 1
+  # The data volume is RWO, so a rolling update would deadlock on it.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: paperless
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: paperless
+      annotations:
+        backup.velero.io/backup-volumes: data
+    spec:
+      securityContext:
+        # level s0: pods that share a volume with smbd must use one SELinux level (see charts/aquisition).
+        seLinuxOptions:
+          level: s0
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+      - name: paperless
+        image: ghcr.io/paperless-ngx/paperless-ngx:3.4.2@sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84
+        ports:
+        - name: http
+          containerPort: 8000
+        envFrom:
+        # PAPERLESS_SECRET_KEY, PAPERLESS_ADMIN_USER, PAPERLESS_ADMIN_PASSWORD, PAPERLESS_SOCIALACCOUNT_PROVIDERS.
+        - secretRef:
+            name: paperless-secrets
+        env:
+        # Served at lab.segfault.me/docs. PAPERLESS_URL cannot carry a path. The gateway passes the path through
+        # unchanged, and the app answers with and without the prefix.
+        - {name: PAPERLESS_URL, value: "https://lab.segfault.me"}
+        - {name: PAPERLESS_FORCE_SCRIPT_NAME, value: /docs}
+        - {name: PAPERLESS_STATIC_URL, value: /docs/static/}
+        # Several apps share lab.segfault.me, so keep Paperless's cookies apart.
+        - {name: PAPERLESS_COOKIE_PREFIX, value: paperless-}
+        # TLS ends at the gateway; without this the OIDC callback URL is built with http.
+        - {name: PAPERLESS_PROXY_SSL_HEADER, value: '["HTTP_X_FORWARDED_PROTO", "https"]'}
+        - {name: PAPERLESS_TIME_ZONE, value: America/Toronto}
+        - {name: PAPERLESS_REDIS, value: "redis://127.0.0.1:6379"}
+        - {name: PAPERLESS_DBHOST, value: paperless-database-rw}
+        - {name: PAPERLESS_DBNAME, value: app}
+        - name: PAPERLESS_DBUSER
+          valueFrom: {secretKeyRef: {name: paperless-database-app, key: username}}
+        - name: PAPERLESS_DBPASS
+          valueFrom: {secretKeyRef: {name: paperless-database-app, key: password}}
+        - {name: PAPERLESS_DATA_DIR, value: /usr/src/paperless/data}
+        - {name: PAPERLESS_MEDIA_ROOT, value: /usr/src/paperless/media}
+        - {name: PAPERLESS_CONSUMPTION_DIR, value: /usr/src/paperless/consume}
+        # Files arrive from another pod through the same dataset; polling does not depend on inotify events.
+        - {name: PAPERLESS_CONSUMER_POLLING, value: "30"}
+        # English and French; the language packs for PAPERLESS_OCR_LANGUAGES are installed at container start.
+        - {name: PAPERLESS_OCR_LANGUAGE, value: eng+fra}
+        - {name: PAPERLESS_OCR_LANGUAGES, value: fra}
+        - {name: PAPERLESS_TASK_WORKERS, value: "1"}
+        - {name: PAPERLESS_THREADS_PER_WORKER, value: "2"}
+        - {name: PAPERLESS_WEBSERVER_WORKERS, value: "1"}
+        # Keycloak realm segv (client secret derived into PAPERLESS_SOCIALACCOUNT_PROVIDERS by scripts/paperless-secrets).
+        # Local login stays on for the bootstrap admin.
+        - {name: PAPERLESS_APPS, value: allauth.socialaccount.providers.openid_connect}
+        - {name: PAPERLESS_SOCIAL_AUTO_SIGNUP, value: "true"}
+        volumeMounts:
+        - {name: data, mountPath: /usr/src/paperless/data}
+        - {name: share, mountPath: /usr/src/paperless/media, subPath: paperless/media}
+        - {name: share, mountPath: /usr/src/paperless/consume, subPath: paperless/consume}
+        # Django only answers its configured host, so the probe sends it.
+        startupProbe:
+          httpGet:
+            path: /
+            port: http
+            httpHeaders: [{name: Host, value: lab.segfault.me}]
+          periodSeconds: 10
+          failureThreshold: 60
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+            httpHeaders: [{name: Host, value: lab.segfault.me}]
+          periodSeconds: 20
+          timeoutSeconds: 5
+        resources:
+          requests: {cpu: 100m, memory: 768Mi}
+          limits: {memory: 3Gi}
+      - name: broker
+        image: docker.io/valkey/valkey:9.1-alpine3.24@sha256:bf09d58e96d6b4524a15396b65b242bbe18beebbcc15a04d8ee75ddac62fae0b
+        args: [--bind, 127.0.0.1, --save, "", --appendonly, "no"]
+        resources:
+          requests: {cpu: 10m, memory: 32Mi}
+          limits: {memory: 256Mi}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities: {drop: [ALL]}
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: paperless
+      - name: share
+        persistentVolumeClaim:
+          claimName: smbd-data

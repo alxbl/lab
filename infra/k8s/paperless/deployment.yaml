@@ -24,6 +24,9 @@ spec:
       annotations:
         backup.velero.io/backup-volumes: data
     spec:
+      # The Service is named paperless, so its link variables include PAPERLESS_PORT=tcp://..., which the app reads as
+      # its own port setting and refuses to start with.
+      enableServiceLinks: false
       securityContext:
         # level s0: pods that share a volume with smbd must use one SELinux level (see charts/aquisition).
         seLinuxOptions:

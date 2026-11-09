@@ -11,6 +11,7 @@ by = lambda kind: [d for d in docs if d["kind"] == kind]
 one = lambda kind: (lambda l: l[0] if len(l) == 1 else sys.exit(f"FAIL: expected one {kind}, got {len(l)}"))(by(kind))
 
 pod = one("Deployment")["spec"]["template"]
+assert pod["spec"]["enableServiceLinks"] is False, "service links inject PAPERLESS_PORT"
 cs = {c["name"]: c for c in pod["spec"]["containers"]}
 assert set(cs) == {"paperless", "broker"}, list(cs)
 env = {e["name"]: e for e in cs["paperless"]["env"]}

@@ -100,7 +100,12 @@ spec:
         resources:
           requests: {cpu: 10m, memory: 32Mi}
           limits: {memory: 256Mi}
+        # The image's entrypoint drops from root to valkey with setpriv, which fails without capabilities, so start as
+        # that user (uid 999, gid 1000) instead.
         securityContext:
+          runAsUser: 999
+          runAsGroup: 1000
+          runAsNonRoot: true
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
           capabilities: {drop: [ALL]}

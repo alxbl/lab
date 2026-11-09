@@ -33,6 +33,8 @@ for probe in ("startupProbe", "readinessProbe"):  # Django answers only its conf
 assert val("PAPERLESS_REDIS") == "redis://127.0.0.1:6379"
 args = cs["broker"]["args"]
 assert args[args.index("--bind") + 1] == "127.0.0.1"
+sc = cs["broker"]["securityContext"]
+assert sc["runAsUser"] == 999 and sc["runAsNonRoot"], "broker must start unprivileged (setpriv needs capabilities)"
 assert all("@sha256:" in c["image"] for c in cs.values()), "images not pinned by digest"
 
 # Documents sit on the smbd share, the index on its own volume; the pod shares the share'"'"'s SELinux level.

@@ -1,0 +1,14 @@
+# Configuration (SQLite database, OIDC settings) and metadata (covers, cache, backups): /data/config and /data/metadata.
+# Bound to the static PV `audiobookshelf`. The audio files themselves live on the smbd share.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: audiobookshelf
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-zfs
+  volumeName: audiobookshelf
+  resources:
+    requests:
+      storage: 10Gi

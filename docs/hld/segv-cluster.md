@@ -182,6 +182,7 @@ flowchart TB
 | `segfault.me` (apex) | internet, via Cloudflare and cortex | `/auth/realms/segv`, `/auth/resources`, `/auth/js` | Keycloak. The blog is static files on cortex, not in the cluster |
 | `vault.segfault.me` | internet, via Cloudflare to home | `/` | Vaultwarden |
 | `photos.segfault.me` | internet, via Cloudflare to home; direct on the LAN | `/` | Immich |
+| `books.segfault.me` | internet, via Cloudflare to home; direct on the LAN | `/` | Audiobookshelf (sign-in through Keycloak, set up in its UI) |
 | `code.segfault.me` | internet, via Cloudflare to home; direct on the LAN | `/` | Forgejo (sign-in through Keycloak only, no public registration) |
 | `lab.segfault.me` | LAN only | `/argocd`, `/watch`, `/grafana`, `/docs`, `/auth` (Keycloak admin and `master` realm); `/` redirects to `/watch` | ArgoCD, Jellyfin, Grafana, Paperless-ngx, Keycloak |
 | `home.segfault.me` | LAN only | `/` | Home Assistant |
@@ -189,7 +190,7 @@ flowchart TB
 | `git` over SSH | LAN and VPN | SSH :22 on `10.3.0.2` (a `LoadBalancer` sharing the Gateway address) | Forgejo |
 | `smbd` | LAN | SMB :445 on `10.3.0.2` (a `LoadBalancer` sharing the Gateway address) | smbd |
 
-The Keycloak admin console is deliberately not routable from the public host, and only Vaultwarden, Immich and Forgejo sit behind Cloudflare
+The Keycloak admin console is deliberately not routable from the public host, and only Vaultwarden, Immich, Forgejo and Audiobookshelf sit behind Cloudflare
 directly. The UDM serves the split-DNS names as local records; AdGuard serves the same names as rewrites and is the primary
 resolver handed out by DHCP.
 
@@ -252,6 +253,20 @@ and the Gateway on all ports, so the app's own port is closed with a `CiliumNetw
 could reach the app directly and forge the header. The proxy redeems codes against `keycloak-service.keycloak:8080`, admitted by
 `keycloak-oauth2-proxy`. `scripts/oauth2-proxy-secrets <app> <namespace>` creates the Keycloak client secret and the proxy's
 Secret (add both to `scripts/secrets.list`). Apps with native OIDC (Immich, Forgejo, Paperless, Audiobookshelf) do not use it.
+
+### Signing in to Audiobookshelf
+
+Audiobookshelf (`books.segfault.me`, public through Cloudflare) uses the `audiobookshelf` Keycloak client, but keeps its OIDC
+settings in its own database, so they are entered once in the UI (Settings, Authentication, OpenID Connect):
+
+- Issuer URL `https://segfault.me/auth/realms/segv`, then "Auto-populate" the endpoints.
+- Client ID `audiobookshelf`; client secret from `keycloak/keycloak-audiobookshelf`.
+- Match existing users by username (or email); leave auto-register off until a Keycloak user is linked.
+- Allowed mobile redirect URIs: `audiobookshelf://oauth`.
+
+First start: the first visit creates the root user, so do it while the name resolves only on the LAN, before adding the Cloudflare
+record. Turn on automatic backups (Settings, Backups): they are off by default and the SQLite database is not reliably copied
+live. Keep password login for the root user as the way back in if Keycloak is unreachable.
 
 ## 4. Storage and backups
 

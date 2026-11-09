@@ -18,6 +18,7 @@ resources:
 - pv-firefly-db.yaml
 - pv-paperless.yaml
 - pv-paperless-db.yaml
+- pv-audiobookshelf.yaml
 - pv-satisfactory.yaml
 - pv-smbd.yaml
 - pv-prometheus.yaml

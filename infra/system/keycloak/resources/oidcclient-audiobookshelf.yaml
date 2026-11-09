@@ -1,0 +1,31 @@
+# Audiobookshelf's OIDC login (https://books.segfault.me), web and mobile. Confidential client, authorization code flow.
+# ABS keeps its OIDC settings in its own database: they are entered once in its UI (see docs/hld/segv-cluster.md).
+# Secrets (created out of band, see scripts/keycloak-secrets): keycloak-audiobookshelf.
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: KeycloakOIDCClient
+metadata:
+  name: audiobookshelf
+  namespace: keycloak
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  keycloakCRName: keycloak
+  realm: segv
+  client:
+    displayName: Audiobookshelf
+    appUrl: https://books.segfault.me
+    enabled: true
+    loginFlows:
+    - STANDARD
+    redirectUris:
+    - https://books.segfault.me/auth/openid/callback
+    # Mobile app: the server redirects to the app's custom scheme.
+    - https://books.segfault.me/auth/openid/mobile-redirect
+    - audiobookshelf://oauth
+    webOrigins:
+    - https://books.segfault.me
+    auth:
+      method: client-secret
+      secretRef:
+        name: keycloak-audiobookshelf
+        key: client-secret

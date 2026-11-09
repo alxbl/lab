@@ -1,0 +1,21 @@
+# Paperless is served from a sub-path of lab.segfault.me (LAN only), like Grafana and ArgoCD. The path is passed through
+# unchanged: the app is configured with FORCE_SCRIPT_NAME=/docs and answers with or without the prefix.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: paperless
+spec:
+  parentRefs:
+  - name: https-in-gw
+    namespace: gateway
+    sectionName: https
+  hostnames:
+  - lab.segfault.me
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /docs
+    backendRefs:
+    - name: paperless
+      port: 8000

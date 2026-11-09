@@ -13,4 +13,5 @@ resources:
 - resources/oidcclient-immich.yaml
 - resources/oidcclient-forgejo.yaml
 - resources/oidcclient-firefly.yaml
+- resources/oidcclient-paperless.yaml
 - resources/cnp-oauth2-proxy.yaml

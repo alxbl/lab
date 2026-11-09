@@ -1,0 +1,28 @@
+# Paperless-ngx's OIDC login (https://lab.segfault.me/docs). Confidential client, authorization code flow.
+# The provider id in the Paperless configuration is "keycloak", which names the callback path.
+# Secrets (created out of band, see scripts/keycloak-secrets): keycloak-paperless.
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: KeycloakOIDCClient
+metadata:
+  name: paperless
+  namespace: keycloak
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  keycloakCRName: keycloak
+  realm: segv
+  client:
+    displayName: Paperless-ngx
+    appUrl: https://lab.segfault.me/docs
+    enabled: true
+    loginFlows:
+    - STANDARD
+    redirectUris:
+    - https://lab.segfault.me/docs/accounts/oidc/keycloak/login/callback/
+    webOrigins:
+    - https://lab.segfault.me
+    auth:
+      method: client-secret
+      secretRef:
+        name: keycloak-paperless
+        key: client-secret

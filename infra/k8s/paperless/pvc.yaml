@@ -1,0 +1,14 @@
+# Search index, classifier and thumbnails (PAPERLESS_DATA_DIR). Bound to the static PV `paperless`. The documents
+# themselves live on the smbd share.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-zfs
+  volumeName: paperless
+  resources:
+    requests:
+      storage: 5Gi

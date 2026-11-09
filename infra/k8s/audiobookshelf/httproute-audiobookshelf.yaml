@@ -1,0 +1,18 @@
+# Audiobookshelf gets its own hostname (covered by the *.segfault.me certificate): upstream supports a sub-path only at the
+# fixed /audiobookshelf, and lab.segfault.me is LAN only, while the mobile apps need to reach this from outside.
+# Public: the Cloudflare record is proxied, and the LAN resolves the name locally (AdGuard and the UDM), like Immich.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: audiobookshelf
+spec:
+  parentRefs:
+  - name: https-in-gw
+    namespace: gateway
+    sectionName: https
+  hostnames:
+  - books.segfault.me
+  rules:
+  - backendRefs:
+    - name: audiobookshelf
+      port: 80

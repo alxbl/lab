@@ -1,0 +1,67 @@
+# Audiobookshelf. The libraries live on the smbd share (subPaths audiobooks and podcasts): files dropped there over SMB
+# appear after a scan. Both directories and the dataset's root must belong to uid 1000 (the user this pod runs as, which
+# owns the rest of the share). There is deliberately no fsGroup: with the shared volume it would recursively chown the
+# whole share. smbd writes as root, so dropped files are root-owned but readable.
+# OIDC is configured once in the web UI (Settings, Authentication): ABS keeps it in its database, so there is nothing to
+# render here. The client secret is in keycloak/keycloak-audiobookshelf.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audiobookshelf
+  labels:
+    app.kubernetes.io/name: audiobookshelf
+spec:
+  replicas: 1
+  # The data volume is RWO, so a rolling update would deadlock on it.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: audiobookshelf
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: audiobookshelf
+      annotations:
+        backup.velero.io/backup-volumes: data
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        # level s0: pods that share a volume with smbd must use one SELinux level (see charts/aquisition).
+        seLinuxOptions:
+          level: s0
+      containers:
+      - name: audiobookshelf
+        image: ghcr.io/advplyr/audiobookshelf:2.37.2@sha256:b897c33f05972fb1bf484f7487bc878fa91ec8691335c1db6e2929c3a7658efa
+        ports:
+        - name: http
+          containerPort: 13378
+        env:
+        # Unprivileged port, since the pod does not run as root.
+        - {name: PORT, value: "13378"}
+        - {name: CONFIG_PATH, value: /data/config}
+        - {name: METADATA_PATH, value: /data/metadata}
+        - {name: TZ, value: America/Toronto}
+        volumeMounts:
+        - {name: data, mountPath: /data}
+        - {name: share, mountPath: /audiobooks, subPath: audiobooks}
+        - {name: share, mountPath: /podcasts, subPath: podcasts}
+        startupProbe:
+          httpGet: {path: /healthcheck, port: http}
+          periodSeconds: 5
+          failureThreshold: 60
+        readinessProbe:
+          httpGet: {path: /healthcheck, port: http}
+          periodSeconds: 20
+        resources:
+          requests: {cpu: 100m, memory: 256Mi}
+          limits: {memory: 1Gi}
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: audiobookshelf
+      - name: share
+        persistentVolumeClaim:
+          claimName: smbd-data

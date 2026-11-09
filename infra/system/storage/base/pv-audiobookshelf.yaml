@@ -1,0 +1,26 @@
+# Dataset data/k8s/audiobookshelf, claimed by media/audiobookshelf (configuration database and metadata).
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: audiobookshelf
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-zfs
+  volumeMode: Filesystem
+  local:
+    path: /var/data/k8s/audiobookshelf
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - tachyon.lan
+  claimRef:
+    namespace: media
+    name: audiobookshelf

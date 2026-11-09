@@ -1,0 +1,30 @@
+# Firefly's recurring transactions and exchange-rate jobs run only when this URL is called. It goes through the proxy
+# (the app port is closed), which lets exactly this path through without a login (see the patch in deployment).
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: firefly-cron
+spec:
+  schedule: "0 3 * * *"
+  timeZone: America/Toronto
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 300
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: cron
+            image: curlimages/curl:8.19.0
+            env:
+            - name: STATIC_CRON_TOKEN
+              valueFrom: {secretKeyRef: {name: firefly-secrets, key: cron-token}}
+            # The token goes to curl on stdin, not argv.
+            command: [sh, -c, 'printf "url = \"http://firefly:4180/api/v1/cron/%s\"\n" "$STATIC_CRON_TOKEN" | curl -fsS -K - -o /dev/null']
+            resources:
+              requests: {cpu: 10m, memory: 16Mi}
+              limits: {memory: 64Mi}

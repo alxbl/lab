@@ -1,0 +1,13 @@
+# Uploaded attachments (/var/www/html/storage/upload). Bound to the static PV `firefly`.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: firefly
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-zfs
+  volumeName: firefly
+  resources:
+    requests:
+      storage: 5Gi

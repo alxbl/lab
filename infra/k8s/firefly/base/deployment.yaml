@@ -1,0 +1,74 @@
+# Firefly III behind an oauth2-proxy sidecar (added by infra/k8s/oauth2-proxy). Firefly trusts the login name in
+# X-Forwarded-Preferred-Username without checking it, so its own port (8080) must stay unreachable except through
+# the proxy on loopback: see netpol-isolate.yaml.
+# Secrets (created out of band, see scripts/firefly-secrets): firefly-secrets, firefly-oauth2-proxy.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: firefly
+  labels:
+    app.kubernetes.io/name: firefly
+spec:
+  replicas: 1
+  # The upload volume is RWO, so a rolling update would deadlock on it.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: firefly
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: firefly
+      annotations:
+        backup.velero.io/backup-volumes: upload
+    spec:
+      securityContext:
+        # The image runs as www-data.
+        fsGroup: 33
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+      - name: firefly
+        image: fireflyiii/core:version-6.7.9@sha256:d51ab6a3a7b91a5c892441578e0da7f2935f84f36bd1151fc3833acc6e060871
+        ports:
+        - name: app
+          containerPort: 8080
+        env:
+        - {name: APP_ENV, value: production}
+        - {name: APP_URL, value: "https://money.segfault.me"}
+        - {name: SITE_OWNER, value: admin@segfault.me}
+        - {name: TZ, value: America/Toronto}
+        - {name: LOG_CHANNEL, value: stdout}
+        # Requests arrive from the proxy sidecar on loopback, which carries the real client in X-Forwarded-*.
+        - {name: TRUSTED_PROXIES, value: "**"}
+        - {name: DB_CONNECTION, value: pgsql}
+        - {name: DB_HOST, value: firefly-database-rw}
+        - {name: DB_PORT, value: "5432"}
+        - {name: DB_DATABASE, value: app}
+        - name: DB_USERNAME
+          valueFrom: {secretKeyRef: {name: firefly-database-app, key: username}}
+        - name: DB_PASSWORD
+          valueFrom: {secretKeyRef: {name: firefly-database-app, key: password}}
+        - name: APP_KEY
+          valueFrom: {secretKeyRef: {name: firefly-secrets, key: app-key}}
+        - name: STATIC_CRON_TOKEN
+          valueFrom: {secretKeyRef: {name: firefly-secrets, key: cron-token}}
+        # $_SERVER key of the header the proxy sets (HTTP_ + upper-cased, dashes to underscores).
+        - {name: AUTHENTICATION_GUARD, value: remote_user_guard}
+        - {name: AUTHENTICATION_GUARD_HEADER, value: HTTP_X_FORWARDED_PREFERRED_USERNAME}
+        volumeMounts:
+        - name: upload
+          mountPath: /var/www/html/storage/upload
+        # An exec probe: the pod's network policy denies the kubelet and every other client on 8080.
+        readinessProbe:
+          exec:
+            command: [curl, -fsS, -o, /dev/null, "http://127.0.0.1:8080/login"]
+          periodSeconds: 10
+          timeoutSeconds: 5
+        resources:
+          requests: {cpu: 50m, memory: 256Mi}
+          limits: {memory: 1Gi}
+      volumes:
+      - name: upload
+        persistentVolumeClaim:
+          claimName: firefly

@@ -185,6 +185,7 @@ flowchart TB
 | `code.segfault.me` | internet, via Cloudflare to home; direct on the LAN | `/` | Forgejo (sign-in through Keycloak only, no public registration) |
 | `lab.segfault.me` | LAN only | `/argocd`, `/watch`, `/grafana`, `/auth` (Keycloak admin and `master` realm); `/` redirects to `/watch` | ArgoCD, Jellyfin, Grafana, Keycloak |
 | `home.segfault.me` | LAN only | `/` | Home Assistant |
+| `money.segfault.me` | LAN only | `/` (login through Keycloak, by an oauth2-proxy sidecar) | Firefly III |
 | `git` over SSH | LAN and VPN | SSH :22 on `10.3.0.2` (a `LoadBalancer` sharing the Gateway address) | Forgejo |
 | `smbd` | LAN | SMB :445 on `10.3.0.2` (a `LoadBalancer` sharing the Gateway address) | smbd |
 

@@ -1,0 +1,28 @@
+# Firefly III's login (https://money.segfault.me), through the oauth2-proxy sidecar in its pod (infra/k8s/oauth2-proxy).
+# Confidential client, authorization code flow with PKCE.
+# Secrets (created out of band, see scripts/oauth2-proxy-secrets): keycloak-firefly.
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: KeycloakOIDCClient
+metadata:
+  name: firefly
+  namespace: keycloak
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  keycloakCRName: keycloak
+  realm: segv
+  client:
+    displayName: Firefly III
+    appUrl: https://money.segfault.me
+    enabled: true
+    loginFlows:
+    - STANDARD
+    redirectUris:
+    - https://money.segfault.me/oauth2/callback
+    webOrigins:
+    - https://money.segfault.me
+    auth:
+      method: client-secret
+      secretRef:
+        name: keycloak-firefly
+        key: client-secret

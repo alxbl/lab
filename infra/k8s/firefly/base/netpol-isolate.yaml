@@ -1,0 +1,18 @@
+# The home baseline admits every same-namespace pod and the Gateway on all ports, and policies only add allowances, so a
+# deny is the only way to close Firefly's own port. The proxy reaches it on loopback, which policy does not govern.
+# Anything else on 8080 could forge X-Forwarded-Preferred-Username and become any user.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: firefly-isolate
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: firefly
+  ingressDeny:
+  - fromEntities:
+    - all
+    toPorts:
+    - ports:
+      - port: "8080"
+        protocol: TCP

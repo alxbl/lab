@@ -164,6 +164,8 @@ data:
         answer: 10.3.0.2
       - domain: home.segfault.me
         answer: 10.3.0.2
+      - domain: money.segfault.me
+        answer: 10.3.0.2
       - domain: dns.segfault.me
         answer: 10.3.0.53
       - domain: tachyon.lan

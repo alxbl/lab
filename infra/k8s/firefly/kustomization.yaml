@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+# base/ applies the oauth2-proxy Component; kustomize runs a kustomization's own patches before its components, so
+# the patch that targets the sidecar must sit one layer above.
+resources:
+- base
+patches:
+# Lets exactly the cron URL (with its token) through the proxy without a login, for the CronJob.
+- target:
+    kind: Deployment
+    name: firefly
+  patch: |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: firefly
+    spec:
+      template:
+        spec:
+          containers:
+          - name: oauth2-proxy
+            env:
+            - name: OAUTH2_PROXY_SKIP_AUTH_ROUTES
+              valueFrom:
+                secretKeyRef: {name: firefly-secrets, key: cron-skip-route}

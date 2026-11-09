@@ -59,11 +59,11 @@ spec:
         volumeMounts:
         - name: upload
           mountPath: /var/www/html/storage/upload
-        # An exec probe: the pod's network policy denies the kubelet and every other client on 8080. /health skips the
-        # auth guard, so it does not log a missing-user error on every call.
+        # An exec probe: the pod's network policy denies the kubelet and every other client on 8080. A static file: any
+        # route that reaches Laravel (/health too) runs the auth guard and logs a missing-user error on every call.
         readinessProbe:
           exec:
-            command: [curl, -fsS, -o, /dev/null, "http://127.0.0.1:8080/health"]
+            command: [curl, -fsS, -o, /dev/null, "http://127.0.0.1:8080/robots.txt"]
           periodSeconds: 10
           timeoutSeconds: 5
         resources:

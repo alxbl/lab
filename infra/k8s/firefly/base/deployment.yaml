@@ -59,10 +59,11 @@ spec:
         volumeMounts:
         - name: upload
           mountPath: /var/www/html/storage/upload
-        # An exec probe: the pod's network policy denies the kubelet and every other client on 8080.
+        # An exec probe: the pod's network policy denies the kubelet and every other client on 8080. /health skips the
+        # auth guard, so it does not log a missing-user error on every call.
         readinessProbe:
           exec:
-            command: [curl, -fsS, -o, /dev/null, "http://127.0.0.1:8080/login"]
+            command: [curl, -fsS, -o, /dev/null, "http://127.0.0.1:8080/health"]
           periodSeconds: 10
           timeoutSeconds: 5
         resources:

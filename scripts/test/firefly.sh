@@ -19,6 +19,9 @@ env = {e["name"]: e for e in cs["firefly"]["env"]}
 assert env["AUTHENTICATION_GUARD"]["value"] == "remote_user_guard"
 assert env["AUTHENTICATION_GUARD_HEADER"]["value"] == "HTTP_X_FORWARDED_PREFERRED_USERNAME"
 
+probe = cs["firefly"]["readinessProbe"]["exec"]["command"][-1]
+assert probe == f"http://127.0.0.1:{app_port}/health", probe
+
 # The app port is published nowhere and denied to every source.
 svc = one("Service")
 assert [p["port"] for p in svc["spec"]["ports"]] == [4180] and svc["spec"]["ports"][0]["targetPort"] == "auth"

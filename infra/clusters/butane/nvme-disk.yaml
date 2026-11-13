@@ -1,0 +1,61 @@
+# OS, etcd and containerd on a dedicated NVMe; the USB disk keeps only the bootloader, the ESP and /boot (the DL380p BIOS cannot
+# boot NVMe, so those three must stay on a bootable disk). The installer still writes the stock image to the USB disk; on first
+# boot Ignition moves the root filesystem to the NVMe (https://docs.fedoraproject.org/en-US/fedora-coreos/storage/, "Reconfiguring
+# the root filesystem": the new filesystem carries the label `root`, FCOS finds and mounts it, and the old content is restored
+# onto it from RAM, so the node needs 4 GiB of RAM or more). The root partition must not be labelled `root` (reserved label),
+# and the old root partition on the USB disk is deleted so that only one filesystem carries that label.
+# Everything here is wiped on every reprovision, like the root filesystem always was: Typhoon bootstraps a fresh etcd with new
+# certificates (stale data would conflict) and containerd re-pulls its images.
+# The literals @OS_DISK@ (the install disk) and @NVME_DISK@ are /dev/disk/by-id paths (never /dev/sdX or /dev/nvmeXn1), replaced
+# before rendering, e.g. with Terraform replace(file("../butane/nvme-disk.yaml"), "@NVME_DISK@", var.nvme_disk).
+variant: fcos
+version: 1.5.0
+storage:
+  disks:
+    - device: "@OS_DISK@"
+      partitions:
+        # By number: butane rejects the reserved label here. The FCOS image layout is fixed: 1 BIOS-BOOT, 2 EFI-SYSTEM, 3 boot, 4 root.
+        - number: 4
+          should_exist: false
+    - device: "@NVME_DISK@"
+      wipe_table: true
+      partitions:
+        - label: os-root
+          number: 1
+          size_mib: 65536
+        - label: etcd
+          number: 2
+          size_mib: 32768
+        - label: containerd
+          number: 3
+  filesystems:
+    - device: /dev/disk/by-partlabel/os-root
+      format: xfs
+      wipe_filesystem: true
+      label: root
+    - device: /dev/disk/by-partlabel/etcd
+      format: xfs
+      wipe_filesystem: true
+      label: etcd
+      path: /var/lib/etcd
+      with_mount_unit: true
+    - device: /dev/disk/by-partlabel/containerd
+      format: xfs
+      wipe_filesystem: true
+      label: containerd
+      path: /var/lib/containerd
+      with_mount_unit: true
+systemd:
+  units:
+    - name: etcd-member.service
+      dropins:
+        - name: 10-mount.conf
+          contents: |
+            [Unit]
+            RequiresMountsFor=/var/lib/etcd
+    - name: containerd.service
+      dropins:
+        - name: 10-mount.conf
+          contents: |
+            [Unit]
+            RequiresMountsFor=/var/lib/containerd

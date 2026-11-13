@@ -22,6 +22,7 @@ fs='.storage.filesystems[] | select(.device == "/dev/disk/by-partlabel/etcd")'
 [[ $(jq -r "$fs | .wipeFilesystem" <<<"$ign") == true ]] || fail "etcd filesystem is not wiped on reprovision"
 [[ $(jq -r "$fs | .path" <<<"$ign") == /var/lib/etcd ]] || fail "etcd filesystem not mounted on /var/lib/etcd"
 jq -e '.systemd.units[] | select(.name == "var-lib-etcd.mount" and .enabled == true)' <<<"$ign" >/dev/null || fail "no enabled mount unit"
+jq -e '.systemd.units[] | select(.name == "etcd-member.service") | .dropins[] | select(.contents | contains("RequiresMountsFor=/var/lib/etcd"))' <<<"$ign" >/dev/null || fail "etcd-member does not wait for the mount"
 
 # segv.tf wires the snippet only when a disk is configured, so the node still renders without the hardware.
 grep -qF 'replace(file("../butane/etcd-disk.yaml"), "@ETCD_DISK@", var.etcd_disk)' "$HERE/../../infra/clusters/segv/segv.tf" || fail "segv.tf does not use the snippet"

@@ -37,10 +37,10 @@ variable "console" {
   default = "ttyS1"
 }
 
-# Stable /dev/disk/by-id path of the NVMe disk for /var/lib/etcd (docs/plans/etcd-nvme.md). Empty keeps etcd on the OS disk.
+# Stable /dev/disk/by-id path of the NVMe disk for /var/lib/etcd. Empty keeps etcd on the OS disk.
 variable "etcd_disk" {
   type    = string
-  default = ""
+  default = "/dev/disk/by-id/nvme-Patriot_M.2_P320_256GB_P320ECBB25122302234"
 }
 
 locals {

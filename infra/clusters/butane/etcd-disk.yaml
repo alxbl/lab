@@ -17,3 +17,11 @@ storage:
       label: etcd
       path: /var/lib/etcd
       with_mount_unit: true
+systemd:
+  units:
+    - name: etcd-member.service
+      dropins:
+        - name: 10-mount.conf
+          contents: |
+            [Unit]
+            RequiresMountsFor=/var/lib/etcd

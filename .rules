@@ -7,6 +7,7 @@ Plans, todos, handovers and snapshots live in the ledger (`~/Code/code.segfault.
 ## Safety
 - `infra/clusters/segv` is the real cluster. `infra/clusters/dev` is the throwaway KVM test cluster. **NEVER** run `terraform apply`/`destroy` against segv, or `scripts/bootstrap.sh` (stops DNS, edits iptables, applies segv), without explicit consent. `terraform apply` in `infra/clusters/dev` is fine.
 - Nodes wipe their root FS on reprovision (`infra/clusters/butane/wipe-root.yaml`). Treat any node reprovision as destructive.
+- segv keeps `/var/lib/etcd` on a dedicated NVMe (`infra/clusters/butane/etcd-disk.yaml`, disk id in `etcd_disk` in `segv.tf`). It is wiped on every reprovision like root: Typhoon bootstraps a fresh etcd with new certificates and stale data would conflict.
 - `scripts/pacstrap.sh` partitions and wipes disks. Never run it.
 - Never commit secrets, kubeconfigs (`*.conf`, `kube.conf`), terraform state, or private PKI. Only the root CA is committed under `pki/`. `infra/examples/secrets` holds placeholders only.
 - Secrets and the real PKI live in Proton Drive at `/my-files/Documents/Homelab/_secrets` (layout in `README.md`). Use `scripts/export-secrets` and `scripts/import-secrets`; never copy their contents into the repo, logs or chat.

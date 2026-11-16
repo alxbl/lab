@@ -358,7 +358,9 @@ flowchart LR
 - **cortex** is deployed from the `alxbl/segfault.me` repository (`build/setup.sh`): sslh, nginx and nghttpx, with `/auth` proxied
   to the Gateway over verified TLS.
 - **DNS**: CoreDNS is managed by Argo and forwards to Quad9 over DoT; AdGuard uses DoT with the UDM as fallback, and the UDM
-  hands out `10.3.0.53` then `10.0.0.1`. The split-DNS names exist as UDM local records and AdGuard rewrites.
+  hands out `10.3.0.53` then `10.0.0.1`. Both forward the `lan` domain to the UDM (AdGuard resolves nothing under `.lan`
+  otherwise, and the OS does not fall back to the second server on NXDOMAIN). The split-DNS names exist as UDM local
+  records and AdGuard rewrites.
 - **cert-manager** went from 1.14.4 to 1.20.4. **OLM** and the **CNPG** operator are now synced and running.
 - **Monitoring** is present: Prometheus, Grafana (served at `/grafana`), Loki, Alloy, metrics-server.
 - **Backups**: `keycloak` joined the schedule, both CNPG databases are dumped by a pre-hook, the OpenEBS repository is gone.

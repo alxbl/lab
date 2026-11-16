@@ -30,6 +30,9 @@ data:
       ratelimit_whitelist: []
       refuse_any: true
       upstream_dns:
+        # Local names belong to the UDM (same split as the lan zone of the CoreDNS Corefile). LAN clients get this resolver
+        # first from DHCP, so without it they cannot resolve any .lan name outside the rewrites below.
+        - "[/lan/]10.0.0.1"
         - tls://dns10.quad9.net
       upstream_dns_file: ""
       bootstrap_dns:
